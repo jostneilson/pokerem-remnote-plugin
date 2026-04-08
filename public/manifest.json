@@ -3,7 +3,7 @@
   "id": "ankimon_remnote",
   "name": "Ankimon",
   "author": "ankimon-remnote",
-  "repoUrl": "",
+  "repoUrl": "https://github.com/remnoteio/remnote-plugin-template-react",
   "version": {
     "major": 0,
     "minor": 0,
