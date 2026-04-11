@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "pokerem",
   "name": "PokéRem",
-  "author": "PokéRem contributors",
+  "author": "Jost Neilson",
   "repoUrl": "https://github.com/jostneilson/pokerem-remnote-plugin",
   "version": {
     "major": 0,
