@@ -89,13 +89,22 @@ const config = {
     }),
     new BannerPlugin({
       banner: (file) => {
-        return !file.chunk.name.includes(SANDBOX_SUFFIX) ? 'const IMPORT_META=import.meta;' : '';
+        // html-webpack-plugin and other assets may call this with no chunk — avoid null.includes
+        const name = file.chunk?.name;
+        if (name == null || typeof name !== 'string') return '';
+        return !name.includes(SANDBOX_SUFFIX) ? 'const IMPORT_META=import.meta;' : '';
       },
       raw: true,
     }),
     new CopyPlugin({
       patterns: [
-        { from: 'public', to: '' },
+        {
+          from: 'public',
+          to: '',
+          globOptions: {
+            ignore: ['**/.DS_Store'],
+          },
+        },
         { from: 'README.md', to: '' },
       ],
     }),

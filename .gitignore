@@ -4,3 +4,18 @@ dist
 dist-ssr
 *.local
 *.zip
+
+# Secrets / local env (never commit)
+.env
+.env.*
+
+# Logs & OS noise
+*.log
+npm-debug.log*
+Thumbs.db
+
+# Test / tool caches
+coverage
+.turbo
+*.tsbuildinfo
+.cache

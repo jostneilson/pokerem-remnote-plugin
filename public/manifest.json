@@ -1,17 +1,17 @@
 {
   "manifestVersion": 1,
-  "id": "ankimon_remnote",
-  "name": "Ankimon",
-  "author": "ankimon-remnote",
-  "repoUrl": "https://github.com/remnoteio/remnote-plugin-template-react",
+  "id": "pokerem",
+  "name": "PokéRem",
+  "author": "PokéRem contributors",
+  "repoUrl": "https://github.com/pokerem/pokerem-remnote-plugin",
   "version": {
     "major": 0,
-    "minor": 0,
-    "patch": 1
+    "minor": 2,
+    "patch": 0
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "",
+  "description": "Unofficial fan companion (not Nintendo/TPCI). Pokémon-style hooks to reviews: wilds, catch, party, shop, types, achievements. Sprites from PokeAPI when online. See repo ATTRIBUTION.md.",
   "requestNative": false,
   "requiredScopes": [
     {
