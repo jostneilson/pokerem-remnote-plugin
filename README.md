@@ -26,20 +26,34 @@ Instead of turning study time into a separate game, PokéRem tries to make your 
 
 ## Screenshots
 
-### Encounter and battle flow
-<img src="docs/screenshots/battle-screen.png" alt="PokéRem battle screen" width="300">
-
-### Main study companion interface
-<img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="300">
-
-### Shop and rewards
-<img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="300">
-
-### Trainer progress and achievements
-<img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="300">
-
-### Pokédex and collection systems
-<img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="300">
+<table>
+  <tr>
+    <td align="center">
+      <strong>Encounter and battle flow</strong><br><br>
+      <img src="docs/screenshots/battle-screen.png" alt="PokéRem battle screen" width="300">
+    </td>
+    <td align="center">
+      <strong>Main study companion interface</strong><br><br>
+      <img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="300">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Shop and rewards</strong><br><br>
+      <img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="300">
+    </td>
+    <td align="center">
+      <strong>Trainer progress and achievements</strong><br><br>
+      <img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="300">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <strong>Pokédex and collection systems</strong><br><br>
+      <img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="300">
+    </td>
+  </tr>
+</table>
 
 ## Status
 
