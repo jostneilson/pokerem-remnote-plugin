@@ -153,6 +153,8 @@ export interface PokeRemGameState {
   routeFindReviewAccum?: number;
   /** Increments on each Route Find for HUD animation. */
   routeFindNoticeSeq?: number;
+  /** Last banner/toast sequence the user dismissed or auto-cleared (synced; survives tab remounts). */
+  routeFindNoticeAckSeq?: number;
   /** Latest find banner payload (replaced each new find). */
   routeFindNotice?: RouteFindNoticePayload | null;
 }

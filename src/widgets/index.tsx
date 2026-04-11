@@ -12,7 +12,9 @@ import {
   evaluateQueueCompleteDedupe,
   parseRecentQueueCompleteKeys,
 } from '../game/queueCompleteDedupe';
+import { extractEncounterReviewMultiplier } from '../game/queueCompletionMeta';
 import { neutralizeBrokenRegisterCSS } from '../neutralizeRemNoteCssApi';
+import { POKEREM_VERSION } from '../releaseMeta';
 import { BRAND, brandCommandCaps } from '../ui/theme/gameTheme';
 import '../style.css';
 import '../index.css';
@@ -43,10 +45,9 @@ async function onActivate(plugin: ReactRNPlugin) {
         const key = extractQueueCompleteDedupeKey(event);
         const { shouldProcess, nextKeysIfProcessed } = evaluateQueueCompleteDedupe(recent, key);
         if (!shouldProcess) return;
-        if (key != null) {
-          await plugin.storage.setSession(QUEUE_COMPLETE_RECENT_SESSION_KEY, nextKeysIfProcessed);
-        }
-        await runSingleReview(plugin);
+        await plugin.storage.setSession(QUEUE_COMPLETE_RECENT_SESSION_KEY, nextKeysIfProcessed);
+        const encounterReviewMultiplier = extractEncounterReviewMultiplier(event);
+        await runSingleReview(plugin, { encounterReviewMultiplier });
       } catch (e) {
         console.error(`[${BRAND.wordmark}] QueueCompleteCard handler failed`, e);
       }
@@ -215,10 +216,14 @@ async function onActivate(plugin: ReactRNPlugin) {
     // registerDropdownSetting may not be available in SDK 0.0.14
   }
 
+  // Same red Poké Ball as bag/shop (`public/assets/items/poke-ball.png`). `?v=` busts RemNote/host caching when the asset changes.
+  const pluginBase = (plugin.rootURL ?? '').replace(/\/?$/, '/');
+  const sidebarTabIconUrl = `${pluginBase}assets/items/poke-ball.png?v=${encodeURIComponent(POKEREM_VERSION)}`;
+
   await plugin.app.registerWidget('pokerem_sidebar', WidgetLocation.RightSidebar, {
     dimensions: { height: 'auto', width: '100%' },
     widgetTabTitle: BRAND.wordmark,
-    widgetTabIcon: `${(plugin.rootURL ?? '').replace(/\/?$/, '/')}assets/items/poke-ball.png`,
+    widgetTabIcon: sidebarTabIconUrl,
     dontOpenByDefaultInTabLocation: false,
   });
 

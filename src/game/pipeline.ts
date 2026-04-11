@@ -19,11 +19,18 @@ function parseGenSetting(value: unknown): number[] {
   return Array.from({ length: maxGen }, (_, i) => i + 1);
 }
 
+export type RunSingleReviewQueueOpts = {
+  encounterReviewMultiplier?: number;
+};
+
 /**
  * Single queue completion: read game state only after settings are resolved, inside a write lock,
  * so battle actions cannot be overwritten by a stale snapshot from an earlier read.
  */
-export async function runSingleReview(plugin: RNPlugin): Promise<PokeRemGameState> {
+export async function runSingleReview(
+  plugin: RNPlugin,
+  queueOpts?: RunSingleReviewQueueOpts,
+): Promise<PokeRemGameState> {
   let enabledGens: number[] | undefined;
   let encounterRate: number | undefined;
   let reviewWeight = 1;
@@ -77,6 +84,7 @@ export async function runSingleReview(plugin: RNPlugin): Promise<PokeRemGameStat
       encounterPacingModulo,
       reviewWeight: effectiveReviewWeight,
       routeFindReviewsNeeded,
+      encounterReviewMultiplier: queueOpts?.encounterReviewMultiplier,
     });
     await plugin.storage.setSynced(STORAGE_KEY, nextInner);
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import type { RouteFindNoticePayload } from '../../game/state/model';
 import { itemIconUrl } from '../../game/sprites';
 import { ITEM_BY_ID } from '../../game/data/items';
@@ -7,11 +7,14 @@ const DISPLAY_MS = 7200;
 
 /**
  * Compact “you noticed something on the route” banner — matches battle HUD language, auto-hides.
+ * Visibility is driven by synced `noticeSeq` vs `noticeAckSeq` so reopening the tab does not replay.
  */
 export function RouteFindBanner({
   rootURL,
   notice,
   noticeSeq,
+  noticeAckSeq,
+  onAcknowledge,
   accent,
   accentMuted,
   reducedMotion,
@@ -19,39 +22,24 @@ export function RouteFindBanner({
   rootURL: string | undefined;
   notice: RouteFindNoticePayload | null | undefined;
   noticeSeq: number;
+  /** Last sequence the user dismissed or auto-cleared (from synced game state). */
+  noticeAckSeq: number;
+  /** Persist “seen” — required for auto-dismiss and button. */
+  onAcknowledge?: () => void;
   accent: string;
   accentMuted: string;
   reducedMotion?: boolean;
 }) {
-  const [visible, setVisible] = useState(false);
-  const timerRef = useRef<number | null>(null);
-  const lastSeqRef = useRef(0);
-
-  const dismiss = () => {
-    setVisible(false);
-    if (timerRef.current != null) {
-      window.clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
+  const show = !!(notice && noticeSeq > 0 && noticeSeq > noticeAckSeq);
 
   useEffect(() => {
-    if (!notice || noticeSeq <= 0) {
-      setVisible(false);
-      return;
-    }
-    if (noticeSeq === lastSeqRef.current) return;
-    lastSeqRef.current = noticeSeq;
-    setVisible(true);
-    if (timerRef.current != null) window.clearTimeout(timerRef.current);
+    if (!show || !onAcknowledge) return;
     const ms = reducedMotion ? Math.max(DISPLAY_MS, 10000) : DISPLAY_MS;
-    timerRef.current = window.setTimeout(() => setVisible(false), ms);
-    return () => {
-      if (timerRef.current != null) window.clearTimeout(timerRef.current);
-    };
-  }, [notice, noticeSeq, reducedMotion]);
+    const id = window.setTimeout(() => onAcknowledge(), ms);
+    return () => window.clearTimeout(id);
+  }, [show, noticeSeq, noticeAckSeq, reducedMotion, onAcknowledge]);
 
-  if (!notice || !visible) return null;
+  if (!show || !notice) return null;
 
   const meta = ITEM_BY_ID.get(notice.itemId);
   const kind = notice.source === 'scrap' ? 'Battle scrap' : 'Route find';
@@ -94,7 +82,7 @@ export function RouteFindBanner({
         </div>
         <button
           type="button"
-          onClick={dismiss}
+          onClick={() => onAcknowledge?.()}
           className="shrink-0 rounded border px-1.5 py-0.5 text-[8px] font-bold leading-none hover:brightness-110"
           style={{
             borderColor: accent,

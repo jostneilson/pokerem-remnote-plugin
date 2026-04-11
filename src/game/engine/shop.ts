@@ -1,8 +1,13 @@
 import { ITEMS, type ItemId, type ItemData } from '../data/items';
 
-const ALWAYS_AVAILABLE: ItemId[] = ['poke-ball', 'great-ball', 'potion', 'exp-candy-s', 'catch-scope'];
+const ALWAYS_TAIL: ItemId[] = ['potion', 'exp-candy-s', 'catch-scope'];
+
+/** Matches {@link TRAINER_REWARDS} level 7 — Ultra Ball is always stocked once unlocked. */
+export const ULTRA_BALL_UNLOCK_LEVEL = 7;
+
+/** Daily deals exclude items that are also always-unlocked at common trainer levels (see getShopInventory). */
 const DAILY_POOL: ItemId[] = [
-  'ultra-ball', 'super-potion', 'max-potion', 'revive', 'oran-berry',
+  'super-potion', 'max-potion', 'revive', 'oran-berry',
   'rare-candy', 'fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone',
 ];
 
@@ -24,8 +29,12 @@ export interface ShopItem {
   isDaily: boolean;
 }
 
-export function getShopInventory(): ShopItem[] {
-  const always: ShopItem[] = ALWAYS_AVAILABLE.map((id) => {
+export function getShopInventory(trainerLevel: number = 1): ShopItem[] {
+  const alwaysIds: ItemId[] = ['poke-ball', 'great-ball'];
+  if (trainerLevel >= ULTRA_BALL_UNLOCK_LEVEL) alwaysIds.push('ultra-ball');
+  alwaysIds.push(...ALWAYS_TAIL);
+
+  const always: ShopItem[] = alwaysIds.map((id) => {
     const item = ITEMS.find((i) => i.id === id)!;
     return { item, price: item.price, isDaily: false };
   });

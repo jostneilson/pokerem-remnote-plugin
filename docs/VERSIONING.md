@@ -10,8 +10,8 @@ The production build copies `public/` into `dist/`, so the submitted zip must co
 
 ## In-app version label
 
-[`src/releaseMeta.ts`](../src/releaseMeta.ts) exports `POKEREM_VERSION` for the Settings → About line. Bump it whenever you bump the manifest
-and `package.json` so the UI never shows a stale number.
+[`src/releaseMeta.ts`](../src/releaseMeta.ts) exports `POKEREM_VERSION` for the Settings → About line **and** as a cache-bust query on the **right-sidebar tab icon** URL (`assets/items/poke-ball.png` in [`src/widgets/index.tsx`](../src/widgets/index.tsx)). Bump it whenever you bump the manifest
+and `package.json` so the UI never shows a stale number, and so RemNote picks up an updated Poké Ball asset for the tab.
 
 ## npm `package.json` version
 

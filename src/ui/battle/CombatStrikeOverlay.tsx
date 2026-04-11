@@ -74,7 +74,7 @@ export function CombatStrikeOverlay({
       {cat === 'special' ? <div className="pkr-combat-strike__rings" /> : null}
       {cat === 'status' ? <div className="pkr-combat-strike__mist" /> : null}
       <div className="pkr-combat-strike__icon">
-        <TypeSymbolImage rootURL={rootURL} type={move.type} size={26} variant="resist" reducedMotion={reducedMotion} />
+        <TypeSymbolImage rootURL={rootURL} type={move.type} size={26} variant="resist" reducedMotion={reducedMotion} showTooltip={false} />
       </div>
     </div>
   );

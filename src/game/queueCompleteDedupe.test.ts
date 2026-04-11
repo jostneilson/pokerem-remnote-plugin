@@ -11,9 +11,14 @@ describe('extractQueueCompleteDedupeKey', () => {
     expect(extractQueueCompleteDedupeKey({ card: { remId: 'xyz' } })).toBe('id:xyz');
   });
 
-  it('returns null for empty or unknown payloads', () => {
+  it('returns null only for non-object payloads', () => {
     expect(extractQueueCompleteDedupeKey(null)).toBe(null);
-    expect(extractQueueCompleteDedupeKey({})).toBe(null);
+  });
+
+  it('falls back to a stable fingerprint when no id fields exist', () => {
+    const a = extractQueueCompleteDedupeKey({ foo: 1, bar: 'x' });
+    expect(a).toMatch(/^fp:/);
+    expect(extractQueueCompleteDedupeKey({ foo: 1, bar: 'x' })).toBe(a);
   });
 });
 
@@ -34,5 +39,13 @@ describe('evaluateQueueCompleteDedupe', () => {
     const r = evaluateQueueCompleteDedupe(['id:1'], null);
     expect(r.shouldProcess).toBe(true);
     expect(r.nextKeysIfProcessed).toEqual(['id:1']);
+  });
+
+  it('dedupes identical fingerprint payloads', () => {
+    const k = extractQueueCompleteDedupeKey({ z: 9 })!;
+    const first = evaluateQueueCompleteDedupe([], k);
+    expect(first.shouldProcess).toBe(true);
+    const second = evaluateQueueCompleteDedupe(first.nextKeysIfProcessed, k);
+    expect(second.shouldProcess).toBe(false);
   });
 });

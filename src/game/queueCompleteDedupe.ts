@@ -3,9 +3,19 @@
  * card does not inflate cardsReviewed, daily stats, or wild pacing.
  */
 
+import { stableQueueEventJson } from './queueCompletionMeta';
+
 export const QUEUE_COMPLETE_RECENT_SESSION_KEY = 'pokerem.queueCompleteRecent';
 
 const MAX_RECENT_KEYS = 80;
+
+function hashDjb2Base36(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 33) ^ s.charCodeAt(i)!;
+  }
+  return (h >>> 0).toString(36);
+}
 
 /** Try common RemNote / SDK shapes for a stable per-completion identity. */
 export function extractQueueCompleteDedupeKey(event: unknown): string | null {
@@ -36,7 +46,11 @@ export function extractQueueCompleteDedupeKey(event: unknown): string | null {
     if (typeof c === 'number' && Number.isFinite(c)) return `id:${c}`;
   }
 
-  return null;
+  try {
+    return `fp:${hashDjb2Base36(stableQueueEventJson(event))}`;
+  } catch {
+    return null;
+  }
 }
 
 export function parseRecentQueueCompleteKeys(raw: unknown): string[] {

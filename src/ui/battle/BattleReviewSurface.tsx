@@ -42,6 +42,7 @@ import { BRAND } from '../theme/gameTheme';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
 import { TrainerXpStarBurst } from '../components/TrainerXpStarBurst';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
+import { estimatedQueueCompletionsUntilWild } from '../../game/wildEncounterDisplay';
 
 /** Design baseline for proportions when the host width is unknown. */
 const DESIGN_W = 360;
@@ -154,6 +155,9 @@ export function BattleReviewSurface({
   showDailyHeaderStats = true,
   /** Optional: receives the chrome column height in px (header + cave) when layout changes. */
   onFieldEndOffsetChange,
+  encounterPacingModulo,
+  wildReviewWeight,
+  onAcknowledgeRouteFind,
   /**
    * Sidebar layout: `sticky` is the header + cave (fixed above the scrollport); `lower` is the command
    * column (place inside the host `overflow-y-auto` so it scrolls under the cave).
@@ -191,10 +195,21 @@ export function BattleReviewSurface({
   /** When false, hide compact "today" stats in the header (RemNote plugin setting). */
   showDailyHeaderStats?: boolean;
   onFieldEndOffsetChange?: (offsetFromBattleTopPx: number) => void;
+  /** Matches plugin `pokerem.encounterPacing` (1 or 2) — used only for wild ETA copy. */
+  encounterPacingModulo?: number;
+  /** Effective study weight for wild accumulation (settings or study difficulty). */
+  wildReviewWeight?: number;
+  onAcknowledgeRouteFind?: () => void;
   sidebarSplitLayout?: (parts: { sticky: ReactNode; lower: ReactNode }) => JSX.Element;
 }) {
   const progress = state.encounterProgress;
   const effectiveRate = encounterRate ?? REVIEWS_PER_ENCOUNTER;
+  const pacingMod =
+    typeof encounterPacingModulo === 'number' && encounterPacingModulo >= 2
+      ? Math.floor(encounterPacingModulo)
+      : 1;
+  const wildRw =
+    typeof wildReviewWeight === 'number' && Number.isFinite(wildReviewWeight) ? wildReviewWeight : 1;
   const trainerProg = trainerXpProgress(state.trainerXp ?? 0);
   const trainerLv = state.trainerLevel ?? 1;
   const xpMoment = useTrainerXpMoment(state.trainerXp ?? 0, trainerLv, reducedMotion === true);
@@ -229,6 +244,18 @@ export function BattleReviewSurface({
   const leadFaintedNoEncounter = !hasEncounter && active.currentHp <= 0;
   const showPendingCatch =
     !!pendingCaughtMon && !hasEncounter && onPendingCatchReplace && onPendingCatchCancel;
+
+  const exploreWildCompletionsRemaining =
+    !hasEncounter && !leadFaintedNoEncounter
+      ? estimatedQueueCompletionsUntilWild({
+          encounterProgress: progress,
+          effectiveRate,
+          wildReviewAccum: state.wildReviewAccum ?? 0,
+          reviewWeight: wildRw,
+          encounterPacingModulo: pacingMod,
+          cardsReviewed: state.cardsReviewed,
+        })
+      : 0;
 
   const pendingCatchKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -831,7 +858,6 @@ export function BattleReviewSurface({
                       color: '#422006',
                       boxShadow: '0 0 6px rgba(250, 204, 21, 0.55)',
                     }}
-                    title="Shiny Pokémon"
                   >
                     Shiny
                   </span>
@@ -857,15 +883,15 @@ export function BattleReviewSurface({
             </div>
             <div className={`pkr-battle-type-panel ${wildTypePanelVisible ? 'pkr-battle-type-panel--open' : ''}`}>
             {sortTypes(fieldWild.types).length > 0 ? (
-              <div className="mt-1 flex flex-wrap items-center justify-end gap-0.5" title="Wild Pokémon types">
+              <div className="mt-1 flex flex-wrap items-center justify-end gap-0.5">
                 {sortTypes(fieldWild.types).map((t) => (
-                  <TypeSymbolImage key={`wt-${t}`} rootURL={rootURL} type={t} size={Math.min(typeIconSize, 16)} variant="resist" reducedMotion={reducedMotion} />
+                  <TypeSymbolImage key={`wt-${t}`} rootURL={rootURL} type={t} size={Math.min(typeIconSize, 16)} variant="resist" reducedMotion={reducedMotion} showTooltip={false} />
                 ))}
               </div>
             ) : null}
             {wildResistIcons.length > 0 ? (
               <div className="mt-1 flex min-w-0 flex-wrap items-center justify-end gap-0.5">
-                <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#86efac' }} title="Resists your attacks (not very effective)">
+                <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#86efac' }}>
                   ↑
                 </span>
                 {wildResistIcons.map((t) => (
@@ -876,13 +902,14 @@ export function BattleReviewSurface({
                     size={typeIconSize}
                     variant="resist"
                     reducedMotion={reducedMotion}
+                    showTooltip={false}
                   />
                 ))}
               </div>
             ) : null}
             {wildWeakIcons.length > 0 ? (
               <div className="mt-0.5 flex min-w-0 flex-wrap items-center justify-end gap-0.5">
-                <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#fca5a5' }} title="Weak to your attacks (super-effective)">
+                <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#fca5a5' }}>
                   ↓
                 </span>
                 {wildWeakIcons.map((t) => (
@@ -893,6 +920,7 @@ export function BattleReviewSurface({
                     size={typeIconSize}
                     variant="weak"
                     reducedMotion={reducedMotion}
+                    showTooltip={false}
                   />
                 ))}
               </div>
@@ -994,7 +1022,6 @@ export function BattleReviewSurface({
                   color: '#422006',
                   boxShadow: '0 0 6px rgba(250, 204, 21, 0.55)',
                 }}
-                title="Shiny Pokémon"
               >
                 Shiny
               </span>
@@ -1019,9 +1046,17 @@ export function BattleReviewSurface({
           </div>
           <div className={`pkr-battle-type-panel ${playerTypePanelVisible ? 'pkr-battle-type-panel--open' : ''}`}>
           {inBattleField && sortTypes(active.types).length > 0 ? (
-            <div className="mt-1 flex flex-wrap items-center justify-start gap-0.5" title="Your active Pokémon types">
+            <div className="mt-1 flex flex-wrap items-center justify-start gap-0.5">
               {sortTypes(active.types).map((t) => (
-                <TypeSymbolImage key={`pt-${t}`} rootURL={rootURL} type={t} size={Math.min(typeIconSize, 16)} variant="resist" reducedMotion={reducedMotion} />
+                <TypeSymbolImage
+                  key={`pt-${t}`}
+                  rootURL={rootURL}
+                  type={t}
+                  size={Math.min(typeIconSize, 16)}
+                  variant="resist"
+                  reducedMotion={reducedMotion}
+                  showTooltip={false}
+                />
               ))}
             </div>
           ) : null}
@@ -1029,7 +1064,7 @@ export function BattleReviewSurface({
             <>
               {playerResistIcons.length > 0 ? (
                 <div className="mt-1 flex min-w-0 flex-wrap items-center justify-start gap-0.5">
-                  <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#86efac' }} title="Resists (not very effective)">
+                  <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#86efac' }}>
                     ↑
                   </span>
                   {playerResistIcons.map((t) => (
@@ -1040,13 +1075,14 @@ export function BattleReviewSurface({
                       size={typeIconSize}
                       variant="resist"
                       reducedMotion={reducedMotion}
+                      showTooltip={false}
                     />
                   ))}
                 </div>
               ) : null}
               {playerWeakIcons.length > 0 ? (
                 <div className="mt-0.5 flex min-w-0 flex-wrap items-center justify-start gap-0.5">
-                  <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#fca5a5' }} title="Weaknesses (super-effective)">
+                  <span className="shrink-0 text-[11px] font-black leading-none" style={{ color: '#fca5a5' }}>
                     ↓
                   </span>
                   {playerWeakIcons.map((t) => (
@@ -1057,6 +1093,7 @@ export function BattleReviewSurface({
                       size={typeIconSize}
                       variant="weak"
                       reducedMotion={reducedMotion}
+                      showTooltip={false}
                     />
                   ))}
                 </div>
@@ -1067,10 +1104,7 @@ export function BattleReviewSurface({
         </div>
 
         {/* ── Trek / encounter progress (bottom center) ── */}
-        <div
-          className="absolute bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5"
-          title={`${progress} of ${effectiveRate} reviews toward the next wild check`}
-        >
+        <div className="absolute bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5">
           <span className="pkr-battle-hud-role" style={{ color: amb.accentMuted }}>
             Next wild
           </span>
@@ -1081,6 +1115,13 @@ export function BattleReviewSurface({
             progress={progress}
             hasEncounter={hasEncounter}
             accent={amb.accent}
+            title={
+              hasEncounter || leadFaintedNoEncounter
+                ? undefined
+                : `About ${exploreWildCompletionsRemaining} queue completion${
+                    exploreWildCompletionsRemaining === 1 ? '' : 's'
+                  } until the next wild Pokémon (${progress} of ${effectiveRate} toward encounter)`
+            }
           />
         </div>
 
@@ -1110,6 +1151,8 @@ export function BattleReviewSurface({
             rootURL={rootURL}
             notice={state.routeFindNotice}
             noticeSeq={state.routeFindNoticeSeq ?? 0}
+            noticeAckSeq={state.routeFindNoticeAckSeq ?? 0}
+            onAcknowledge={onAcknowledgeRouteFind}
             accent={amb.accent}
             accentMuted={amb.accentMuted}
             reducedMotion={reducedMotion}
@@ -1132,7 +1175,6 @@ export function BattleReviewSurface({
               key={feedbackSeq}
               className="pkr-pixel-dialog pkr-battle-outcome-box animate-pkr-flash rounded-md border-2 px-2.5 py-2 text-[8px] font-black leading-relaxed transition-[box-shadow,border-color] duration-300"
               style={battleLogOutcomeStyle}
-              title={state.lastBattleLog}
             >
               {battleLogRichText(state.lastBattleLog)}
             </p>
@@ -1188,17 +1230,13 @@ export function BattleReviewSurface({
                             ? `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px ${amb.accent}55`
                             : `inset 0 1px 0 rgba(255,255,255,0.14), 0 2px 0 rgba(0,0,0,0.35)`,
                       }}
-                      title={m ? `${m.name} — ${m.type}, ${cat.title}, power ${m.power}` : moveId}
                     >
                       <div className="flex items-start justify-between gap-1">
                         <div className="line-clamp-2 min-w-0 flex-1 text-[9px] font-black uppercase leading-tight">
                           {battleBusy && busyAction === 'fight' ? '…' : (m?.name ?? moveId)}
                         </div>
                         {m ? (
-                          <span
-                            className="pkr-battle-move-cat shrink-0"
-                            title={cat.title}
-                          >
+                          <span className="pkr-battle-move-cat shrink-0">
                             {cat.short}
                           </span>
                         ) : null}
@@ -1206,7 +1244,7 @@ export function BattleReviewSurface({
                       {m ? (
                         <div className="mt-1 flex items-center justify-between gap-1 border-t border-black/25 pt-1">
                           <div className="flex min-w-0 items-center gap-1">
-                            <TypeSymbolImage rootURL={rootURL} type={m.type} size={14} reducedMotion={reducedMotion} />
+                            <TypeSymbolImage rootURL={rootURL} type={m.type} size={14} reducedMotion={reducedMotion} showTooltip={false} />
                             <span className="truncate text-[7px] font-bold opacity-95">{m.type}</span>
                           </div>
                           <span className="shrink-0 pkr-pixel-title text-[5px] leading-none opacity-90">
@@ -1250,7 +1288,6 @@ export function BattleReviewSurface({
                     background: 'linear-gradient(180deg, #fde047 0%, #eab308 42%, #ca8a04 100%)',
                     filter: !canCatch ? 'saturate(0.65) brightness(0.92)' : undefined,
                   }}
-                  title={!canCatch ? 'No Poké Balls in bag' : 'Throw a ball (uses your best available ball in the engine)'}
                 >
                   <GameIcon name="pokeball" size={15} className="shrink-0" style={{ color: '#451a03' }} />
                   <div className="whitespace-nowrap text-[9px] font-black uppercase leading-none" style={{ color: '#451a03' }}>
@@ -1268,7 +1305,6 @@ export function BattleReviewSurface({
                     background: 'linear-gradient(180deg, #fb7185 0%, #dc2626 42%, #991b1b 100%)',
                     boxShadow: `0 0 0 1px rgba(0,0,0,0.35), 0 0 14px ${amb.accent}33`,
                   }}
-                  title={active.currentHp <= 0 ? 'Lead has fainted' : 'Open move list — attack the wild Pokémon'}
                 >
                   <span
                     className="pointer-events-none absolute inset-x-1 top-1 h-px rounded-full opacity-50"
@@ -1290,7 +1326,6 @@ export function BattleReviewSurface({
                     borderColor: '#0f766e',
                     background: 'linear-gradient(180deg, #99f6e4 0%, #2dd4bf 35%, #0d9488 100%)',
                   }}
-                  title="Flee this encounter"
                 >
                   <GameIcon name="flee" size={15} className="shrink-0" style={{ color: '#042f2e' }} />
                   <div
@@ -1305,7 +1340,6 @@ export function BattleReviewSurface({
                 <div
                   className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-md border px-2 py-1"
                   style={{ borderColor: `${amb.accent}44`, background: 'rgba(0,0,0,0.22)' }}
-                  title="Catch balls in your bag"
                 >
                   <span className="pkr-pixel-title shrink-0 text-[4px] uppercase" style={{ color: amb.accentMuted }}>
                     Balls
@@ -1331,7 +1365,6 @@ export function BattleReviewSurface({
                     color: '#bfdbfe',
                     boxShadow: '0 0 10px rgba(59,130,246,0.25)',
                   }}
-                  title="Use one Catch Scope to read approximate catch odds for your next throw (consumes 1 scope)."
                 >
                   Catch Scope ×{catchScopeCount}
                 </button>
@@ -1350,7 +1383,7 @@ export function BattleReviewSurface({
             className="rounded-lg py-2.5 text-center text-[11px] font-bold"
             style={{ border: `1px dashed ${amb.exploreBorder}`, background: 'rgba(0,0,0,0.2)', color: amb.exploreText }}
           >
-            Keep reviewing — wild in {effectiveRate - progress} cards
+            Keep reviewing — wild in {exploreWildCompletionsRemaining} cards
           </div>
         )}
         {!canCatch && hasEncounter ? (
@@ -1386,7 +1419,7 @@ export function BattleReviewSurface({
             aria-label="Choose party member to send to storage"
             tabIndex={-1}
             onKeyDown={pendingCatchKeyDown}
-            className="pkr-battle-hud max-h-[min(72vh,400px)] w-full max-w-sm overflow-y-auto rounded-lg border p-3 shadow-xl outline-none"
+            className="pkr-battle-hud w-full max-w-sm overflow-y-visible rounded-lg border p-3 shadow-xl outline-none max-sm:max-h-[min(88svh,560px)] max-sm:overflow-y-auto"
             style={{ borderColor: 'var(--pkr-panel-border)', background: 'var(--pkr-sidebar-gradient)' }}
           >
             <div className="text-[11px] font-black" style={{ color: 'var(--pkr-pill-active-text)' }}>

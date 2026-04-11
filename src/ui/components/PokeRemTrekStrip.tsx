@@ -53,8 +53,10 @@ export function PokeRemTrekStrip({
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 0 rgba(0,0,0,0.35)',
       };
 
+  const a11yLabel = title ?? defaultTitle;
+
   return (
-    <div className={wrapClass} style={wrapStyle} title={title ?? defaultTitle}>
+    <div className={wrapClass} style={wrapStyle} role="group" aria-label={a11yLabel}>
       {Array.from({ length: effectiveRate }, (_, i) => {
         const filled = hasEncounter || i < progress;
         const isLast = i === effectiveRate - 1;

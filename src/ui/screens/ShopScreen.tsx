@@ -7,15 +7,17 @@ import { GameIcon } from '../components/GameIcon';
 export function ShopScreen({
   rootURL,
   currency,
+  trainerLevel,
   onBuy,
   reducedMotion,
 }: {
   rootURL: string | undefined;
   currency: number;
+  trainerLevel: number;
   onBuy: (itemId: string, price: number) => void;
   reducedMotion?: boolean;
 }) {
-  const inventory = getShopInventory();
+  const inventory = getShopInventory(trainerLevel);
   const always = inventory.filter((i) => !i.isDaily);
   const daily = inventory.filter((i) => i.isDaily);
   const [purchasePulseId, setPurchasePulseId] = useState<string | null>(null);

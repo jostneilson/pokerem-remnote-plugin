@@ -26,6 +26,8 @@ From `ITEMS` in `items.ts` (unique `iconFile` values):
 
 Place each under `public/assets/items/`.
 
+**Catch balls (`poke-ball`, `great-ball`, `ultra-ball`):** These three (plus optional `master-ball.png` for future use) are exported from a **single 2×2 sprite sheet** so they share the same pixel scale, outline, and shading. Each cell is **background-removed** (transparent outside the ball) and **normalized to a 64×64** canvas so icons align in the bag, shop, and trek strip.
+
 ---
 
 ## Type orbs (required for type chart / battle)

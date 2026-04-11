@@ -105,17 +105,39 @@ describe('onQueueCardComplete', () => {
     expect(next.lastBattleLog).toBe('test');
   });
 
-  it('applies reviewWeight to currency and wild accum', () => {
+  it('applies reviewWeight to currency and XP but not wild encounter units', () => {
     let s = createInitialStateV2();
     s = chooseStarter(s, 1);
     s = { ...s, encounterProgress: 0, wildReviewAccum: 0, currency: 0 };
     const a = onQueueCardComplete(s, [1], 99, { reviewWeight: 0.5 });
     expect(a.cardsReviewed).toBe(1);
-    expect(a.wildReviewAccum).toBe(0.5);
-    expect(a.encounterProgress).toBe(0);
+    expect(a.wildReviewAccum).toBe(0);
+    expect(a.encounterProgress).toBe(1);
     const b = onQueueCardComplete(a, [1], 99, { reviewWeight: 0.5 });
     expect(b.wildReviewAccum).toBe(0);
-    expect(b.encounterProgress).toBe(1);
+    expect(b.encounterProgress).toBe(2);
+  });
+
+  it('applies encounterReviewMultiplier only to wild and route-find accum', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 1);
+    s = {
+      ...s,
+      encounterProgress: 0,
+      wildReviewAccum: 0,
+      routeFindProgress: 0,
+      routeFindReviewAccum: 0,
+      currency: 0,
+      lastStudyDate: today,
+      currentStreak: 1,
+    };
+    const xp0 = s.trainerXp ?? 0;
+    const cur0 = s.currency ?? 0;
+    const next = onQueueCardComplete(s, [1], 99, { reviewWeight: 1, encounterReviewMultiplier: 4 });
+    expect(next.encounterProgress).toBe(4);
+    expect((next.trainerXp ?? 0) - xp0).toBe(TRAINER_XP_SOURCES.cardReview);
+    expect((next.currency ?? 0) - cur0).toBe(10);
   });
 
   it('grants a Route Find after enough paced reviews when no wild spawns', () => {

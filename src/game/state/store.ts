@@ -10,7 +10,7 @@ import {
 import { nextCatchBallForBag, spawnEncounter, tryCatch, wildCatchChancePreview } from '../engine/encounters';
 import { checkLevelEvolution, applyEvolution } from '../engine/evolution';
 import { checkLearnMoves, dedupeMoveIds, getInitialMoves, movesetForBattle, pickDefaultBattleMove } from '../engine/moveLearn';
-import { CURRENCY_REWARDS } from '../engine/shop';
+import { CURRENCY_REWARDS, ULTRA_BALL_UNLOCK_LEVEL } from '../engine/shop';
 import { getEffectiveness } from '../data/typeChart';
 import { computeTrainerRank } from '../engine/trainerRank';
 import { levelFromXp, maxHpFor, xpToNextLevel, XP_PER_LEVEL } from '../engine/progression';
@@ -107,6 +107,7 @@ export function createInitialStateV3(): PokeRemGameState {
     routeFindProgress: 0,
     routeFindReviewAccum: 0,
     routeFindNoticeSeq: 0,
+    routeFindNoticeAckSeq: 0,
     routeFindNotice: null,
     lastCombatStrike: null,
   };
@@ -355,6 +356,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
         ? Math.max(0, o.routeFindReviewAccum)
         : 0,
     routeFindNoticeSeq: typeof o.routeFindNoticeSeq === 'number' ? o.routeFindNoticeSeq : 0,
+    routeFindNoticeAckSeq: typeof o.routeFindNoticeAckSeq === 'number' ? o.routeFindNoticeAckSeq : 0,
     routeFindNotice: normalizeRouteFindNotice(o.routeFindNotice),
     schemaVersion: 3,
   };
@@ -486,11 +488,23 @@ export type QueueCardCompleteOptions = {
    * Pipeline derives this from encounter rate so finds stay rarer than wild battles.
    */
   routeFindReviewsNeeded?: number;
+  /**
+   * Wild + route-find progress only: list/enumeration cards count as multiple units when RemNote
+   * reports more than one item in a single completion event.
+   */
+  encounterReviewMultiplier?: number;
 };
 
 export function clearBattleLog(state: PokeRemGameState): PokeRemGameState {
   if (!state.lastBattleLog) return state;
   return { ...state, lastBattleLog: '', lastOutcomeKind: 'none', lastCombatStrike: null };
+}
+
+/** Marks the current route-find banner as seen (synced). Call after dismiss or auto-hide. */
+export function acknowledgeRouteFindNotice(state: PokeRemGameState): PokeRemGameState {
+  const seq = state.routeFindNoticeSeq ?? 0;
+  if (seq <= (state.routeFindNoticeAckSeq ?? 0)) return state;
+  return withTouch({ ...state, routeFindNoticeAckSeq: seq });
 }
 
 function updateStreak(state: PokeRemGameState): PokeRemGameState {
@@ -544,14 +558,15 @@ export function onQueueCardComplete(
   const reviewWeight =
     typeof rwRaw === 'number' && Number.isFinite(rwRaw) ? Math.max(0, Math.min(2, rwRaw)) : 1;
 
+  const ermRaw = options?.encounterReviewMultiplier;
+  const encounterReviewMultiplier =
+    typeof ermRaw === 'number' && Number.isFinite(ermRaw) ? Math.max(1, Math.min(50, Math.floor(ermRaw))) : 1;
+  /** Wild/route units per counted completion — not scaled by reviewWeight (XP/coins still are). */
+  const wildRouteUnits = encounterReviewMultiplier;
+
   let encounterProgress = clearedLog.encounterProgress;
-  let wildReviewAccum = clearedLog.wildReviewAccum ?? 0;
   if (countsTowardWild) {
-    wildReviewAccum += reviewWeight;
-    while (wildReviewAccum >= 1) {
-      wildReviewAccum -= 1;
-      encounterProgress += 1;
-    }
+    encounterProgress += wildRouteUnits;
   }
 
   const currencyEarned = Math.round(CURRENCY_REWARDS.review * reviewWeight);
@@ -560,7 +575,7 @@ export function onQueueCardComplete(
     ...clearedLog,
     cardsReviewed: reviewed,
     encounterProgress,
-    wildReviewAccum,
+    wildReviewAccum: 0,
     currency: (clearedLog.currency ?? 0) + currencyEarned,
     totalCurrencyEarned: (clearedLog.totalCurrencyEarned ?? 0) + currencyEarned,
   }, trainerXpCard);
@@ -610,19 +625,14 @@ export function onQueueCardComplete(
         ? Math.floor(options.routeFindReviewsNeeded)
         : ROUTE_FIND_REVIEWS_DEFAULT;
     let rfProg = next.routeFindProgress ?? 0;
-    let rfAccum = next.routeFindReviewAccum ?? 0;
     if (countsTowardWild) {
-      rfAccum += reviewWeight;
-      while (rfAccum >= 1) {
-        rfAccum -= 1;
-        rfProg += 1;
-      }
+      rfProg += wildRouteUnits;
     }
     while (rfProg >= rfNeeded) {
       rfProg -= rfNeeded;
       next = applyRouteFindToState(next, rollTravelRouteFind(next));
     }
-    next = { ...next, routeFindProgress: rfProg, routeFindReviewAccum: rfAccum };
+    next = { ...next, routeFindProgress: rfProg, routeFindReviewAccum: 0 };
   }
 
   if (!next.currentEncounter) {
@@ -1300,6 +1310,7 @@ export function claimTrainerReward(state: PokeRemGameState, level: number): Poke
 
 export function buyItem(state: PokeRemGameState, itemId: string, price: number): PokeRemGameState {
   if ((state.currency ?? 0) < price) return state;
+  if (itemId === 'ultra-ball' && (state.trainerLevel ?? 1) < ULTRA_BALL_UNLOCK_LEVEL) return state;
   const bag = { ...state.bag, [itemId]: (state.bag[itemId as keyof typeof state.bag] ?? 0) + 1 };
   return withTouch({
     ...state,

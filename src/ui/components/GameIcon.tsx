@@ -153,12 +153,15 @@ const ICONS: Record<string, (size: number) => JSX.Element> = {
       </>
     )),
 
+  /** Classic Poké Ball (red / white / black) — not theme-tinted so it reads correctly on amber UI chrome. */
   pokeball: (s) => (
-    <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <path d="M1 8h14" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <circle cx="8" cy="8" r="1" fill="currentColor" />
+    <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M 1 8 A 7 7 0 0 1 15 8 Z" fill="#dc2626" />
+      <path d="M 1 8 A 7 7 0 0 0 15 8 Z" fill="#f8fafc" />
+      <path d="M 1 8 L 15 8" stroke="#0f172a" strokeWidth="1.25" strokeLinecap="round" />
+      <circle cx="8" cy="8" r="7" fill="none" stroke="#0f172a" strokeWidth="1.2" />
+      <circle cx="8" cy="8" r="2.35" fill="#f8fafc" stroke="#0f172a" strokeWidth="1" />
+      <circle cx="8" cy="8" r="0.9" fill="#0f172a" />
     </svg>
   ),
 

@@ -26,6 +26,7 @@ import {
   resolvePendingCaughtReplace,
   cancelPendingCaught,
   consumeCatchScopeScan,
+  acknowledgeRouteFindNotice,
 } from '../game/state/store';
 import type { PokeRemGameState, SectionTab } from '../game/state/model';
 import { StarterPickerScreen } from '../ui/screens/StarterPickerScreen';
@@ -78,6 +79,8 @@ function PokeRemSidebar() {
   const [state, setState] = useState<PokeRemGameState>(() => createInitialStateV3());
   const [showSettings, setShowSettings] = useState(false);
   const [encounterRate, setEncounterRate] = useState(REVIEWS_PER_ENCOUNTER);
+  const [encounterPacingModulo, setEncounterPacingModulo] = useState(1);
+  const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showDailyHeaderStats, setShowDailyHeaderStats] = useState(true);
   const [achievementFanfareEntries, setAchievementFanfareEntries] = useState<
@@ -179,6 +182,30 @@ function PokeRemSidebar() {
   }, [plugin]);
 
   useEffect(() => {
+    void (async () => {
+      try {
+        const pace = await plugin.settings.getSetting<string>('pokerem.encounterPacing');
+        setEncounterPacingModulo(pace === 'every_2_reviews' ? 2 : 1);
+      } catch {
+        setEncounterPacingModulo(1);
+      }
+    })();
+  }, [plugin]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const rq = await plugin.settings.getSetting<string>('pokerem.reviewProgress');
+        if (rq === 'light') setPluginReviewWeight(0.75);
+        else if (rq === 'half') setPluginReviewWeight(0.5);
+        else setPluginReviewWeight(1);
+      } catch {
+        setPluginReviewWeight(1);
+      }
+    })();
+  }, [plugin]);
+
+  useEffect(() => {
     (async () => {
       try {
         const rm = await plugin.settings.getSetting<boolean>('pokerem.reducedMotion');
@@ -199,6 +226,11 @@ function PokeRemSidebar() {
   }, [plugin]);
 
   useAPIEventListener(AppEvents.StorageSyncedChange, STORAGE_KEY, () => {
+    void refreshFromStorage();
+  });
+
+  /** Index widget writes synced state on each completion; this guarantees the sidebar catches up immediately. */
+  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, () => {
     void refreshFromStorage();
   });
 
@@ -247,8 +279,21 @@ function PokeRemSidebar() {
     ? state.studyReviewsPerEncounter
     : encounterRate;
 
+  const wildReviewWeight = state.studyDifficultyConfigured ? state.studyCardWeight : pluginReviewWeight;
+
   const scrollAreaClass =
     'pkr-sidebar-scroll-body pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-x-clip overflow-y-auto';
+
+  const renderAchievementFanfare = () =>
+    achievementFanfareEntries && achievementFanfareEntries.length > 0 ? (
+      <div className="shrink-0 px-1 pt-0.5">
+        <AchievementFanfare
+          entries={achievementFanfareEntries}
+          onDone={dismissAchievementFanfare}
+          reducedMotion={reducedMotion}
+        />
+      </div>
+    ) : null;
 
   const renderSidebarScrollTail = () => (
     <>
@@ -269,16 +314,6 @@ function PokeRemSidebar() {
       ) : null}
 
       <div className="pkr-seam shrink-0" />
-
-      {achievementFanfareEntries && achievementFanfareEntries.length > 0 ? (
-        <div className="shrink-0">
-          <AchievementFanfare
-            entries={achievementFanfareEntries}
-            onDone={dismissAchievementFanfare}
-            reducedMotion={reducedMotion}
-          />
-        </div>
-      ) : null}
 
       <div
         className="pkr-no-scrollbar pkr-tab-bar sticky z-[25] flex shrink-0 items-center gap-0.5 overflow-x-auto px-1 py-1.5 shadow-[0_-6px_18px_rgba(0,0,0,0.45)]"
@@ -394,6 +429,7 @@ function PokeRemSidebar() {
                 <ShopScreen
                   rootURL={plugin.rootURL}
                   currency={state.currency ?? 0}
+                  trainerLevel={state.trainerLevel ?? 1}
                   reducedMotion={reducedMotion}
                   onBuy={(itemId, price) => void applyReducer((s) => buyItem(s, itemId, price))}
                 />
@@ -445,8 +481,7 @@ function PokeRemSidebar() {
               </p>
             ) : (
               <p className="text-center text-[10px] font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
-                Next wild in {Math.max(0, effectiveEncounterRate - state.encounterProgress)} review
-                {Math.max(0, effectiveEncounterRate - state.encounterProgress) === 1 ? '' : 's'}.
+                Developed by Jost Neilson
               </p>
             )}
           </div>
@@ -506,11 +541,15 @@ function PokeRemSidebar() {
                 onPendingCatchReplace={(pid) => void applyReducer((s) => resolvePendingCaughtReplace(s, pid))}
                 onPendingCatchCancel={() => void applyReducer((s) => cancelPendingCaught(s))}
                 onCatchScope={() => void applyReducer((s) => consumeCatchScopeScan(s))}
+                encounterPacingModulo={encounterPacingModulo}
+                wildReviewWeight={wildReviewWeight}
+                onAcknowledgeRouteFind={() => void applyReducer((s) => acknowledgeRouteFindNotice(s))}
                 showDailyHeaderStats={showDailyHeaderStats}
                 sidebarSplitLayout={({ sticky, lower }) => (
                   <>
                     {sticky}
                     <div className={scrollAreaClass}>
+                      {renderAchievementFanfare()}
                       {lower}
                       {renderSidebarScrollTail()}
                     </div>

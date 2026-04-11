@@ -22,12 +22,15 @@ export function TypeBattleIcon({
   variant,
   size = 14,
   reducedMotion,
+  showTooltip = true,
 }: {
   type: PokemonType;
   /** Weak = takes super-effective; Resist = defensive resist. */
   variant: 'weak' | 'resist';
   size?: number;
   reducedMotion?: boolean;
+  /** Native hover `title`; set false in dense battle HUD where only header stats should show tips. */
+  showTooltip?: boolean;
 }) {
   const systemReduce = usePrefersReducedMotion();
   const calm = reducedMotion === true || systemReduce;
@@ -57,7 +60,7 @@ export function TypeBattleIcon({
     <span
       className="inline-block shrink-0 select-none"
       style={style}
-      title={hint}
+      title={showTooltip ? hint : undefined}
       aria-label={hint}
     />
   );
@@ -70,6 +73,7 @@ export function TypeSymbolImage({
   size = 16,
   variant = 'resist',
   reducedMotion,
+  showTooltip = true,
 }: {
   rootURL: string | undefined;
   type: PokemonType;
@@ -77,10 +81,19 @@ export function TypeSymbolImage({
   /** Used only if PNG fails to load (same semantics as TypeBattleIcon). */
   variant?: 'weak' | 'resist';
   reducedMotion?: boolean;
+  showTooltip?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
-    return <TypeBattleIcon type={type} variant={variant} size={size} reducedMotion={reducedMotion} />;
+    return (
+      <TypeBattleIcon
+        type={type}
+        variant={variant}
+        size={size}
+        reducedMotion={reducedMotion}
+        showTooltip={showTooltip}
+      />
+    );
   }
   return (
     <img
@@ -90,7 +103,8 @@ export function TypeSymbolImage({
       height={size}
       className="pkr-type-orb inline-block shrink-0 select-none"
       style={{ imageRendering: 'auto' }}
-      title={type}
+      title={showTooltip ? type : undefined}
+      aria-label={type}
       loading="lazy"
       onError={() => setFailed(true)}
     />

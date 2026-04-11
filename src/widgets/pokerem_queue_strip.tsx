@@ -11,6 +11,7 @@ import { neutralizeBrokenRegisterCSS } from '../neutralizeRemNoteCssApi';
 import { BRAND } from '../ui/theme/gameTheme';
 import { PokeRemSatelliteMiniCard } from '../ui/components/PokeRemSatelliteChrome';
 import { PokeRemTrekStrip } from '../ui/components/PokeRemTrekStrip';
+import { estimatedQueueCompletionsUntilWild } from '../game/wildEncounterDisplay';
 
 /**
  * Compact queue toolbar strip — same HUD kit as the sidebar when RemNote mounts the queue toolbar.
@@ -22,6 +23,8 @@ function PokeRemQueueStrip() {
   const [state, setState] = useState<PokeRemGameState | null>(null);
   const [queueStripOn, setQueueStripOn] = useState(true);
   const [encounterRate, setEncounterRate] = useState(REVIEWS_PER_ENCOUNTER);
+  const [encounterPacingModulo, setEncounterPacingModulo] = useState(1);
+  const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
 
   useEffect(() => {
     void (async () => {
@@ -48,6 +51,30 @@ function PokeRemQueueStrip() {
     })();
   }, [plugin]);
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const pace = await plugin.settings.getSetting<string>('pokerem.encounterPacing');
+        setEncounterPacingModulo(pace === 'every_2_reviews' ? 2 : 1);
+      } catch {
+        setEncounterPacingModulo(1);
+      }
+    })();
+  }, [plugin]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const rq = await plugin.settings.getSetting<string>('pokerem.reviewProgress');
+        if (rq === 'light') setPluginReviewWeight(0.75);
+        else if (rq === 'half') setPluginReviewWeight(0.5);
+        else setPluginReviewWeight(1);
+      } catch {
+        setPluginReviewWeight(1);
+      }
+    })();
+  }, [plugin]);
+
   const refresh = useCallback(async () => {
     try {
       const raw = await getSyncedGameRaw(plugin);
@@ -62,6 +89,9 @@ function PokeRemQueueStrip() {
     void refresh();
   }, [refresh]);
   useAPIEventListener(AppEvents.StorageSyncedChange, STORAGE_KEY, () => {
+    void refresh();
+  });
+  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, () => {
     void refresh();
   });
   useOnMessageBroadcast(SYNC_BROADCAST_KEY, () => {
@@ -79,14 +109,25 @@ function PokeRemQueueStrip() {
   const wild = state.currentEncounter;
   const progress = state.encounterProgress;
   const effectiveRate = state.studyDifficultyConfigured ? state.studyReviewsPerEncounter : encounterRate;
+  const wildReviewWeight = state.studyDifficultyConfigured ? state.studyCardWeight : pluginReviewWeight;
   const amb = getBattleAmbience(state.battleSceneIndex ?? 0);
   const ambienceStyle = battleAmbienceCssVars(amb);
   const leadFaintedNoEncounter = !hasEncounter && active.currentHp <= 0;
 
-  const remaining = Math.max(0, effectiveRate - progress);
+  const remaining =
+    !hasEncounter && !leadFaintedNoEncounter
+      ? estimatedQueueCompletionsUntilWild({
+          encounterProgress: progress,
+          effectiveRate,
+          wildReviewAccum: state.wildReviewAccum ?? 0,
+          reviewWeight: wildReviewWeight,
+          encounterPacingModulo,
+          cardsReviewed: state.cardsReviewed,
+        })
+      : 0;
   const trekTitle = leadFaintedNoEncounter
     ? 'Your lead has fainted; wild encounters are paused.'
-    : `${progress} of ${effectiveRate} reviews toward the next wild check`;
+    : `About ${remaining} queue completions until the next wild (${progress} of ${effectiveRate} toward encounter)`;
 
   return (
     <div
