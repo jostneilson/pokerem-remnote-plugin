@@ -1,85 +1,101 @@
-# PokéRem (RemNote plugin)
+# PokéRem
 
-**PokéRem** is a Pokémon-inspired study companion for [RemNote](https://www.remnote.com/). It ties flashcard reviews to light RPG loops: wild encounters, catching, party management, shop, type chart, achievements, and trainer progression.
+PokéRem is a gamified study companion for [RemNote](https://www.remnote.com/) that adds a retro-inspired progression layer to flashcard review.
 
-**Important:** This is an **unofficial fan project**. It is not affiliated with Nintendo, The Pokémon Company, or Game Freak. See [`ATTRIBUTION.md`](ATTRIBUTION.md) and the [`public/manifest.json`](public/manifest.json) description.
+As you study, reviews feed into a lightweight companion system with wild encounters, catching, party management, rewards, trainer progression, achievements, and a collectible roster. The goal is to make consistent studying feel more engaging without pulling focus away from the actual learning.
 
-**Git root:** Treat **this directory** (`remnote-plugin/`) as the repository root when you `git init` / connect GitHub. A parent folder may contain unrelated local assets; they are not part of this plugin tree.
+## Overview
 
----
+PokéRem is built directly into RemNote and is designed to sit alongside normal review rather than replace it. It adds a persistent game layer that responds to your study activity and gives you a more rewarding sense of momentum over time.
 
-## Using PokéRem (players)
+Core features include:
 
-1. Open the **PokéRem** tab in RemNote’s **right sidebar** while reviewing.
-2. Complete the **starter** and **study difficulty** prompts once per knowledge base.
-3. Review cards as usual — you earn coins, trainer XP, and progress toward wild Pokémon.
-4. When a wild appears, use **Catch**, **Fight**, or **Run** in the sidebar battle UI. You can also run the same actions from the **RemNote command palette** or the **review queue menu** (when RemNote exposes it) without clicking the plugin first.
-5. Optional: enable the **queue toolbar strip** or **floating encounter popup** under **RemNote → Settings → Plugins → PokéRem** (see in-plugin **Settings** for a readable summary).
+- wild encounter progression tied to review activity
+- catching and party management
+- item shop and reward systems
+- trainer level and progression tracking
+- achievements and collection systems
+- retro-inspired battle and interface design
+- persistent save data stored through RemNote plugin storage
 
-**Save data** lives in RemNote’s **synced plugin storage** for this knowledge base (`pokerem_game_v1`). Use **Settings → Export save as JSON** before risky experiments. **Restart all progress** wipes only game storage, not RemNote plugin toggles.
+## Why PokéRem exists
 
-**Troubleshooting:** Open the **Settings** (gear) tab inside PokéRem for workflow tips, data backup, and the expandable help section. For sprites and fonts, see [`ATTRIBUTION.md`](ATTRIBUTION.md).
+Studying is easier to sustain when progress feels visible. PokéRem was built to make review sessions feel more interactive, motivating, and satisfying while still keeping RemNote at the center of the workflow.
 
----
+Instead of turning study time into a separate game, PokéRem tries to make your real study effort the thing that drives progression.
 
-## Repository layout
+## Status
 
-| Path | Role |
-|------|------|
-| [`src/widgets/`](src/widgets/) | Plugin entrypoints: main index, sidebar, queue strip, encounter popup |
-| [`src/game/`](src/game/) | Rules, save state, pipeline, encounters, combat |
-| [`src/ui/`](src/ui/) | React screens and battle HUD |
-| [`public/`](public/) | **Shipped as-is** into `dist/` — manifest, data, and **`public/assets/`** raster art |
-| [`docs/`](docs/) | Release prep, asset inventory, versioning, checklist |
-| [`DESIGN_CONTRACT.md`](DESIGN_CONTRACT.md) | Visual / typography contract for contributors |
+PokéRem is an actively developed RemNote plugin project.
 
----
+The current version focuses on:
+- core progression loop
+- encounter and battle flow
+- party, bag, shop, dex, and reward systems
+- persistent save behavior
+- polished in-app UI and plugin integration
+
+## Screens and surfaces
+
+PokéRem currently uses multiple RemNote plugin surfaces, depending on user settings and context:
+
+- right sidebar for the main management experience
+- queue-integrated surfaces for encounter and battle feedback
+- optional supplementary UI such as encounter popups and queue strip elements
+
+## Using PokéRem
+
+1. Open the PokéRem panel in RemNote.
+2. Choose your starter and initial study settings.
+3. Review cards as normal.
+4. Progress toward wild encounters through study activity.
+5. Catch, fight, manage your party, shop for items, and build long-term progression over time.
+
+PokéRem is intended to complement review, not interrupt it.
+
+## Save data
+
+PokéRem stores its game state using RemNote plugin storage for the active knowledge base.
+
+This includes:
+- starter choice
+- party and collection data
+- progress toward encounters
+- items, rewards, and trainer progression
+- other plugin-specific save state
+
+Backup, export, and reset-related controls are available inside the plugin.
+
+## Project structure
+
+| Path | Purpose |
+|------|---------|
+| `src/widgets/` | RemNote widget entrypoints |
+| `src/game/` | Game logic, state, encounters, combat, progression |
+| `src/ui/` | React UI, screens, battle surfaces, and shared components |
+| `public/` | Manifest, public data, and shipped assets |
+| `docs/` | Supporting project and release documentation |
+
+## Documentation
+
+Additional project documentation is available here:
+
+- `docs/RELEASE_CHECKLIST.md`
+- `docs/VERSIONING.md`
+- `docs/ASSETS.md`
+- `docs/SCOPE_AND_PRIVACY.md`
+- `ATTRIBUTION.md`
 
 ## Development
 
-### Prerequisites
+Project-specific development and release documentation is available in the `docs/` folder.
 
-- **Node.js 18+** (see `package.json` `engines`)
-- npm
+## Disclaimer
 
-### Commands
-
-```bash
-npm install
-npm run dev          # webpack dev server (widget sandbox)
-npm run check-types  # TypeScript
-npm test             # Vitest
-npm run build        # validate + production bundle + PluginZip.zip
-```
-
-Pinned **`@remnote/plugin-sdk`** version is intentional; see the architecture comment in [`src/widgets/index.tsx`](src/widgets/index.tsx).
-
-### Bundled assets
-
-Battle backgrounds, item icons, and type orbs must live under **`public/assets/`** so production builds are complete. See **[`docs/ASSETS.md`](docs/ASSETS.md)** and [`public/assets/README.md`](public/assets/README.md).
-
-Party Pokémon **sprites** load from the **PokeAPI** CDN at runtime when online (not stored in `public/`).
-
----
-
-## Release and versioning
-
-- **Version source of truth:** [`public/manifest.json`](public/manifest.json) — keep in sync with [`package.json`](package.json) and [`src/releaseMeta.ts`](src/releaseMeta.ts) per [`docs/VERSIONING.md`](docs/VERSIONING.md).
-- **Changelog:** [`CHANGELOG.md`](CHANGELOG.md).
-- **Pre-submit / update QA:** [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).
-- **Scopes / privacy draft:** [`docs/SCOPE_AND_PRIVACY.md`](docs/SCOPE_AND_PRIVACY.md).
-- **Credits:** [`ATTRIBUTION.md`](ATTRIBUTION.md).
-
-### Ship to RemNote (summary)
-
-1. Run `npm run check-types`, `npm test`, and `npm run build`.
-2. Upload the generated **`PluginZip.zip`** from the repo root (produced beside `dist/` after a successful build) through RemNote’s plugin developer flow.
-3. Replace **`repoUrl`** in [`public/manifest.json`](public/manifest.json) if your public GitHub URL differs from the placeholder.
-4. Confirm **`public/assets/`** is complete per [`docs/ASSETS.md`](docs/ASSETS.md) and licenses are documented in [`ATTRIBUTION.md`](ATTRIBUTION.md).
-5. Walk [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) manually before each submission.
-
----
+PokéRem is an unofficial fan-made project. It is not affiliated with, endorsed by, or associated with Nintendo, Game Freak, or The Pokémon Company.
 
 ## License
 
-See [`LICENSE`](LICENSE) (MIT unless changed). Third-party and fan-work notices are in [`ATTRIBUTION.md`](ATTRIBUTION.md).
+This repository is licensed under the terms described in `LICENSE`.
+
+Third-party notices, asset notes, and attribution details are documented in `ATTRIBUTION.md`.
