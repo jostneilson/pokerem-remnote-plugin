@@ -30,16 +30,16 @@ Instead of turning study time into a separate game, PokéRem tries to make your 
 <img src="docs/screenshots/battle-screen.png" alt="PokéRem battle screen" width="300">
 
 ### Main study companion interface
-<img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="200">
+<img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="300">
 
 ### Shop and rewards
-<img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="350">
+<img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="300">
 
 ### Trainer progress and achievements
-<img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="400">
+<img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="300">
 
 ### Pokédex and collection systems
-<img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="150">
+<img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="300">
 
 ## Status
 
