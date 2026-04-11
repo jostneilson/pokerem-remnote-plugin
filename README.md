@@ -24,6 +24,23 @@ Studying is easier to sustain when progress feels visible. PokéRem was built to
 
 Instead of turning study time into a separate game, PokéRem tries to make your real study effort the thing that drives progression.
 
+## Screenshots
+
+### Encounter and battle flow
+<img src="docs/screenshots/battle-screen.png" alt="PokéRem battle screen" width="700">
+
+### Main study companion interface
+<img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="700">
+
+### Shop and rewards
+<img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="700">
+
+### Trainer progress and achievements
+<img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="700">
+
+### Pokédex and collection systems
+<img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="700">
+
 ## Status
 
 PokéRem is an actively developed RemNote plugin project.
