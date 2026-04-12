@@ -149,6 +149,12 @@ function PokeRemSidebar() {
   useEffect(() => { void refreshFromStorage(); }, [refreshFromStorage]);
 
   useEffect(() => {
+    if (!state.starterChosen || !state.studyDifficultyConfigured) return;
+    const id = window.setInterval(() => void refreshFromStorage(), 2000);
+    return () => window.clearInterval(id);
+  }, [state.starterChosen, state.studyDifficultyConfigured, refreshFromStorage]);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       try {
@@ -229,10 +235,15 @@ function PokeRemSidebar() {
     void refreshFromStorage();
   });
 
-  /** Index widget writes synced state on each completion; this guarantees the sidebar catches up immediately. */
-  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, () => {
+  /** Re-read after index finishes writing synced state (immediate refresh can race the write). */
+  const bumpRefreshAfterQueueCard = useCallback(() => {
     void refreshFromStorage();
-  });
+    window.setTimeout(() => void refreshFromStorage(), 48);
+    window.setTimeout(() => void refreshFromStorage(), 160);
+    window.setTimeout(() => void refreshFromStorage(), 420);
+  }, [refreshFromStorage]);
+
+  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, bumpRefreshAfterQueueCard);
 
   useOnMessageBroadcast(SYNC_BROADCAST_KEY, () => {
     void refreshFromStorage();

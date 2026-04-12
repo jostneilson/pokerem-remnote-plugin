@@ -57,3 +57,17 @@ export function effectivenessChipLabel(tier: ReturnType<typeof effectivenessTier
   if (tier === 'immune') return 'Immune';
   return null;
 }
+
+/** Full battle-log line (Pokémon-style) for colored exchange UI; null when neutral. */
+export function effectivenessBattleLogPhrase(eff: number): string | null {
+  const t = effectivenessTier(eff);
+  if (t === 'super') return "It's super effective!";
+  if (t === 'resisted') return "It's not very effective…";
+  if (t === 'immune') return 'It had no effect.';
+  return null;
+}
+
+/** Same flavor lines as the games, plus neutral so both sides always get a clear recap line. */
+export function effectivenessBattleSummaryPhrase(eff: number): string {
+  return effectivenessBattleLogPhrase(eff) ?? 'No type advantage.';
+}

@@ -9,9 +9,11 @@ import {
   claimAchievement,
   chooseStarter,
   createInitialStateV2,
+  createInitialStateV3,
   defeatEncounter,
   onQueueCardComplete,
   parseGameState,
+  useHealingItem,
 } from './store';
 
 describe('parseGameState', () => {
@@ -283,5 +285,75 @@ describe('applyCombatTurn', () => {
   it('no-ops without encounter', () => {
     const s = createInitialStateV2();
     expect(applyCombatTurn(s)).toBe(s);
+  });
+});
+
+describe('useHealingItem', () => {
+  const faintedLead = (maxHp: number) => ({
+    id: 'a',
+    dexNum: 1,
+    name: 'Bulbasaur',
+    level: 10,
+    totalXp: 100,
+    currentHp: 0,
+    maxHp,
+    types: ['Grass'] as const,
+    moves: ['tackle'] as string[],
+  });
+
+  it('revive restores fainted lead to half max HP and consumes one', () => {
+    let s = createInitialStateV3();
+    s = {
+      ...s,
+      starterChosen: true,
+      activePokemonId: 'a',
+      party: [faintedLead(30)],
+      bag: { ...s.bag, revive: 2 },
+    };
+    const next = useHealingItem(s, 'revive');
+    expect(next.bag.revive).toBe(1);
+    expect(next.party[0]!.currentHp).toBe(15);
+  });
+
+  it('revive uses floor for odd max HP', () => {
+    let s = createInitialStateV3();
+    s = {
+      ...s,
+      starterChosen: true,
+      activePokemonId: 'a',
+      party: [faintedLead(31)],
+      bag: { ...s.bag, revive: 1 },
+    };
+    const next = useHealingItem(s, 'revive');
+    expect(next.party[0]!.currentHp).toBe(15);
+  });
+
+  it('revive no-ops when lead is not fainted', () => {
+    let s = createInitialStateV3();
+    const mon = { ...faintedLead(30), currentHp: 12 };
+    s = {
+      ...s,
+      starterChosen: true,
+      activePokemonId: 'a',
+      party: [mon],
+      bag: { ...s.bag, revive: 2 },
+    };
+    const next = useHealingItem(s, 'revive');
+    expect(next.bag.revive).toBe(2);
+    expect(next.party[0]!.currentHp).toBe(12);
+  });
+
+  it('potion does not heal fainted lead or consume item', () => {
+    let s = createInitialStateV3();
+    s = {
+      ...s,
+      starterChosen: true,
+      activePokemonId: 'a',
+      party: [faintedLead(40)],
+      bag: { ...s.bag, potion: 4 },
+    };
+    const next = useHealingItem(s, 'potion');
+    expect(next.bag.potion).toBe(4);
+    expect(next.party[0]!.currentHp).toBe(0);
   });
 });

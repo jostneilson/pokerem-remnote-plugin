@@ -91,9 +91,13 @@ function PokeRemQueueStrip() {
   useAPIEventListener(AppEvents.StorageSyncedChange, STORAGE_KEY, () => {
     void refresh();
   });
-  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, () => {
+  const bumpRefreshAfterQueueCard = useCallback(() => {
     void refresh();
-  });
+    window.setTimeout(() => void refresh(), 48);
+    window.setTimeout(() => void refresh(), 160);
+    window.setTimeout(() => void refresh(), 420);
+  }, [refresh]);
+  useAPIEventListener(AppEvents.QueueCompleteCard, undefined, bumpRefreshAfterQueueCard);
   useOnMessageBroadcast(SYNC_BROADCAST_KEY, () => {
     void refresh();
   });

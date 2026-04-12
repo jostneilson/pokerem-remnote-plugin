@@ -38,6 +38,7 @@ import { movesetForBattle } from '../../game/engine/moveLearn';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
 import { RouteFindBanner } from './RouteFindBanner';
+import { CombatExchangeLogBlock } from './CombatExchangeLogBlock';
 import { BRAND } from '../theme/gameTheme';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
 import { TrainerXpStarBurst } from '../components/TrainerXpStarBurst';
@@ -542,6 +543,8 @@ export function BattleReviewSurface({
         : '';
   const isCatchOutcome = outcomeKind === 'catch_success';
   const exchangeStrike = state.lastCombatStrike;
+  const richExchangeBlock =
+    (outcomeKind === 'combat' || outcomeKind === 'faint') && !!exchangeStrike;
   const showEffectivenessChips =
     !!exchangeStrike &&
     (outcomeKind === 'combat' ||
@@ -1159,6 +1162,7 @@ export function BattleReviewSurface({
           />
           {showEffectivenessChips &&
           exchangeStrike &&
+          !richExchangeBlock &&
           (playerEffTier !== 'neutral' ||
             (exchangeStrike.wildDefeated !== true && wildEffTier !== 'neutral')) ? (
             <div className="flex flex-wrap items-center justify-center gap-1.5" aria-hidden>
@@ -1170,7 +1174,19 @@ export function BattleReviewSurface({
               ) : null}
             </div>
           ) : null}
-          {state.lastBattleLog ? (
+          {richExchangeBlock && exchangeStrike ? (
+            <p
+              key={feedbackSeq}
+              className="pkr-pixel-dialog pkr-battle-outcome-box pkr-battle-outcome-box--rich-exchange animate-pkr-flash rounded-md border-2 px-2.5 py-2 text-[8px] font-black leading-relaxed transition-[box-shadow,border-color] duration-300"
+              style={battleLogOutcomeStyle}
+            >
+              <CombatExchangeLogBlock
+                strike={exchangeStrike}
+                playerDisplayName={active.nickname || active.name}
+                wildDisplayName={fieldWild?.name ?? wild?.name ?? 'Wild Pokémon'}
+              />
+            </p>
+          ) : state.lastBattleLog ? (
             <p
               key={feedbackSeq}
               className="pkr-pixel-dialog pkr-battle-outcome-box animate-pkr-flash rounded-md border-2 px-2.5 py-2 text-[8px] font-black leading-relaxed transition-[box-shadow,border-color] duration-300"

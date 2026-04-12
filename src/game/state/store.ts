@@ -548,7 +548,10 @@ export function onQueueCardComplete(
   const clearedLog =
     autoClear && !working.currentEncounter ? clearBattleLog(working) : working;
 
-  if (working.currentEncounter) return withTouch({ ...clearedLog, cardsReviewed: reviewed });
+  if (working.currentEncounter) {
+    const withLead = applyLeadStudyXpOnCard(clearedLog, reviewed);
+    return withTouch({ ...withLead, cardsReviewed: reviewed });
+  }
 
   const modulo = typeof options?.encounterPacingModulo === 'number' && options.encounterPacingModulo >= 2
     ? Math.floor(options.encounterPacingModulo)
@@ -579,6 +582,7 @@ export function onQueueCardComplete(
     currency: (clearedLog.currency ?? 0) + currencyEarned,
     totalCurrencyEarned: (clearedLog.totalCurrencyEarned ?? 0) + currencyEarned,
   }, trainerXpCard);
+  next = applyLeadStudyXpOnCard(next, reviewed);
 
   const effectiveRate = encounterRate ?? REVIEWS_PER_ENCOUNTER;
   const leadForWild = activePokemon(next);
@@ -859,6 +863,21 @@ function growPokemonWithXp(mon: OwnedPokemon, xpDelta: number): {
   return { pokemon: updated, leveledUp, evolvedMon, evolvedFromName };
 }
 
+/** +1 or +2 XP on the lead for each completed flashcard (alternates by review count). */
+function applyLeadStudyXpOnCard(state: PokeRemGameState, cardsReviewed: number): PokeRemGameState {
+  const aid = state.activePokemonId;
+  if (!aid) return state;
+  const idx = state.party.findIndex((p) => p.id === aid);
+  if (idx < 0) return state;
+  const mon = state.party[idx]!;
+  if (mon.currentHp <= 0) return state;
+  const delta = 1 + (cardsReviewed % 2);
+  const { pokemon } = growPokemonWithXp(mon, delta);
+  const party = [...state.party];
+  party[idx] = pokemon;
+  return { ...state, party };
+}
+
 function computeDefeatXp(state: PokeRemGameState): number {
   const enc = state.currentEncounter;
   if (!enc) return XP_ON_DEFEAT;
@@ -1130,9 +1149,24 @@ export function useHealingItem(state: PokeRemGameState, itemId: string): PokeRem
   const item = ITEM_BY_ID.get(itemId as any);
   if (!item || item.kind !== 'heal') return state;
 
+  const idx = state.party.findIndex((p) => p.id === activeId);
+  if (idx < 0) return state;
+  const mon = state.party[idx]!;
+
+  if (item.id === 'revive') {
+    if (mon.currentHp > 0) return state;
+    const newHp = Math.max(1, Math.floor(mon.maxHp * 0.5));
+    const party = state.party.map((p, i) => (i === idx ? { ...p, currentHp: Math.min(p.maxHp, newHp) } : p));
+    const bag = { ...state.bag, [itemId]: Math.max(0, count - 1) };
+    return withTouch({ ...state, bag, party });
+  }
+
+  if (mon.currentHp <= 0) return state;
+
   const healBy = item.id === 'max-potion' ? 9999 : (item.power ?? 0);
-  const party = state.party.map((p) =>
-    p.id === activeId ? { ...p, currentHp: Math.min(p.maxHp, p.currentHp + healBy) } : p,
+  if (healBy <= 0) return state;
+  const party = state.party.map((p, i) =>
+    i === idx ? { ...p, currentHp: Math.min(p.maxHp, p.currentHp + healBy) } : p,
   );
   const bag = { ...state.bag, [itemId]: Math.max(0, count - 1) };
   return withTouch({ ...state, bag, party });
