@@ -1,6 +1,6 @@
 const { resolve } = require('path');
-var glob = require('glob');
-var path = require('path');
+const path = require('path');
+const fs = require('fs');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { ESBuildMinifyPlugin } = require('esbuild-loader');
@@ -17,18 +17,36 @@ const fastRefresh = isDevelopment ? new ReactRefreshWebpackPlugin() : null;
 
 const SANDBOX_SUFFIX = '-sandbox';
 
+/**
+ * Explicit widget entrypoints only — do not use a directory glob.
+ * A glob would bundle any stray `.tsx` under `src/widgets/` (e.g. old Ankimon-era files
+ * someone still has locally) and ship them in `dist/` / `PluginZip.zip`.
+ */
+const WIDGET_ENTRY_FILES = [
+  'index.tsx',
+  'pokerem_sidebar.tsx',
+  'pokerem_queue_strip.tsx',
+  'pokerem_encounter_popup.tsx',
+];
+
+function buildWidgetEntries() {
+  const widgetsDir = resolve(__dirname, 'src/widgets');
+  const obj = {};
+  for (const file of WIDGET_ENTRY_FILES) {
+    const abs = path.join(widgetsDir, file);
+    if (!fs.existsSync(abs)) {
+      throw new Error(`[webpack] Missing required widget entry: ${file} (expected ${abs})`);
+    }
+    const rel = file.replace(/\.[tj]sx?$/i, '').replace(/\\/g, '/');
+    obj[rel] = abs;
+    obj[`${rel}${SANDBOX_SUFFIX}`] = abs;
+  }
+  return obj;
+}
+
 const config = {
   mode: isProd ? 'production' : 'development',
-  entry: glob.sync('./src/widgets/**/*.tsx').reduce((obj, el) => {
-    const rel = path
-      .relative('src/widgets', el)
-      .replace(/\.[tj]sx?$/, '')
-      .replace(/\\/g, '/');
-
-    obj[rel] = el;
-    obj[`${rel}${SANDBOX_SUFFIX}`] = el;
-    return obj;
-  }, {}),
+  entry: buildWidgetEntries(),
 
   output: {
     path: resolve(__dirname, 'dist'),
