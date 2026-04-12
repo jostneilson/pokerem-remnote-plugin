@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No user-facing changes logged yet._
 
+## [1.1.2] - 2026-04-13
+
+Marketplace **CSS delivery parity** with local development: production webpack now injects widget styles via `style-loader` (same as dev) so Tailwind and `style.css` apply when RemNote loads widget JS without sibling extracted `.css` files. Release metadata bumped to **1.1.2**.
+
+### Fixed
+
+- **Installed / marketplace widgets missing most theme styles** — separate `MiniCssExtractPlugin` `.css` files were not reliably loaded alongside widget bundles in the host iframe; styles are now bundled into each widget JS so they inject at runtime like localhost.
+
+### Notes for distributors
+
+- **`npm run build`** still removes `dist/`, runs production webpack, deletes any previous **`PluginZip.zip`**, then zips `dist/*` only (no stale zip).
+
 ## [1.1.1] - 2026-04-12
 
 Marketplace **resubmit / parity** pass: aligned shipped metadata with in-app version label, ensured plugin listing icons ship as raster + SVG, tightened public-folder copy ignores, and added a single `npm run release` gate (types + tests + build).
