@@ -153,7 +153,7 @@ const ICONS: Record<string, (size: number) => JSX.Element> = {
       </>
     )),
 
-  /** Classic Poké Ball (red / white / black) — not theme-tinted so it reads correctly on amber UI chrome. */
+  /** Classic Poké Ball (red / white / black) — not theme-tinted; matches shop/sidebar-tab look. RemNote-only listing art is `public/logo.svg` (similar geometry, separate asset). */
   pokeball: (s) => (
     <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
       <path d="M 1 8 A 7 7 0 0 1 15 8 Z" fill="#dc2626" />

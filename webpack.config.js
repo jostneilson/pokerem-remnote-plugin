@@ -102,7 +102,8 @@ const config = {
           from: 'public',
           to: '',
           globOptions: {
-            ignore: ['**/.DS_Store'],
+            // Avoid shipping macOS metadata into dist/ (parity with clean CI checkouts).
+            ignore: ['**/.DS_Store', '.DS_Store'],
           },
         },
         { from: 'README.md', to: '' },
@@ -124,7 +125,8 @@ if (isProd) {
     open: true,
     hot: true,
     compress: true,
-    watchFiles: ['src/*'],
+    // Include public/ so logo.svg / logo.png edits reload without restarting dev server.
+    watchFiles: ['src/**/*', 'public/**/*'],
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'baggage, sentry-trace',

@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No user-facing changes logged yet._
 
+## [1.1.1] - 2026-04-12
+
+Marketplace **resubmit / parity** pass: aligned shipped metadata with in-app version label, ensured plugin listing icons ship as raster + SVG, tightened public-folder copy ignores, and added a single `npm run release` gate (types + tests + build).
+
+### Fixed
+
+- **`package.json` / `releaseMeta.ts` / `manifest.json` version drift** — all now use **1.1.1** so Settings → About, tab icon cache-bust query, and RemNote marketplace version match.
+
+### Changed
+
+- **`webpack` CopyPlugin** — ignore `.DS_Store` at `public/` root so production zips do not accidentally include Finder metadata.
+- **`npm run release`** — runs `check-types`, `test`, then `build` before you upload a zip.
+
+### Notes for distributors
+
+- Keep **`public/logo.png`** and **`public/logo.svg`** in sync with branding; regenerate PNG via `npm run generate:logo` (Pillow). RemNote’s plugin card UI expects raster **`logo.png`** at bundle root alongside **`logo.svg`**.
+
 ## [0.2.0] - 2026-04-10
 
 First **marketplace-oriented** public track: playable loop, documented assets, and explicit fan-project disclaimers.

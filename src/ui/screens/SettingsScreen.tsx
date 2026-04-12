@@ -6,7 +6,7 @@ import { resetPokeRemGameSave } from '../../game/resetSave';
 import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { BRAND, brandCommandCaps } from '../theme/gameTheme';
-import { POKEREM_VERSION } from '../../releaseMeta';
+import { POKEREM_AUTHOR, POKEREM_VERSION } from '../../releaseMeta';
 import {
   STUDY_PRESET_DEFAULTS,
   STUDY_PRESET_LABEL,
@@ -559,6 +559,9 @@ export function SettingsScreen({
         <div className="space-y-1.5 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
           <p>
             <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong> v{POKEREM_VERSION}
+          </p>
+          <p style={{ color: '#cbd5e1' }}>
+            By <strong style={{ color: '#e2e8f0' }}>{POKEREM_AUTHOR}</strong>
           </p>
           <p>Pokémon study companion for RemNote.</p>
           <p>Sprites via PokéAPI / project assets.</p>

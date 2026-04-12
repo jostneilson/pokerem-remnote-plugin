@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, usePlugin } from '@remnote/plugin-sdk';
 import { usePokeRemBattleActions } from '../hooks/usePokeRemBattleActions';
 import { REVIEWS_PER_ENCOUNTER, STORAGE_KEY, SYNC_BROADCAST_KEY, getSyncedGameRaw } from '../game/constants';
+import { POKEREM_AUTHOR } from '../releaseMeta';
 import { withSyncedGameWrite } from '../game/state/syncedGameWriteLock';
 import {
   chooseStarter,
@@ -492,7 +493,7 @@ function PokeRemSidebar() {
               </p>
             ) : (
               <p className="text-center text-[10px] font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
-                Developed by Jost Neilson
+                Developed by {POKEREM_AUTHOR}
               </p>
             )}
           </div>

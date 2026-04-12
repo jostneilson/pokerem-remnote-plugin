@@ -216,7 +216,7 @@ async function onActivate(plugin: ReactRNPlugin) {
     // registerDropdownSetting may not be available in SDK 0.0.14
   }
 
-  // Same red Poké Ball as bag/shop (`public/assets/items/poke-ball.png`). `?v=` busts RemNote/host caching when the asset changes.
+  // Right-sidebar tab: same red ball as bag/shop (`public/assets/items/poke-ball.png`). Plugin list icon = `public/logo.png` + `logo.svg` at bundle root (not used here).
   const pluginBase = (plugin.rootURL ?? '').replace(/\/?$/, '/');
   const sidebarTabIconUrl = `${pluginBase}assets/items/poke-ball.png?v=${encodeURIComponent(POKEREM_VERSION)}`;
 

@@ -4,6 +4,10 @@ Webpack copies everything under [`public/`](../public/) into the plugin root at 
 
 **Rule:** All raster art that ships with the plugin should live under `public/assets/` in this repository so a **clean clone + `npm run build`** produces a complete `dist/` without relying on uncommitted local files.
 
+**Plugin listing icon (RemNote only):** Keep **`public/logo.svg`** and **`public/logo.png`** at the repo root under `public/` (both land at `{plugin.rootURL}logo.svg` / `logo.png` in `dist/`). `npx remnote-plugin validate` checks for either; the RemNote **plugin list / details** UI commonly loads **`logo.png`** (raster) even when `logo.svg` is valid in a browser. Regenerate PNG from the same design: `npm run generate:logo`. Not used for the right-sidebar tab.
+
+**Right-sidebar tab icon:** [`src/widgets/index.tsx`](../src/widgets/index.tsx) sets `widgetTabIcon` to `${plugin.rootURL}assets/items/poke-ball.png` — the same classic ball art as the shop/bag (`poke-ball.png` under `public/assets/items/`).
+
 ---
 
 ## Directory layout

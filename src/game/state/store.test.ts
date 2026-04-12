@@ -3,7 +3,7 @@ import { ACHIEVEMENT_TIER_TRAINER_XP } from '../engine/achievements';
 import { damageForMove } from '../engine/combatExchange';
 import { tryCatch } from '../engine/encounters';
 import { TRAINER_XP_SOURCES } from '../engine/trainerLevel';
-import type { EncounterPokemon } from './model';
+import type { EncounterPokemon, OwnedPokemon } from './model';
 import {
   applyCombatTurn,
   claimAchievement,
@@ -289,7 +289,7 @@ describe('applyCombatTurn', () => {
 });
 
 describe('useHealingItem', () => {
-  const faintedLead = (maxHp: number) => ({
+  const faintedLead = (maxHp: number): OwnedPokemon => ({
     id: 'a',
     dexNum: 1,
     name: 'Bulbasaur',
@@ -297,8 +297,8 @@ describe('useHealingItem', () => {
     totalXp: 100,
     currentHp: 0,
     maxHp,
-    types: ['Grass'] as const,
-    moves: ['tackle'] as string[],
+    types: ['Grass'],
+    moves: ['tackle'],
   });
 
   it('revive restores fainted lead to half max HP and consumes one', () => {

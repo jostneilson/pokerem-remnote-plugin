@@ -1,13 +1,13 @@
 # Release checklist (PokéRem)
 
-Use this before **first** marketplace submission and before **each** update zip. Combine with `npm run check-types`, `npm test`, and `npm run build`.
+Use this before **first** marketplace submission and before **each** update zip. Combine with `npm run version:check`, `npm run check-types`, `npm test`, and `npm run build` (or `npm run release`).
 
 ## Automated gate (every PR / pre-tag)
 
 - [ ] `npm run check-types` — TypeScript clean
 - [ ] `npm test` — Vitest green
 - [ ] `npm run build` — `remnote-plugin validate`, webpack production, **`PluginZip.zip`** produced at repo root
-- [ ] Confirm `dist/` contains `manifest.json`, widget bundles (`*.js`), copied `README.md`, and the full **`assets/`** tree (see [`docs/ASSETS.md`](ASSETS.md))
+- [ ] Confirm `dist/` contains `manifest.json`, widget bundles (`*.js`), copied `README.md`, **`logo.png`** + **`logo.svg`**, and the full **`assets/`** tree (see [`docs/ASSETS.md`](ASSETS.md))
 - [ ] Confirm `dist/` does **not** accidentally ship secrets (no `.env`, no personal paths in copied files)
 
 ## Version and metadata
