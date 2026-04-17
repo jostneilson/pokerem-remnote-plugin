@@ -8,10 +8,13 @@ export function AchievementFanfare({
   entries,
   onDone,
   reducedMotion,
+  headline = 'Achievement unlocked',
 }: {
   entries: { title: string; rewardLine: string }[];
   onDone: () => void;
   reducedMotion?: boolean;
+  /** e.g. “Trainer reward ready” for reward-path reuse */
+  headline?: string;
 }) {
   useEffect(() => {
     const ms = reducedMotion ? 8000 : 5500;
@@ -34,7 +37,7 @@ export function AchievementFanfare({
       </div>
       <div className="min-w-0 flex-1">
         <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-widest" style={{ color: '#fde68a' }}>
-          Achievement unlocked
+          {headline}
         </div>
         <div className="mt-0.5 text-[10px] font-black leading-snug" style={{ color: '#fffbeb' }}>
           {primaryTitle}

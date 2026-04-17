@@ -73,6 +73,16 @@ export function learnsetMilestonesOrdered(dexNum: number): { level: number; move
 }
 
 export function getInitialMoves(dexNum: number, level: number): string[] {
+  const unlocked = getUnlockedLearnsetMoveIds(dexNum, level);
+  return unlocked.slice(-MAX_MOVES);
+}
+
+/**
+ * Unique moves this species has unlocked on its level-up table by `level` (learnset order;
+ * same rules as {@link getInitialMoves} before the final four-slot trim). Manual teaching
+ * from Party only allows moves in this set.
+ */
+export function getUnlockedLearnsetMoveIds(dexNum: number, level: number): string[] {
   const learnset = LEARNSETS[dexNum];
   if (!learnset) return [];
 
@@ -84,7 +94,7 @@ export function getInitialMoves(dexNum: number, level: number): string[] {
     seen.add(entry.moveId);
     order.push(entry.moveId);
   }
-  return order.slice(-MAX_MOVES);
+  return order;
 }
 
 /** Party moves if set (deduped), otherwise learnset-derived moves for battle UI and combat. */
@@ -100,6 +110,17 @@ export function pickDefaultBattleMove(legalMoves: string[]): string | undefined 
   if (legalMoves.length === 0) return undefined;
   const damaging = legalMoves.find((id) => (MOVES[id]?.power ?? 0) > 0);
   return damaging ?? legalMoves[0];
+}
+
+/** One-line summary for Party move lists and the teachable-move browser. */
+export function moveUiDescription(moveId: string): string {
+  const m = MOVES[moveId];
+  if (!m) return 'Unknown move.';
+  if (m.power <= 0 || m.category === 'status') {
+    return `${m.type} status — no direct damage; weakens, protects, or sets up in battle.`;
+  }
+  const kind = m.category === 'physical' ? 'Physical' : 'Special';
+  return `${kind} ${m.type} attack — power ${m.power}.`;
 }
 
 /**

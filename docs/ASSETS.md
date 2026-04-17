@@ -26,7 +26,7 @@ Webpack copies everything under [`public/`](../public/) into the plugin root at 
 
 From `ITEMS` in `items.ts` (unique `iconFile` values):
 
-`poke-ball.png`, `great-ball.png`, `ultra-ball.png`, `potion.png`, `super-potion.png`, `max-potion.png`, `revive.png`, `oran-berry.png`, `rare-candy.png`, `fire-stone.png`, `water-stone.png`, `thunder-stone.png`, `leaf-stone.png`, `moon-stone.png`, `everstone.png`, `key.png` (Catch Scope).
+`poke-ball.png`, `great-ball.png`, `ultra-ball.png`, `master-ball.png` (Catch Scope icon only; not a shop ball), `potion.png`, `super-potion.png`, `max-potion.png`, `revive.png`, `oran-berry.png`, `rare-candy.png`, `fire-stone.png`, `water-stone.png`, `thunder-stone.png`, `leaf-stone.png`, `moon-stone.png`, `everstone.png`.
 
 Place each under `public/assets/items/`.
 

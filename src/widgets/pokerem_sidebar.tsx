@@ -17,6 +17,7 @@ import {
   useLeadUtilityItem,
   activePokemon,
   forgetMoveAction,
+  learnMoveAction,
   renamePokemon,
   releasePokemon,
   moveToStorage,
@@ -28,6 +29,7 @@ import {
   cancelPendingCaught,
   consumeCatchScopeScan,
   acknowledgeRouteFindNotice,
+  dismissMainNotice,
 } from '../game/state/store';
 import type { PokeRemGameState, SectionTab } from '../game/state/model';
 import { StarterPickerScreen } from '../ui/screens/StarterPickerScreen';
@@ -52,16 +54,11 @@ import { BattleReviewSurface } from '../ui/battle/BattleReviewSurface';
 import { GameIcon, type GameIconName } from '../ui/components/GameIcon';
 import { battleAmbienceCssVars, getBattleAmbience } from '../game/engine/battleAmbience';
 import {
-  ACHIEVEMENT_DEFS,
-  achievementRewardSummary,
   getUnclaimedAchievements,
   allAchievementRewardsClaimed,
 } from '../game/engine/achievements';
 import { getUnclaimedRewards } from '../game/engine/trainerLevel';
-import { AchievementFanfare } from '../ui/components/AchievementFanfare';
 import { OnboardingTipsBar } from '../ui/components/OnboardingTipsBar';
-import { useSessionRecap } from '../hooks/useSessionRecap';
-
 const ALL_TABS: SectionTab[] = ['status', 'party', 'bag', 'shop', 'dex', 'types', 'progress', 'rewards'];
 const TAB_CONFIG: Record<string, { icon: GameIconName; label: string }> = {
   status:   { icon: 'navStatus', label: 'Status' },
@@ -84,10 +81,6 @@ function PokeRemSidebar() {
   const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showDailyHeaderStats, setShowDailyHeaderStats] = useState(true);
-  const [achievementFanfareEntries, setAchievementFanfareEntries] = useState<
-    { title: string; rewardLine: string }[] | null
-  >(null);
-  const dismissAchievementFanfare = useCallback(() => setAchievementFanfareEntries(null), []);
   const [onboardingTipsLoaded, setOnboardingTipsLoaded] = useState(false);
   const [onboardingTipsDismissed, setOnboardingTipsDismissed] = useState(false);
   const stateRef = useRef(state);
@@ -273,7 +266,6 @@ function PokeRemSidebar() {
   };
 
   const active = activePokemon(state);
-  const sessionRecap = useSessionRecap(plugin, state);
   const sidebarTab = state.selectedTab === 'battle' ? 'status' : state.selectedTab;
   const effectiveTab = ALL_TABS.includes(sidebarTab) ? sidebarTab : 'status';
   const canCatch = (state.bag['poke-ball'] ?? 0) > 0 || (state.bag['great-ball'] ?? 0) > 0 || (state.bag['ultra-ball'] ?? 0) > 0;
@@ -295,17 +287,6 @@ function PokeRemSidebar() {
 
   const scrollAreaClass =
     'pkr-sidebar-scroll-body pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-x-clip overflow-y-auto';
-
-  const renderAchievementFanfare = () =>
-    achievementFanfareEntries && achievementFanfareEntries.length > 0 ? (
-      <div className="shrink-0 px-1 pt-0.5">
-        <AchievementFanfare
-          entries={achievementFanfareEntries}
-          onDone={dismissAchievementFanfare}
-          reducedMotion={reducedMotion}
-        />
-      </div>
-    ) : null;
 
   const renderSidebarScrollTail = () => (
     <>
@@ -406,7 +387,7 @@ function PokeRemSidebar() {
           ) : (
             <Suspense fallback={<p className="py-4 text-center text-[10px] font-semibold" style={{ color: '#64748b' }}>Loading…</p>}>
               {effectiveTab === 'status' && active ? (
-                <StatusScreen rootURL={plugin.rootURL} state={state} active={active} sessionRecap={sessionRecap} />
+                <StatusScreen rootURL={plugin.rootURL} state={state} active={active} />
               ) : null}
               {effectiveTab === 'party' ? (
                 <PartyScreen
@@ -416,6 +397,7 @@ function PokeRemSidebar() {
                   activeId={state.activePokemonId}
                   onSwitch={(id) => void applyReducer((s) => switchActivePokemon(s, id))}
                   onForgetMove={(pid, mid) => void applyReducer((s) => forgetMoveAction(s, pid, mid))}
+                  onLearnMove={(pid, mid, rep) => void applyReducer((s) => learnMoveAction(s, pid, mid, rep))}
                   onRename={(pid, name) => void applyReducer((s) => renamePokemon(s, pid, name))}
                   onRelease={(pid) => void applyReducer((s) => releasePokemon(s, pid))}
                   onMoveToStorage={(pid) => void applyReducer((s) => moveToStorage(s, pid))}
@@ -457,13 +439,7 @@ function PokeRemSidebar() {
                   state={state}
                   reducedMotion={reducedMotion}
                   onClaimAchievement={(id) => {
-                    const def = ACHIEVEMENT_DEFS.find((d) => d.id === id);
                     void applyReducer((s) => claimAchievement(s, id));
-                    if (def) {
-                      setAchievementFanfareEntries([
-                        { title: def.name, rewardLine: achievementRewardSummary(def) },
-                      ]);
-                    }
                   }}
                 />
               ) : null}
@@ -489,7 +465,7 @@ function PokeRemSidebar() {
               </p>
             ) : active && active.currentHp <= 0 ? (
               <p className="text-center text-[10px] font-semibold" style={{ color: '#fca5a5' }}>
-                Lead fainted — open <strong style={{ color: '#fde68a' }}>Bag</strong> or <strong style={{ color: '#fde68a' }}>Party</strong> to continue wild encounters.
+                Lead fainted — use a <strong style={{ color: '#fde68a' }}>Revive</strong> in <strong style={{ color: '#fde68a' }}>Bag</strong> (or switch in <strong style={{ color: '#fde68a' }}>Party</strong>) to continue wild encounters.
               </p>
             ) : (
               <p className="text-center text-[10px] font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
@@ -557,11 +533,11 @@ function PokeRemSidebar() {
                 wildReviewWeight={wildReviewWeight}
                 onAcknowledgeRouteFind={() => void applyReducer((s) => acknowledgeRouteFindNotice(s))}
                 showDailyHeaderStats={showDailyHeaderStats}
+                onDismissMainNotice={(id) => void applyReducer((s) => dismissMainNotice(s, id))}
                 sidebarSplitLayout={({ sticky, lower }) => (
                   <>
                     {sticky}
                     <div className={scrollAreaClass}>
-                      {renderAchievementFanfare()}
                       {lower}
                       {renderSidebarScrollTail()}
                     </div>

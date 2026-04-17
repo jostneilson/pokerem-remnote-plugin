@@ -2,7 +2,7 @@ import type { OwnedPokemon } from '../../game/state/model';
 import { MOVES } from '../../game/data/moves';
 import { learnsetMilestonesOrdered } from '../../game/engine/moveLearn';
 import { nextFutureLevelEvolution } from '../../game/engine/evolution';
-import { XP_PER_LEVEL, xpToNextLevel } from '../../game/engine/progression';
+import { xpToNextLevel } from '../../game/engine/progression';
 import { typePillStyle } from '../battle/battleTheme';
 import { GameIcon } from './GameIcon';
 
@@ -48,7 +48,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
             <span style={{ color: '#fde68a' }}>{needXp} XP</span>
             <span style={{ color: '#64748b' }}> to Lv{p.level + 1}</span>
             <span className="block text-[8px] font-bold" style={{ color: '#64748b' }}>
-              ({p.totalXp} / {nextLevelTotal} toward next level · {XP_PER_LEVEL} XP per level step)
+              ({p.totalXp} / {nextLevelTotal} XP toward next level)
             </span>
           </>
         ) : (
@@ -74,7 +74,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
       ) : null}
 
       <p className="text-[8px] font-semibold leading-snug" style={{ color: '#64748b' }}>
-        New moves from level-ups join your moveset; with four moves already known, the oldest slot is replaced.
+        New moves from level-ups join your moveset; with four moves already known, the oldest slot is replaced. In Party you can re-equip from moves unlocked on this level-up path at your current level (or swap slots when full).
       </p>
 
       <div className="max-h-[min(40vh,220px)] space-y-1 overflow-y-auto pr-0.5">

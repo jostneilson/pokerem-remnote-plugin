@@ -9,11 +9,27 @@ import {
 } from '../engine/achievements';
 import { nextCatchBallForBag, spawnEncounter, tryCatch, wildCatchChancePreview } from '../engine/encounters';
 import { checkLevelEvolution, applyEvolution } from '../engine/evolution';
-import { checkLearnMoves, dedupeMoveIds, getInitialMoves, movesetForBattle, pickDefaultBattleMove } from '../engine/moveLearn';
+import {
+  checkLearnMoves,
+  dedupeMoveIds,
+  getInitialMoves,
+  getUnlockedLearnsetMoveIds,
+  movesetForBattle,
+  pickDefaultBattleMove,
+} from '../engine/moveLearn';
+import { isMoveTypeLegalForSpecies } from '../data/learnsetRules';
+import { MOVES } from '../data/moves';
 import { CURRENCY_REWARDS, ULTRA_BALL_UNLOCK_LEVEL } from '../engine/shop';
 import { getEffectiveness } from '../data/typeChart';
 import { computeTrainerRank } from '../engine/trainerRank';
-import { levelFromXp, maxHpFor, xpToNextLevel, XP_PER_LEVEL } from '../engine/progression';
+import {
+  levelFromXp,
+  maxHpFor,
+  xpIntoCurrentLevel,
+  xpSpanForCurrentLevel,
+  xpThresholdForLevel,
+  xpToNextLevel,
+} from '../engine/progression';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../engine/combatXp';
 import {
   clampStudyReviews,
@@ -30,12 +46,13 @@ import {
   moveDisplayName,
   pickWildCounterMove,
 } from '../engine/combatExchange';
-import { MOVES } from '../data/moves';
 import type {
   PokeRemGameState,
+  AchievementState,
   BattleOutcomeKind,
   CombatStrikeSnapshot,
   EncounterPokemon,
+  MainNoticeItem,
   OwnedPokemon,
   SectionTab,
 } from './model';
@@ -110,6 +127,8 @@ export function createInitialStateV3(): PokeRemGameState {
     routeFindNoticeAckSeq: 0,
     routeFindNotice: null,
     lastCombatStrike: null,
+    studyHealCarries: [],
+    mainNoticeQueue: [],
   };
 }
 
@@ -306,6 +325,34 @@ function normalizeStudyDifficultyPreset(raw: unknown): StudyDifficultyPreset {
   return 'medium';
 }
 
+function normalizeMainNoticeQueue(raw: unknown, max: number): MainNoticeItem[] {
+  if (!Array.isArray(raw)) return [];
+  const out: MainNoticeItem[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const o = row as Record<string, unknown>;
+    const kind = o.kind;
+    const id = o.id;
+    const title = o.title;
+    const subtitle = o.subtitle;
+    if (kind !== 'achievement_unlock' && kind !== 'trainer_reward') continue;
+    if (typeof id !== 'string' || id.length === 0 || id.length > 80) continue;
+    if (typeof title !== 'string' || title.length === 0 || title.length > 120) continue;
+    if (typeof subtitle !== 'string' || subtitle.length > 220) continue;
+    out.push({ kind, id, title: title.slice(0, 120), subtitle: subtitle.slice(0, 220) });
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+function normalizeStudyHealCarriesSlice(raw: unknown, partyLen: number): number[] {
+  const n = Math.max(0, Math.min(6, Math.floor(partyLen)));
+  return Array.from({ length: n }, (_, i) => {
+    if (!Array.isArray(raw) || typeof raw[i] !== 'number' || !Number.isFinite(raw[i])) return 0;
+    return Math.max(0, raw[i]!);
+  });
+}
+
 function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
   const base = createInitialStateV3();
   const claimedRaw = o.claimedAchievementIds;
@@ -313,10 +360,12 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     ? (claimedRaw as unknown[]).filter((x): x is string => typeof x === 'string')
     : [];
 
+  const party = Array.isArray(o.party) ? o.party.map(normalizeOwned) : [];
+
   const state: PokeRemGameState = {
     ...base,
     ...o,
-    party: Array.isArray(o.party) ? o.party.map(normalizeOwned) : [],
+    party,
     storagePokemon: Array.isArray(o.storagePokemon) ? o.storagePokemon.map(normalizeOwned) : [],
     bag: { ...cloneBagDefaults(), ...(o.bag ?? {}) },
     achievements: { ...base.achievements, ...(o.achievements ?? {}) },
@@ -358,6 +407,8 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     routeFindNoticeSeq: typeof o.routeFindNoticeSeq === 'number' ? o.routeFindNoticeSeq : 0,
     routeFindNoticeAckSeq: typeof o.routeFindNoticeAckSeq === 'number' ? o.routeFindNoticeAckSeq : 0,
     routeFindNotice: normalizeRouteFindNotice(o.routeFindNotice),
+    studyHealCarries: normalizeStudyHealCarriesSlice((o as { studyHealCarries?: unknown }).studyHealCarries, party.length),
+    mainNoticeQueue: normalizeMainNoticeQueue((o as { mainNoticeQueue?: unknown }).mainNoticeQueue, 12),
     schemaVersion: 3,
   };
   if (state.selectedTab === 'battle') {
@@ -401,8 +452,7 @@ export function parseGameState(raw: unknown): PokeRemGameState {
 
 function addTrainerXp(state: PokeRemGameState, amount: number): PokeRemGameState {
   const trainerXp = (state.trainerXp ?? 0) + amount;
-  const trainerLevel = trainerLevelFromXp(trainerXp);
-  return { ...state, trainerXp, trainerLevel };
+  return { ...state, trainerXp };
 }
 
 function addBagQuantities(state: PokeRemGameState, delta: Partial<Record<ItemId, number>>): PokeRemGameState {
@@ -418,12 +468,62 @@ function addBagQuantities(state: PokeRemGameState, delta: Partial<Record<ItemId,
   return { ...state, bag };
 }
 
+function appendMainNoticesIfNeeded(
+  state: PokeRemGameState,
+  preAch: AchievementState,
+  preTrainerLevel: number,
+): PokeRemGameState {
+  const queue = [...(state.mainNoticeQueue ?? [])];
+  const claimedA = new Set(state.claimedAchievementIds ?? []);
+  const claimedR = new Set(state.claimedRewardLevels ?? []);
+
+  for (const def of ACHIEVEMENT_DEFS) {
+    if (!state.achievements[def.id] || preAch[def.id]) continue;
+    if (claimedA.has(def.id)) continue;
+    if (queue.some((n) => n.kind === 'achievement_unlock' && n.id === def.id)) continue;
+    queue.push({
+      kind: 'achievement_unlock',
+      id: def.id,
+      title: def.name,
+      subtitle: 'Open Progress to claim your reward.',
+    });
+  }
+
+  const newLv = state.trainerLevel ?? 1;
+  if (newLv > preTrainerLevel) {
+    for (let lv = preTrainerLevel + 1; lv <= newLv; lv++) {
+      const r = TRAINER_REWARDS.find((x) => x.level === lv);
+      if (!r || claimedR.has(lv)) continue;
+      const nid = `reward-${lv}`;
+      if (queue.some((n) => n.kind === 'trainer_reward' && n.id === nid)) continue;
+      queue.push({
+        kind: 'trainer_reward',
+        id: nid,
+        title: `Trainer Lv ${lv} — ${r.title}`,
+        subtitle: r.description,
+      });
+    }
+  }
+
+  return { ...state, mainNoticeQueue: queue.slice(0, 12) };
+}
+
 function withTouch(state: PokeRemGameState): PokeRemGameState {
+  const preAch = { ...(state.achievements ?? {}) };
+  const preTrainerLevel = state.trainerLevel ?? 1;
   const next: PokeRemGameState = { ...state, lastUpdatedAt: Date.now() };
   next.achievements = deriveAchievements(next);
   next.trainerLevel = trainerLevelFromXp(next.trainerXp ?? 0);
   next.trainerRank = computeTrainerRank(next);
-  return next;
+  return appendMainNoticesIfNeeded(next, preAch, preTrainerLevel);
+}
+
+/** Remove one main notice by id (dismiss); does not affect claim state. */
+export function dismissMainNotice(state: PokeRemGameState, id: string): PokeRemGameState {
+  const q = state.mainNoticeQueue ?? [];
+  const filtered = q.filter((n) => n.id !== id);
+  if (filtered.length === q.length) return state;
+  return withTouch({ ...state, mainNoticeQueue: filtered });
 }
 
 export function setTab(state: PokeRemGameState, tab: SectionTab): PokeRemGameState {
@@ -549,8 +649,8 @@ export function onQueueCardComplete(
     autoClear && !working.currentEncounter ? clearBattleLog(working) : working;
 
   if (working.currentEncounter) {
-    const withLead = applyLeadStudyXpOnCard(clearedLog, reviewed);
-    return withTouch({ ...withLead, cardsReviewed: reviewed });
+    const withXp = applyPartyStudyXpOnCard(clearedLog, Math.random);
+    return withTouch({ ...withXp, cardsReviewed: reviewed });
   }
 
   const modulo = typeof options?.encounterPacingModulo === 'number' && options.encounterPacingModulo >= 2
@@ -582,7 +682,7 @@ export function onQueueCardComplete(
     currency: (clearedLog.currency ?? 0) + currencyEarned,
     totalCurrencyEarned: (clearedLog.totalCurrencyEarned ?? 0) + currencyEarned,
   }, trainerXpCard);
-  next = applyLeadStudyXpOnCard(next, reviewed);
+  next = applyPartyStudyXpOnCard(next, Math.random);
 
   const effectiveRate = encounterRate ?? REVIEWS_PER_ENCOUNTER;
   const leadForWild = activePokemon(next);
@@ -599,13 +699,15 @@ export function onQueueCardComplete(
           next,
           'none',
           lead && lead.currentHp <= 0
-            ? `${lead.nickname || lead.name} can’t battle — wild Pokémon stayed away. Heal your lead or switch party!`
+            ? `${lead.nickname || lead.name} can’t battle — wild Pokémon stayed away. Revive or heal your lead, or switch party!`
             : '',
         ),
       };
     } else {
       const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
-      const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus);
+      const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
+        collectionDex: next.collectionDex ?? {},
+      });
       const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
       const narr = `Wild ${enc.name}${tierLabel} appeared!`;
       const bgNext = ((next.battleSceneIndex ?? 0) + 1) % BATTLE_SCENE_COUNT;
@@ -640,24 +742,76 @@ export function onQueueCardComplete(
   }
 
   if (!next.currentEncounter) {
-    next = applyStudyRegen(next);
+    next = applyStudyHealFromCard(next, effectiveRate, countsTowardWild);
   }
 
   return withTouch(next);
 }
 
-/** Slow passive heal for the lead while studying (no wild active on this tick). */
-function applyStudyRegen(state: PokeRemGameState): PokeRemGameState {
+/** Lead study XP roll: 40% →3, 40% →4, 20% →5 */
+function rollLeadStudyXp(rng: () => number): number {
+  const r = rng();
+  if (r < 0.4) return 3;
+  if (r < 0.8) return 4;
+  return 5;
+}
+
+/** Bench study XP roll: 40% →1, 40% →2, 20% →3 */
+function rollBenchStudyXp(rng: () => number): number {
+  const r = rng();
+  if (r < 0.4) return 1;
+  if (r < 0.8) return 2;
+  return 3;
+}
+
+function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): PokeRemGameState {
   const aid = state.activePokemonId;
   if (!aid) return state;
-  const party = state.party.map((p) => {
-    if (p.id !== aid) return p;
-    if (p.currentHp <= 0 || p.currentHp >= p.maxHp) return p;
-    const missing = p.maxHp - p.currentHp;
-    const heal = Math.max(1, Math.round(missing * 0.2));
-    return { ...p, currentHp: Math.min(p.maxHp, p.currentHp + heal) };
+  const leadIdx = state.party.findIndex((p) => p.id === aid);
+  if (leadIdx < 0) return state;
+  const party = state.party.map((p, i) => {
+    const delta = i === leadIdx ? rollLeadStudyXp(rng) : rollBenchStudyXp(rng);
+    if (delta <= 0) return p;
+    const { pokemon } = growPokemonWithXp(p, delta);
+    return pokemon;
   });
   return { ...state, party };
+}
+
+/**
+ * Passive heal while reviewing with no active wild — spread so lead recovers ~50% max HP
+ * and each bench slot ~25% max HP across `encounterRate` qualifying cards.
+ */
+function applyStudyHealFromCard(
+  state: PokeRemGameState,
+  encounterRate: number,
+  countsTowardWild: boolean,
+): PokeRemGameState {
+  if (!countsTowardWild) return state;
+  const rate = Math.max(1, Math.floor(encounterRate));
+  const aid = state.activePokemonId;
+  if (!aid) return state;
+  const leadIdx = state.party.findIndex((p) => p.id === aid);
+  if (leadIdx < 0) return state;
+
+  const carries = normalizeStudyHealCarriesSlice(state.studyHealCarries, state.party.length);
+  const party = state.party.map((p, i) => {
+    const inc = i === leadIdx ? (p.maxHp * 0.5) / rate : (p.maxHp * 0.25) / rate;
+    let c = (carries[i] ?? 0) + inc;
+    if (p.currentHp <= 0) {
+      carries[i] = 0;
+      return p;
+    }
+    if (p.currentHp >= p.maxHp) {
+      carries[i] = c;
+      return p;
+    }
+    const heal = Math.floor(c);
+    c -= heal;
+    carries[i] = c;
+    return { ...p, currentHp: Math.min(p.maxHp, p.currentHp + heal) };
+  });
+  return { ...state, party, studyHealCarries: carries };
 }
 
 /** Consume one Catch Scope and write an in-battle odds readout (next throw, same math as catch). */
@@ -732,7 +886,7 @@ export function catchEncounter(state: PokeRemGameState, ball: 'poke-ball' | 'gre
     dexNum: enc.dexNum,
     name: enc.name,
     level: enc.level,
-    totalXp: (enc.level - 1) * 100,
+    totalXp: xpThresholdForLevel(enc.level),
     currentHp: enc.maxHp,
     maxHp: enc.maxHp,
     types: enc.types,
@@ -861,21 +1015,6 @@ function growPokemonWithXp(mon: OwnedPokemon, xpDelta: number): {
     }
   }
   return { pokemon: updated, leveledUp, evolvedMon, evolvedFromName };
-}
-
-/** +1 or +2 XP on the lead for each completed flashcard (alternates by review count). */
-function applyLeadStudyXpOnCard(state: PokeRemGameState, cardsReviewed: number): PokeRemGameState {
-  const aid = state.activePokemonId;
-  if (!aid) return state;
-  const idx = state.party.findIndex((p) => p.id === aid);
-  if (idx < 0) return state;
-  const mon = state.party[idx]!;
-  if (mon.currentHp <= 0) return state;
-  const delta = 1 + (cardsReviewed % 2);
-  const { pokemon } = growPokemonWithXp(mon, delta);
-  const party = [...state.party];
-  party[idx] = pokemon;
-  return { ...state, party };
 }
 
 function computeDefeatXp(state: PokeRemGameState): number {
@@ -1161,7 +1300,10 @@ export function useHealingItem(state: PokeRemGameState, itemId: string): PokeRem
     return withTouch({ ...state, bag, party });
   }
 
-  if (mon.currentHp <= 0) return state;
+  if (mon.currentHp <= 0) {
+    const msg = 'Fainted Pokémon must be revived with a Revive before they can be healed.';
+    return withTouch({ ...state, ...bumpBattleOutcome(state, 'none', msg) });
+  }
 
   const healBy = item.id === 'max-potion' ? 9999 : (item.power ?? 0);
   if (healBy <= 0) return state;
@@ -1190,7 +1332,7 @@ export function useLeadUtilityItem(state: PokeRemGameState, itemId: string): Pok
   if (itemId === 'rare-candy') {
     if (mon.level >= 100) return state;
     const newLevel = Math.min(100, mon.level + 1);
-    const targetTotalXp = (newLevel - 1) * XP_PER_LEVEL;
+    const targetTotalXp = xpThresholdForLevel(newLevel);
     const delta = targetTotalXp - mon.totalXp;
     const grown = growPokemonWithXp(mon, delta);
     const party = state.party.map((p, i) => (i === idx ? grown.pokemon : p));
@@ -1209,7 +1351,68 @@ export function forgetMoveAction(state: PokeRemGameState, pokemonId: string, mov
     if (p.id !== pokemonId) return p;
     return { ...p, moves: (p.moves ?? []).filter((m) => m !== moveId) };
   });
-  return withTouch({ ...state, party });
+  const storagePokemon = state.storagePokemon.map((p) => {
+    if (p.id !== pokemonId) return p;
+    return { ...p, moves: (p.moves ?? []).filter((m) => m !== moveId) };
+  });
+  return withTouch({ ...state, party, storagePokemon });
+}
+
+/**
+ * Teach a move manually from the Party screen. Only moves unlocked on this species' level-up
+ * table at its current level (plus type legality). If the moveset is full (4),
+ * pass `replaceIndex` 0–3 to overwrite that slot.
+ */
+export function learnMoveAction(
+  state: PokeRemGameState,
+  pokemonId: string,
+  moveId: string,
+  replaceIndex?: number,
+): PokeRemGameState {
+  const move = MOVES[moveId];
+  if (!move) return state;
+
+  const apply = (mon: OwnedPokemon): OwnedPokemon | null => {
+    if (mon.id !== pokemonId) return null;
+    const unlocked = new Set(getUnlockedLearnsetMoveIds(mon.dexNum, mon.level));
+    if (!unlocked.has(moveId)) return null;
+    if (!isMoveTypeLegalForSpecies(mon.types, move)) return null;
+    const cur = dedupeMoveIds([...(mon.moves ?? [])]);
+    if (cur.includes(moveId)) return null;
+    let next: string[];
+    if (cur.length < 4) {
+      next = [...cur, moveId];
+    } else {
+      if (replaceIndex === undefined || replaceIndex < 0 || replaceIndex > 3) return null;
+      next = [...cur];
+      next[replaceIndex] = moveId;
+    }
+    return { ...mon, moves: next };
+  };
+
+  let partyHit = false;
+  const party = state.party.map((p) => {
+    const u = apply(p);
+    if (u) {
+      partyHit = true;
+      return u;
+    }
+    return p;
+  });
+  if (partyHit) return withTouch({ ...state, party });
+
+  let storageHit = false;
+  const storagePokemon = state.storagePokemon.map((p) => {
+    const u = apply(p);
+    if (u) {
+      storageHit = true;
+      return u;
+    }
+    return p;
+  });
+  if (storageHit) return withTouch({ ...state, storagePokemon });
+
+  return state;
 }
 
 export function renamePokemon(state: PokeRemGameState, pokemonId: string, nickname: string): PokeRemGameState {
@@ -1289,10 +1492,10 @@ export function claimAchievement(state: PokeRemGameState, id: string): PokeRemGa
   };
   next = addTrainerXp(next, achievementTrainerXpReward(def));
   next = addBagQuantities(next, achievementItemBonus(def));
-  next.trainerLevel = trainerLevelFromXp(next.trainerXp ?? 0);
-  next.trainerRank = computeTrainerRank(next);
-  next.achievements = deriveAchievements(next);
-  return next;
+  next.mainNoticeQueue = (next.mainNoticeQueue ?? []).filter(
+    (n) => !(n.kind === 'achievement_unlock' && n.id === id),
+  );
+  return withTouch(next);
 }
 
 export function configureStudyDifficulty(
@@ -1339,6 +1542,12 @@ export function claimTrainerReward(state: PokeRemGameState, level: number): Poke
   if (reward.trainerRankTitle) {
     next = { ...next, trainerRank: reward.trainerRankTitle };
   }
+  next = {
+    ...next,
+    mainNoticeQueue: (next.mainNoticeQueue ?? []).filter(
+      (n) => !(n.kind === 'trainer_reward' && n.id === `reward-${level}`),
+    ),
+  };
   return withTouch(next);
 }
 
@@ -1355,7 +1564,7 @@ export function buyItem(state: PokeRemGameState, itemId: string, price: number):
 }
 
 export function xpProgressPercent(mon: OwnedPokemon): number {
-  const need = xpToNextLevel(mon.totalXp);
-  const span = 100;
-  return Math.max(0, Math.min(100, ((span - need) / span) * 100));
+  const span = xpSpanForCurrentLevel(mon.totalXp);
+  const cur = xpIntoCurrentLevel(mon.totalXp);
+  return Math.max(0, Math.min(100, (cur / span) * 100));
 }

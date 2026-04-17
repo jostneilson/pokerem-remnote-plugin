@@ -1,8 +1,8 @@
 # PokéRem
 
-PokéRem is a gamified study companion for [RemNote](https://www.remnote.com/) that adds a retro-inspired progression layer to flashcard review.
+PokéRem is a gamified study companion for [RemNote](https://www.remnote.com/) that turns flashcard reviews into a light progression loop: wild encounters, catching, party and bag management, a shop, type matchups, trainer levels, achievements, and a growing collection—without replacing normal review.
 
-As you study, reviews feed into a lightweight companion system with wild encounters, catching, party management, rewards, trainer progression, achievements, and a collectible roster. The goal is to make consistent studying feel more engaging without pulling focus away from the actual learning.
+As you study, your queue activity drives the game. The goal is to make consistent studying feel more rewarding while RemNote stays at the center of how you learn.
 
 ## Overview
 
@@ -76,13 +76,19 @@ PokéRem currently uses multiple RemNote plugin surfaces, depending on user sett
 
 ## Using PokéRem
 
-1. Open the PokéRem panel in RemNote.
-2. Choose your starter and initial study settings.
-3. Review cards as normal.
-4. Progress toward wild encounters through study activity.
-5. Catch, fight, manage your party, shop for items, and build long-term progression over time.
+### Where to open PokéRem (most users look here first)
 
-PokéRem is intended to complement review, not interrupt it.
+1. Go to **Flashcard Queue** (your usual review session).
+2. Tap the **AI chat** button at the **top right** of the queue to open the right **sidebar**.
+3. At the **top of that sidebar**, select the **Pokéball** icon to open the PokéRem panel.
+
+After that:
+
+4. Choose your starter and initial study settings (first launch).
+5. Review cards as normal—encounters and progression follow your review activity.
+6. Catch, fight, manage your party, use the shop, and build long-term progression over time.
+
+PokéRem is intended to complement review, not interrupt it. Sprites load from [PokeAPI](https://pokeapi.co/) when online; see `ATTRIBUTION.md` for credits and disclaimers.
 
 ## Save data
 

@@ -7,11 +7,11 @@
   "version": {
     "major": 1,
     "minor": 1,
-    "patch": 2
+    "patch": 3
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "Unofficial fan companion (not Nintendo/TPCI). Pokémon-style hooks to reviews: wilds, catch, party, shop, types, achievements. Sprites from PokeAPI when online. See repo ATTRIBUTION.md.",
+  "description": "Pokémon-style RemNote companion: encounters, catching, party, shop, achievements from reviews. OPEN: Flashcard Queue → AI chat (top-right) → sidebar → Pokéball icon. Unofficial fan project.",
   "requestNative": false,
   "requiredScopes": [
     {

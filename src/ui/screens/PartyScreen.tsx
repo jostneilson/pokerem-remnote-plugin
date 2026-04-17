@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import type { OwnedPokemon } from '../../game/state/model';
+import type { PokemonType } from '../../game/data/species';
 import { MOVES } from '../../game/data/moves';
+import { dedupeMoveIds, getUnlockedLearnsetMoveIds, moveUiDescription } from '../../game/engine/moveLearn';
 import { frontSpriteUrl } from '../../game/sprites';
 import { typePillStyle } from '../battle/battleTheme';
 import { Panel } from '../components/Panel';
@@ -9,28 +12,58 @@ import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
 
+function sortTeachableMoves(types: readonly PokemonType[], ids: string[]): string[] {
+  const primary = types[0];
+  const secondary = types[1];
+  const band = (id: string) => {
+    const t = MOVES[id]!.type;
+    if (t === primary || (secondary !== undefined && t === secondary)) return 0;
+    if (t === 'Normal') return 1;
+    return 2;
+  };
+  return [...ids].sort((a, b) => {
+    const ba = band(a);
+    const bb = band(b);
+    if (ba !== bb) return ba - bb;
+    const pa = MOVES[a]!.power;
+    const pb = MOVES[b]!.power;
+    if (pa !== pb) return pb - pa;
+    return MOVES[a]!.name.localeCompare(MOVES[b]!.name);
+  });
+}
+
 function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string) => void }) {
-  if (moves.length === 0) {
+  const list = dedupeMoveIds(moves);
+  if (list.length === 0) {
     return (
       <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#64748b' }}>
-        No moves learned yet.
+        No moves in this moveset yet — use “Teachable moves” to pull from moves unlocked at this level.
       </div>
     );
   }
   return (
-    <div className="mt-1 flex flex-col gap-1">
-      {moves.map((mid) => {
+    <div className="mt-1 flex flex-col gap-1.5">
+      {list.map((mid) => {
         const m = MOVES[mid];
         if (!m) return null;
         return (
-          <div key={mid} className="flex min-h-[2rem] items-center gap-1">
-            <div className="flex min-w-0 flex-1 items-center gap-1 rounded border px-1.5 py-1" style={typePillStyle(m.type)}>
-              <span className="truncate text-[8px] font-bold">{m.name}</span>
-              {m.power > 0 ? (
-                <span className="shrink-0 rounded px-0.5 text-[7px] font-bold" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                  {m.power}
-                </span>
-              ) : null}
+          <div key={mid} className="flex min-h-[2rem] items-start gap-1">
+            <div className="min-w-0 flex-1 rounded border px-1.5 py-1" style={typePillStyle(m.type)}>
+              <div className="flex items-center gap-1">
+                <span className="truncate text-[8px] font-black">{m.name}</span>
+                {m.power > 0 ? (
+                  <span className="shrink-0 rounded px-0.5 text-[7px] font-bold" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    {m.power}
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded px-0.5 text-[7px] font-bold uppercase" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    Status
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: 'inherit', opacity: 0.88 }}>
+                {moveUiDescription(mid)}
+              </div>
             </div>
             {onForget ? (
               <button
@@ -50,6 +83,74 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
   );
 }
 
+function TeachableMovesBrowser({
+  pokemon,
+  onPickMove,
+}: {
+  pokemon: OwnedPokemon;
+  onPickMove: (moveId: string) => void;
+}) {
+  const current = dedupeMoveIds(pokemon.moves ?? []);
+  const unlocked = getUnlockedLearnsetMoveIds(pokemon.dexNum, pokemon.level);
+  const candidates = sortTeachableMoves(
+    pokemon.types,
+    unlocked.filter((id) => !current.includes(id)),
+  );
+
+  if (candidates.length === 0) {
+    return (
+      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        {unlocked.length === 0
+          ? 'No learnset moves unlocked at this level yet — level up to grow this path.'
+          : 'Every move unlocked at this level is already in the moveset. Level up to unlock more, or drop a move to swap one back in.'}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-1 max-h-52 space-y-1 overflow-y-auto rounded border border-white/10 p-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
+      {candidates.map((mid) => {
+        const m = MOVES[mid]!;
+        return (
+          <div
+            key={mid}
+            className="flex flex-col gap-0.5 rounded border border-white/[0.06] px-1.5 py-1"
+            style={{ background: 'rgba(30,41,59,0.45)' }}
+          >
+            <div className="flex items-start justify-between gap-1">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="rounded border px-1 py-px text-[7px] font-black uppercase" style={typePillStyle(m.type)}>
+                    {m.type}
+                  </span>
+                  <span className="text-[8px] font-black" style={{ color: '#e2e8f0' }}>
+                    {m.name}
+                  </span>
+                  {m.power > 0 ? (
+                    <span className="text-[7px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
+                      Pow {m.power}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+                  {moveUiDescription(mid)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onPickMove(mid)}
+                className="pkr-btn-primary shrink-0 px-2 py-0.5 text-[7px] font-black uppercase"
+              >
+                Learn
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function PartyScreen({
   rootURL,
   party,
@@ -57,6 +158,7 @@ export function PartyScreen({
   activeId,
   onSwitch,
   onForgetMove,
+  onLearnMove,
   onRename,
   onRelease,
   onMoveToStorage,
@@ -69,6 +171,8 @@ export function PartyScreen({
   activeId: string | null;
   onSwitch: (id: string) => void;
   onForgetMove?: (pokemonId: string, moveId: string) => void;
+  /** Manual teach: move must match species typings or Normal; pass `replaceIndex` 0–3 when moveset is full. */
+  onLearnMove?: (pokemonId: string, moveId: string, replaceIndex?: number) => void;
   onRename?: (pokemonId: string, name: string) => void;
   onRelease?: (pokemonId: string) => void;
   onMoveToStorage?: (pokemonId: string) => void;
@@ -82,6 +186,8 @@ export function PartyScreen({
   const [showStorage, setShowStorage] = useState(false);
   const [replaceStorageId, setReplaceStorageId] = useState<string | null>(null);
   const [releaseTarget, setReleaseTarget] = useState<{ id: string; name: string } | null>(null);
+  const [movePickerPokemonId, setMovePickerPokemonId] = useState<string | null>(null);
+  const [moveReplacePrompt, setMoveReplacePrompt] = useState<{ pokemonId: string; moveId: string } | null>(null);
   const replacePanelRef = useRef<HTMLDivElement | null>(null);
   const releasePanelRef = useRef<HTMLDivElement | null>(null);
   const storage = storagePokemon ?? [];
@@ -139,6 +245,15 @@ export function PartyScreen({
     return () => clearTimeout(t);
   }, [releaseTarget]);
 
+  useEffect(() => {
+    if (!moveReplacePrompt) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [moveReplacePrompt]);
+
   function renderPokemon(p: OwnedPokemon, isParty: boolean) {
     const isExpanded = expanded === p.id;
     const isActive = p.id === activeId;
@@ -148,9 +263,34 @@ export function PartyScreen({
       <>
         <PokemonGrowthPanel pokemon={p} />
         <div className="pkr-pixel-title mb-1 mt-1 text-[6px] font-black uppercase tracking-wide" style={{ color: '#94a3b8' }}>
-          Moves ({(p.moves ?? []).length}/4)
+          Moves ({dedupeMoveIds(p.moves ?? []).length}/4)
         </div>
         <MoveList moves={p.moves ?? []} onForget={onForgetMove ? (mid) => onForgetMove(p.id, mid) : undefined} />
+        {onLearnMove ? (
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setMovePickerPokemonId((cur) => (cur === p.id ? null : p.id))}
+              className="w-full pkr-btn-secondary py-1.5 text-[8px] font-black uppercase"
+            >
+              {movePickerPokemonId === p.id ? 'Hide teachable moves' : 'Teachable moves'}
+            </button>
+            {movePickerPokemonId === p.id ? (
+              <TeachableMovesBrowser
+                pokemon={p}
+                onPickMove={(mid) => {
+                  const n = dedupeMoveIds(p.moves ?? []).length;
+                  if (n < 4) {
+                    onLearnMove(p.id, mid);
+                    setMovePickerPokemonId(null);
+                  } else {
+                    setMoveReplacePrompt({ pokemonId: p.id, moveId: mid });
+                  }
+                }}
+              />
+            ) : null}
+          </div>
+        ) : null}
         <div className="pkr-party-card__actions mt-2">
           {renaming === p.id ? (
             <div className="flex w-full flex-wrap items-center gap-1">
@@ -267,8 +407,139 @@ export function PartyScreen({
     );
   }
 
+  const replaceModalMon =
+    moveReplacePrompt && [...party, ...storage].find((x) => x.id === moveReplacePrompt.pokemonId);
+  const replaceNewMove = moveReplacePrompt ? MOVES[moveReplacePrompt.moveId] : undefined;
+
+  const replaceMovePortal =
+    typeof document !== 'undefined' &&
+    moveReplacePrompt &&
+    onLearnMove &&
+    replaceModalMon &&
+    replaceNewMove
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[300] flex items-end justify-center"
+            style={{ background: 'rgba(0,0,0,0.82)' }}
+            role="presentation"
+            onClick={() => setMoveReplacePrompt(null)}
+          >
+            {/* Portaled outside sidebar — pixel font + chrome must be explicit */}
+            <div className="pkr-pixel-surface pkr-retro-chrome w-full max-w-lg sm:mx-3 sm:mb-3">
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="pkr-replace-move-title"
+                tabIndex={-1}
+                className="pkr-panel !rounded-t-2xl border-2 !shadow-[0_-12px_40px_rgba(0,0,0,0.65)] outline-none sm:!rounded-2xl"
+                style={{
+                  /* Opaque shell — overrides .pkr-panel translucent gradient so list behind does not bleed through */
+                  background: 'linear-gradient(180deg, #1f3d1a 0%, #0f1f0d 52%, #0a1409 100%)',
+                  borderColor: 'rgba(56, 112, 72, 0.95)',
+                  maxHeight: 'min(88vh, 520px)',
+                  paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className="pkr-panel-header"
+                  style={{
+                    background: 'linear-gradient(90deg, rgba(251,191,36,0.22) 0%, rgba(251,191,36,0.06) 45%, transparent 100%)',
+                  }}
+                >
+                  <div
+                    id="pkr-replace-move-title"
+                    className="pkr-pixel-title text-[6px] font-black uppercase leading-snug tracking-wide"
+                  >
+                    Replace a move?
+                  </div>
+                </div>
+                <p className="text-[7px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
+                  Teach <span style={{ color: '#fde68a' }}>{replaceNewMove.name}</span> — tap a slot to overwrite (moveset is full).
+                </p>
+                <div
+                  className="mt-2 flex min-h-0 flex-1 flex-col rounded border p-1"
+                  style={{
+                    borderColor: 'rgba(255,255,255,0.12)',
+                    background: '#050a05',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.45)',
+                  }}
+                >
+                  <div className="max-h-[min(52vh,320px)] space-y-1 overflow-y-auto pr-0.5">
+                    {dedupeMoveIds(replaceModalMon.moves ?? []).map((mid, idx) => {
+                      const m = MOVES[mid];
+                      const label = m?.name ?? mid;
+                      return (
+                        <button
+                          key={`${mid}-${idx}`}
+                          type="button"
+                          className="flex w-full flex-col gap-0.5 rounded border px-1.5 py-1.5 text-left transition-[filter,box-shadow] hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pkr-accent,#fbbf24)]"
+                          style={{
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            background: '#142818',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                          }}
+                          onClick={() => {
+                            onLearnMove(moveReplacePrompt.pokemonId, moveReplacePrompt.moveId, idx);
+                            setMoveReplacePrompt(null);
+                            setMovePickerPokemonId(null);
+                          }}
+                        >
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#64748b' }}>
+                              Slot {idx + 1}
+                            </span>
+                            {m ? (
+                              <span
+                                className="rounded border px-1 py-px text-[6px] font-black uppercase"
+                                style={typePillStyle(m.type)}
+                              >
+                                {m.type}
+                              </span>
+                            ) : null}
+                            <span className="min-w-0 flex-1 truncate text-[7px] font-black" style={{ color: '#e2e8f0' }}>
+                              {label}
+                            </span>
+                            {m && m.power > 0 ? (
+                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#64748b' }}>
+                                Pow {m.power}
+                              </span>
+                            ) : m ? (
+                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#64748b' }}>
+                                Status
+                              </span>
+                            ) : null}
+                          </div>
+                          {m ? (
+                            <p className="text-[6px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+                              {moveUiDescription(mid)}
+                            </p>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="mt-3 w-full pkr-btn-secondary text-[7px] font-black uppercase tracking-wide"
+                  onClick={() => setMoveReplacePrompt(null)}
+                >
+                  Cancel
+                </button>
+              </section>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className="space-y-3">
+      {replaceMovePortal}
+
       {releaseTarget && onRelease ? (
         <div
           className="fixed inset-0 z-[110] flex items-end justify-center p-2 sm:items-center"
@@ -381,7 +652,8 @@ export function PartyScreen({
 
       <Panel title={`Party · ${party.length}/6`} icon={<GameIcon name="party" size={14} />}>
         <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
-          Tap a Pokémon for moves, rename, storage, or release. The <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
+          Tap a Pokémon for moves (re-equip from this level’s unlocked learnset or drop slots), rename, storage, or release. The{' '}
+          <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
         </p>
         <div className="space-y-2">{party.map((p) => renderPokemon(p, true))}</div>
       </Panel>

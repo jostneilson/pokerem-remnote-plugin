@@ -2,12 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { ACHIEVEMENT_TIER_TRAINER_XP } from '../engine/achievements';
 import { damageForMove } from '../engine/combatExchange';
 import { tryCatch } from '../engine/encounters';
+import { isMoveTypeLegalForSpecies } from '../data/learnsetRules';
+import { MOVES } from '../data/moves';
+import { dedupeMoveIds, getUnlockedLearnsetMoveIds, movesetForBattle, pickDefaultBattleMove } from '../engine/moveLearn';
 import { TRAINER_XP_SOURCES } from '../engine/trainerLevel';
 import type { EncounterPokemon, OwnedPokemon } from './model';
 import {
   applyCombatTurn,
+  forgetMoveAction,
+  learnMoveAction,
   claimAchievement,
   chooseStarter,
+  dismissMainNotice,
   createInitialStateV2,
   createInitialStateV3,
   defeatEncounter,
@@ -99,6 +105,17 @@ describe('parseGameState', () => {
 });
 
 describe('onQueueCardComplete', () => {
+  it('increments dailyStats.reviews on each completed card after starter', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 1);
+    s = { ...s, lastStudyDate: today, currentStreak: 1, longestStreak: 1 };
+    const next = onQueueCardComplete(s, [1], 99, { encounterPacingModulo: 100 });
+    expect(next.dailyStats?.reviews).toBe(1);
+    const next2 = onQueueCardComplete(next, [1], 99, { encounterPacingModulo: 100 });
+    expect(next2.dailyStats?.reviews).toBe(2);
+  });
+
   it('respects autoClearLog off', () => {
     let s = createInitialStateV2();
     s = chooseStarter(s, 1);
@@ -220,12 +237,13 @@ describe('applyCombatTurn', () => {
       types: ['Bug'],
     };
     s = { ...s, currentEncounter: enc };
-    const pDmg = damageForMove(lead.level, 'scratch', lead.types, enc.types);
-    const next = applyCombatTurn(s, 'scratch');
+    const pick = pickDefaultBattleMove(movesetForBattle(lead))!;
+    const pDmg = damageForMove(lead.level, pick, lead.types, enc.types);
+    const next = applyCombatTurn(s, pick);
     vi.restoreAllMocks();
     expect(next.currentEncounter).not.toBe(null);
     expect(next.currentEncounter!.currentHp).toBe(30 - pDmg);
-    expect(next.lastCombatStrike?.playerMoveId).toBe('scratch');
+    expect(next.lastCombatStrike?.playerMoveId).toBe(pick);
     expect(typeof next.lastCombatStrike?.wildMoveId).toBe('string');
     expect(typeof next.lastCombatStrike?.playerDamage).toBe('number');
     expect(typeof next.lastCombatStrike?.wildDamage).toBe('number');
@@ -247,8 +265,9 @@ describe('applyCombatTurn', () => {
       types: ['Bug'],
     };
     s = { ...s, currentEncounter: enc };
-    const pDmg = damageForMove(lead.level, 'scratch', lead.types, enc.types);
-    const next = applyCombatTurn(s, 'scratch');
+    const pick = pickDefaultBattleMove(movesetForBattle(lead))!;
+    const pDmg = damageForMove(lead.level, pick, lead.types, enc.types);
+    const next = applyCombatTurn(s, pick);
     vi.restoreAllMocks();
     expect(next.currentEncounter!.currentHp).toBe(30 - pDmg);
   });
@@ -285,6 +304,35 @@ describe('applyCombatTurn', () => {
   it('no-ops without encounter', () => {
     const s = createInitialStateV2();
     expect(applyCombatTurn(s)).toBe(s);
+  });
+});
+
+describe('mainNoticeQueue', () => {
+  it('dismissMainNotice removes one entry by id', () => {
+    let s = createInitialStateV3();
+    s = {
+      ...s,
+      starterChosen: true,
+      mainNoticeQueue: [
+        { kind: 'achievement_unlock', id: 'a', title: 'A', subtitle: 'x' },
+        { kind: 'achievement_unlock', id: 'b', title: 'B', subtitle: 'y' },
+      ],
+    };
+    const next = dismissMainNotice(s, 'a');
+    expect(next.mainNoticeQueue?.map((n) => n.id)).toEqual(['b']);
+  });
+
+  it('claimAchievement drops matching main notice', () => {
+    let s = createInitialStateV3();
+    s = chooseStarter(s, 1);
+    s = {
+      ...s,
+      achievements: { ...s.achievements, review25: true },
+      claimedAchievementIds: [],
+      mainNoticeQueue: [{ kind: 'achievement_unlock', id: 'review25', title: 'T', subtitle: 'S' }],
+    };
+    const next = claimAchievement(s, 'review25');
+    expect(next.mainNoticeQueue?.some((n) => n.id === 'review25')).toBe(false);
   });
 });
 
@@ -355,5 +403,71 @@ describe('useHealingItem', () => {
     const next = useHealingItem(s, 'potion');
     expect(next.bag.potion).toBe(4);
     expect(next.party[0]!.currentHp).toBe(0);
+    expect(next.lastBattleLog).toContain('Revive');
+  });
+});
+
+describe('learnMoveAction', () => {
+  it('rejects moves that are not type-legal for the species', () => {
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 1);
+    const id = s.party[0]!.id;
+    const before = [...(s.party[0]!.moves ?? [])];
+    const next = learnMoveAction(s, id, 'ember');
+    expect(next.party[0]!.moves).toEqual(before);
+  });
+
+  it('rejects moves that are not unlocked on the learnset at current level', () => {
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 4);
+    const mon = s.party[0]!;
+    const unlocked = new Set(getUnlockedLearnsetMoveIds(mon.dexNum, mon.level));
+    const notYet = (Object.keys(MOVES) as string[]).find(
+      (id) => !unlocked.has(id) && isMoveTypeLegalForSpecies(mon.types, MOVES[id]!),
+    );
+    expect(notYet).toBeTruthy();
+    const before = [...(s.party[0]!.moves ?? [])];
+    const next = learnMoveAction(s, mon.id, notYet!);
+    expect(next.party[0]!.moves).toEqual(before);
+  });
+
+  it('appends an unlocked learnset move when there is room', () => {
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 4);
+    let mon = s.party[0]!;
+    let unlocked = getUnlockedLearnsetMoveIds(mon.dexNum, mon.level);
+    let cand = unlocked.find((m) => !(mon.moves ?? []).includes(m));
+    if (!cand && (mon.moves ?? []).length > 0) {
+      s = forgetMoveAction(s, mon.id, dedupeMoveIds(mon.moves ?? [])[0]!);
+      mon = s.party[0]!;
+      unlocked = getUnlockedLearnsetMoveIds(mon.dexNum, mon.level);
+      cand = unlocked.find((m) => !(mon.moves ?? []).includes(m));
+    }
+    expect(cand).toBeTruthy();
+    const next = learnMoveAction(s, mon.id, cand!);
+    expect(next.party[0]!.moves?.includes(cand!)).toBe(true);
+  });
+
+  it('replaces a slot when moveset is full', () => {
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 4);
+    const lv = 42;
+    s = { ...s, party: [{ ...s.party[0]!, level: lv, totalXp: 9_999_999 }] };
+    const pid = s.party[0]!.id;
+    const unlocked = getUnlockedLearnsetMoveIds(s.party[0]!.dexNum, lv);
+    let state = s;
+    let cur = dedupeMoveIds(state.party[0]!.moves ?? []);
+    for (let guard = 0; guard < 12 && cur.length < 4; guard++) {
+      const add = unlocked.find((m) => !cur.includes(m));
+      if (!add) break;
+      state = learnMoveAction(state, pid, add);
+      cur = dedupeMoveIds(state.party[0]!.moves ?? []);
+    }
+    expect(cur.length).toBe(4);
+    const swapIn = unlocked.find((m) => !cur.includes(m));
+    expect(swapIn).toBeTruthy();
+    const next = learnMoveAction(state, pid, swapIn!, 2);
+    expect(next.party[0]!.moves![2]).toBe(swapIn);
+    expect(dedupeMoveIds(next.party[0]!.moves ?? []).length).toBe(4);
   });
 });

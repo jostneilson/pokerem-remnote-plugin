@@ -75,6 +75,16 @@ export interface AchievementState {
   [key: string]: boolean;
 }
 
+export type MainNoticeKind = 'achievement_unlock' | 'trainer_reward';
+
+/** Dismissible main-UI notice (synced); reward remains claimable in Progress / Rewards. */
+export interface MainNoticeItem {
+  kind: MainNoticeKind;
+  id: string;
+  title: string;
+  subtitle: string;
+}
+
 /** Persisted game state. User-facing product name: PokéRem (`BRAND.wordmark` in `designTokens.ts`). */
 export interface PokeRemGameState {
   schemaVersion: 3;
@@ -157,4 +167,11 @@ export interface PokeRemGameState {
   routeFindNoticeAckSeq?: number;
   /** Latest find banner payload (replaced each new find). */
   routeFindNotice?: RouteFindNoticePayload | null;
+  /**
+   * Fractional passive heal carry per party index (aligned with `party` order).
+   * Used so per-card healing matches encounter cadence (see `applyStudyHealFromCard`).
+   */
+  studyHealCarries?: number[];
+  /** Main battle chrome — achievement / trainer reward prompts (dismiss hides only this banner). */
+  mainNoticeQueue?: MainNoticeItem[];
 }

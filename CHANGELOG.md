@@ -7,7 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No user-facing changes logged yet._
+(nothing yet)
+
+## [1.1.3] - 2026-04-17
+
+### Added
+
+- **Party → Teachable moves**: browse moves **unlocked on the level-up learnset at the Pokémon’s current level**, short summaries, learn into an open slot, or replace a slot when full (opaque bottom-sheet UI in installed mode). Forgetting a move works from PC storage Pokémon as well.
+- **Revive** always available in the Shop at **500** PokéCoins (no daily rotation); clearer faint vs heal rules and bag feedback when potions cannot heal fainted Pokémon.
+- **Wild encounter pool** respects caught species until every encounterable species in enabled generations is caught; then duplicates return and **shiny rate becomes 1/200**.
+- **Main battle notifications** for newly unlocked achievements and claimable trainer rewards (dismiss hides banner only; claim in Progress / Rewards).
+- **Party-wide study XP** (weighted random per card) and **encounter-paced passive healing** with fractional carry; smoother **Pokémon XP curve** (early levels faster than the old flat 100 XP step).
+
+### Changed
+
+- **Learnsets** are now generated for every `FULL_POKEDEX` species from the move catalog with deterministic pacing, type-legal moves only (species typings + Normal), validation, and small hand-authored overrides (Magikarp, Ditto, Unown, Eeveelutions).
+- **Status → Today’s stats (UTC)** replaces separate “This session” / “Today” panels; counts use the same `dailyStats` source as the rest of the pipeline.
+- **Eeveelution learnsets** (Vaporeon, Jolteon, Flareon) corrected to proper Water / Electric / Fire progressions using existing move catalog entries.
+- **Marketplace manifest description** — clearer value prop, how to open the panel from Flashcard Queue, and fan-project line (still under RemNote’s short-description length cap).
+
+### Fixed
+
+- **Run / retreat icon** vertical alignment with command labels.
+- **Achievement fanfare** no longer only appears after claiming from Progress; unlocks surface in the main battle chrome.
+- **Catch Scope** shop/bag icon: `key.png` was never shipped (404 in installed builds); icon now uses existing `master-ball.png`.
+- **Combat tests** now pick the lead’s actual default battle move instead of assuming `Scratch` on Charmander.
 
 ## [1.1.2] - 2026-04-13
 

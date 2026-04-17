@@ -37,6 +37,7 @@ import { effectivenessChipLabel, effectivenessTier } from '../../game/engine/com
 import { movesetForBattle } from '../../game/engine/moveLearn';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
+import { AchievementFanfare } from '../components/AchievementFanfare';
 import { RouteFindBanner } from './RouteFindBanner';
 import { CombatExchangeLogBlock } from './CombatExchangeLogBlock';
 import { BRAND } from '../theme/gameTheme';
@@ -159,6 +160,7 @@ export function BattleReviewSurface({
   encounterPacingModulo,
   wildReviewWeight,
   onAcknowledgeRouteFind,
+  onDismissMainNotice,
   /**
    * Sidebar layout: `sticky` is the header + cave (fixed above the scrollport); `lower` is the command
    * column (place inside the host `overflow-y-auto` so it scrolls under the cave).
@@ -201,6 +203,8 @@ export function BattleReviewSurface({
   /** Effective study weight for wild accumulation (settings or study difficulty). */
   wildReviewWeight?: number;
   onAcknowledgeRouteFind?: () => void;
+  /** Dismiss synced main notice (achievement / trainer reward banner). */
+  onDismissMainNotice?: (id: string) => void;
   sidebarSplitLayout?: (parts: { sticky: ReactNode; lower: ReactNode }) => JSX.Element;
 }) {
   const progress = state.encounterProgress;
@@ -596,10 +600,21 @@ export function BattleReviewSurface({
     sidebarSplitLayout ? '' : impactShake ? ' animate-pkr-xp-impact' : ''
   }`;
 
+  const mainNotice = state.mainNoticeQueue?.[0];
   const chromeBody = (
     <>
       {/* Sticky with sidebar scroll: trainer row + banners + cave stay put; command deck slides underneath. */}
       <div ref={stickyDockRef} className={chromeClassName}>
+      {mainNotice && onDismissMainNotice ? (
+        <div className="border-b border-white/[0.06] px-1 pt-1">
+          <AchievementFanfare
+            headline={mainNotice.kind === 'trainer_reward' ? 'Trainer reward ready' : 'Achievement unlocked'}
+            entries={[{ title: mainNotice.title, rewardLine: mainNotice.subtitle }]}
+            onDone={() => onDismissMainNotice(mainNotice.id)}
+            reducedMotion={reducedMotion}
+          />
+        </div>
+      ) : null}
       {/* Header bar — min-w-0 + overflow so wide viewports do not force this row wider than the sidebar column */}
       <div
         className={`pkr-battle-header-bar flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 overflow-x-hidden px-2 py-1.5 sm:gap-1.5 sm:px-2.5 ${
@@ -692,8 +707,8 @@ export function BattleReviewSurface({
             color: '#fecaca',
           }}
         >
-          Lead has fainted — wild encounters are paused. Use <strong style={{ color: '#fde68a' }}>Bag</strong> to heal or{' '}
-          <strong style={{ color: '#fde68a' }}>Party</strong> to switch your active Pokémon.
+          Lead has fainted — wild encounters are paused. Use a <strong style={{ color: '#fde68a' }}>Revive</strong> in{' '}
+          <strong style={{ color: '#fde68a' }}>Bag</strong>, then potions if needed, or <strong style={{ color: '#fde68a' }}>Party</strong> to switch your active Pokémon.
         </div>
       ) : null}
 
@@ -1008,7 +1023,7 @@ export function BattleReviewSurface({
           {!hasEncounter && !battleLinger ? (
             <div className="mb-0.5 text-[6px] font-bold leading-none sm:text-[7px]" style={{ color: '#a5b4fc' }}>
               {leadFaintedNoEncounter
-                ? 'Wilds paused — heal or switch'
+                ? 'Wilds paused — revive or switch'
                 : `Wild in ${Math.max(0, effectiveRate - progress)} review${Math.max(0, effectiveRate - progress) === 1 ? '' : 's'}`}
             </div>
           ) : (

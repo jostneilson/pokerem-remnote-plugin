@@ -8,12 +8,10 @@ import { Panel } from '../components/Panel';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
 import { checkLevelEvolution } from '../../game/engine/evolution';
-import { movesetForBattle } from '../../game/engine/moveLearn';
+import { movesetForBattle, moveUiDescription } from '../../game/engine/moveLearn';
 import { xpToNextLevel } from '../../game/engine/progression';
 import { MOVES } from '../../game/data/moves';
 import { BRAND } from '../theme/gameTheme';
-import type { SessionRecapDeltas } from '../../hooks/useSessionRecap';
-
 function streakStudyLine(current: number, longest: number): string {
   if (current <= 0) {
     return `Study on consecutive UTC days to build a streak — ${BRAND.wordmark} tracks your calendar habit alongside your run.`;
@@ -34,12 +32,10 @@ export function StatusScreen({
   rootURL,
   state,
   active,
-  sessionRecap,
 }: {
   rootURL: string | undefined;
   state: PokeRemGameState;
   active: OwnedPokemon;
-  sessionRecap: SessionRecapDeltas;
 }) {
   const uniqueCaught = Object.values(state.collectionDex).filter((n) => n > 0).length;
   const ds = state.dailyStats;
@@ -148,7 +144,7 @@ export function StatusScreen({
                           color: '#e2e8f0',
                         }),
                       }}
-                      title={m ? `${m.type} · power ${m.power}` : moveId}
+                      title={m ? moveUiDescription(moveId) : moveId}
                     >
                       {m?.name ?? moveId}
                     </span>
@@ -176,41 +172,12 @@ export function StatusScreen({
         </div>
       </Panel>
 
-      <Panel title="This session" icon={<GameIcon name="chart" size={14} />}>
-        {!sessionRecap.ready ? (
-          <p className="text-[9px] font-semibold" style={{ color: '#64748b' }}>
-            Loading…
-          </p>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{sessionRecap.cardsReviewed}</div>
-                <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Cards</div>
-              </div>
-              <div>
-                <div className="text-lg font-black tabular-nums" style={{ color: '#fde68a' }}>{sessionRecap.wildEncounters}</div>
-                <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Wilds</div>
-              </div>
-              <div>
-                <div className="text-lg font-black tabular-nums" style={{ color: '#6ee7b7' }}>{sessionRecap.catches}</div>
-                <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Catches</div>
-              </div>
-            </div>
-            <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
-              Since you opened {BRAND.wordmark} this time. Wilds and catches count for the current UTC day only (they reset at midnight with
-              Today). Cards keep counting until you close RemNote or reload the plugin.
-            </p>
-          </>
-        )}
-      </Panel>
-
       {ds ? (
-        <Panel title="Today (UTC)" icon={<GameIcon name="chart" size={14} />}>
+        <Panel title="Today's stats (UTC)" icon={<GameIcon name="chart" size={14} />}>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{ds.reviews}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Reviews</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Cards</div>
             </div>
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#fde68a' }}>{ds.encounters}</div>
@@ -221,7 +188,9 @@ export function StatusScreen({
               <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Catches</div>
             </div>
           </div>
-          <p className="mt-2 text-[9px] font-semibold" style={{ color: '#64748b' }}>Resets at UTC midnight · date {ds.date}</p>
+          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+            Completed flashcards and battle outcomes for the current UTC calendar day ({ds.date}). Resets at UTC midnight.
+          </p>
         </Panel>
       ) : null}
 

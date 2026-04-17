@@ -23,7 +23,15 @@ export const ITEMS: ItemData[] = [
   { id: 'potion', name: 'Potion', iconFile: 'potion.png', kind: 'heal', power: 20, price: 150, description: 'Restores 20 HP' },
   { id: 'super-potion', name: 'Super Potion', iconFile: 'super-potion.png', kind: 'heal', power: 50, price: 350, description: 'Restores 50 HP' },
   { id: 'max-potion', name: 'Max Potion', iconFile: 'max-potion.png', kind: 'heal', power: 9999, price: 1000, description: 'Fully restores HP' },
-  { id: 'revive', name: 'Revive', iconFile: 'revive.png', kind: 'heal', power: -1, price: 800, description: 'Revives fainted Pokemon to 50% HP' },
+  {
+    id: 'revive',
+    name: 'Revive',
+    iconFile: 'revive.png',
+    kind: 'heal',
+    power: -1,
+    price: 500,
+    description: 'Revives a fainted Pokémon with about half its max HP. Potions and berries cannot heal fainted Pokémon — use a Revive first.',
+  },
   { id: 'oran-berry', name: 'Oran Berry', iconFile: 'oran-berry.png', kind: 'heal', power: 10, price: 80, description: 'Restores 10 HP' },
   { id: 'rare-candy', name: 'Rare Candy', iconFile: 'rare-candy.png', kind: 'utility', price: 2000, description: 'Instantly raises level by 1' },
   {
@@ -43,7 +51,7 @@ export const ITEMS: ItemData[] = [
   {
     id: 'catch-scope',
     name: 'Catch Scope',
-    iconFile: 'key.png',
+    iconFile: 'master-ball.png',
     kind: 'utility',
     price: 200,
     description: 'One battle reading — estimates catch odds for your next throw (wild battles only).',

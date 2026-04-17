@@ -117,7 +117,8 @@ export function BagScreen({
                 Your bag
               </div>
               <div className="text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
-                Items for catching, healing, and evolving. Use heals on your <span className="font-bold text-slate-300">lead</span> Pokémon.
+                Items for catching, healing, and evolving. Medicine targets your <span className="font-bold text-slate-300">lead</span> —{' '}
+                <span className="font-bold text-slate-300">Revive</span> only works on fainted Pokémon; other heals need them conscious first.
               </div>
             </div>
           </div>

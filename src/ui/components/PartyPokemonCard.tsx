@@ -69,6 +69,18 @@ export function PartyPokemonCard({
             </span>
           </div>
           <div className="mt-1.5 space-y-1">
+            {p.currentHp <= 0 ? (
+              <div
+                className="rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wide"
+                style={{
+                  borderColor: 'rgba(248,113,113,0.45)',
+                  background: 'rgba(127,29,29,0.35)',
+                  color: '#fecaca',
+                }}
+              >
+                Fainted
+              </div>
+            ) : null}
             <PartyHpMeter current={p.currentHp} max={p.maxHp} />
             <PartyXpMeter percent={xpProgressPercent(p)} />
           </div>

@@ -358,9 +358,11 @@ export function GameIcon({
   const render = ICONS[name];
   if (!render) return null;
   const tabCls = tabPixel ? 'pkr-game-icon--tab' : '';
+  /** Retreat arrow: optical center with adjacent label text */
+  const fleeAlign = name === 'flee' ? ' relative top-[-1px]' : '';
   return (
     <span
-      className={`pkr-game-icon inline-flex items-center justify-center ${tabCls} ${className}`.trim()}
+      className={`pkr-game-icon inline-flex items-center justify-center ${tabCls}${fleeAlign} ${className}`.trim()}
       style={style}
     >
       {render(size)}
