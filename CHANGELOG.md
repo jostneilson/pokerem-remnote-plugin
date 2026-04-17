@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(nothing yet)
+### Fixed
+
+- **Queue completion dedupe** no longer treats every **table / list-style** flashcard completion as the same review when RemNote reuses one parent `remId` — keys now prefer `card._id` (and related instance ids) and suffix row/list/column-style fields when only rem-scoped ids exist.
 
 ## [1.1.3] - 2026-04-17
 

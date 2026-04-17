@@ -1,6 +1,10 @@
 /**
  * Deduplicate RemNote `QueueCompleteCard` events so navigation back/forward on the same
  * card does not inflate cardsReviewed, daily stats, or wild pacing.
+ *
+ * Table-derived and list-style flashcards often reuse one parent `remId` / `card.remId`
+ * while the stable per-completion identity lives on `card._id`, `rem._id`, row indices,
+ * or similar — we must not treat every row as the same review.
  */
 
 import { stableQueueEventJson } from './queueCompletionMeta';
@@ -17,7 +21,81 @@ function hashDjb2Base36(s: string): string {
   return (h >>> 0).toString(36);
 }
 
-/** Try common RemNote / SDK shapes for a stable per-completion identity. */
+function asIdString(v: unknown): string | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  if (typeof v === 'string' && v.length > 0) return v;
+  return null;
+}
+
+function nestedCard(o: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!o) return undefined;
+  const c = o.card;
+  return c && typeof c === 'object' ? (c as Record<string, unknown>) : undefined;
+}
+
+/**
+ * Row/column/list position RemNote may set on table or enumeration queue completions.
+ * Checked on the event root, `card`, `queueItem`, and shallow nested `answer` / `context`.
+ */
+export function extractQueueCompletionDisambiguator(event: unknown): string | null {
+  if (event == null || typeof event !== 'object') return null;
+  const e = event as Record<string, unknown>;
+  const objs: Record<string, unknown>[] = [e];
+  const card = nestedCard(e);
+  if (card) objs.push(card);
+  const qiRaw = e.queueItem;
+  const queueItem =
+    qiRaw && typeof qiRaw === 'object' ? (qiRaw as Record<string, unknown>) : undefined;
+  if (queueItem) objs.push(queueItem);
+  for (const root of [card, queueItem]) {
+    if (!root) continue;
+    const a = root.answer;
+    if (a && typeof a === 'object') objs.push(a as Record<string, unknown>);
+    const ctx = root.context;
+    if (ctx && typeof ctx === 'object') objs.push(ctx as Record<string, unknown>);
+  }
+  const keys = [
+    'listIndex',
+    'rowIndex',
+    'columnIndex',
+    'cellIndex',
+    'cellRow',
+    'cellCol',
+    'row',
+    'col',
+    'itemIndex',
+    'bulletIndex',
+    'ordinal',
+    'slot',
+    'position',
+    'queuePosition',
+    'tableRow',
+    'tableColumn',
+    'answerIndex',
+    'partIndex',
+    'index',
+    'depth',
+    'x',
+    'y',
+    'answerRemId',
+    'cellRemId',
+    'innerRemId',
+    'leafRemId',
+  ];
+  for (const o of objs) {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === 'number' && Number.isFinite(v)) return `${k}=${Math.floor(v)}`;
+      if (typeof v === 'string' && v.length > 0 && v.length < 120) return `${k}=${v}`;
+    }
+  }
+  return null;
+}
+
+/**
+ * Prefer high-cardinality ids first, then rem-scoped ids (optionally suffixed with
+ * {@link extractQueueCompletionDisambiguator} when the parent rem is shared across cells).
+ */
 export function extractQueueCompleteDedupeKey(event: unknown): string | null {
   if (event == null) return null;
   if (typeof event === 'string' || typeof event === 'number') {
@@ -25,25 +103,46 @@ export function extractQueueCompleteDedupeKey(event: unknown): string | null {
   }
   if (typeof event !== 'object') return null;
   const e = event as Record<string, unknown>;
-  const card = e.card as Record<string, unknown> | undefined;
+  const card = nestedCard(e);
   const rem = e.rem as Record<string, unknown> | undefined;
-  const queueItem = e.queueItem as Record<string, unknown> | undefined;
+  const qiRaw = e.queueItem;
+  const queueItemForIds =
+    qiRaw && typeof qiRaw === 'object' ? (qiRaw as Record<string, unknown>) : undefined;
+  const qiCard = nestedCard(queueItemForIds);
 
-  const candidates = [
+  // 1) Per-card / queue instance ids (table rows, cloze instances, etc.)
+  const instanceCandidates = [
     e.cardId,
+    card?.cardId,
     card?._id,
-    card?.remId,
-    e.remId,
-    rem?._id,
-    e.queueItemId,
-    queueItem?.id,
+    card?.id,
     e.flashcardId,
-    e.id,
+    e.flashcardInstanceId,
+    e.instanceId,
+    e.queueItemId,
+    queueItemForIds?.id,
+    queueItemForIds?._id,
+    queueItemForIds?.cardId,
+    qiCard?._id,
+    qiCard?.id,
+    qiCard?.cardId,
     e._id,
+    e.id,
   ];
-  for (const c of candidates) {
-    if (typeof c === 'string' && c.length > 0) return `id:${c}`;
-    if (typeof c === 'number' && Number.isFinite(c)) return `id:${c}`;
+  for (const c of instanceCandidates) {
+    const s = asIdString(c);
+    if (s) return `id:${s}`;
+  }
+
+  // 2) Rem-backed keys — parent table rem is often shared; suffix list/table position when present.
+  const dis = extractQueueCompletionDisambiguator(event);
+  const remScoped = [
+    asIdString(e.remId),
+    rem?._id != null ? asIdString(rem._id) : null,
+    asIdString(card?.remId),
+  ];
+  for (const s of remScoped) {
+    if (s) return dis ? `id:${s}~${dis}` : `id:${s}`;
   }
 
   try {

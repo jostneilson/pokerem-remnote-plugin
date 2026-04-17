@@ -11,6 +11,20 @@ describe('extractQueueCompleteDedupeKey', () => {
     expect(extractQueueCompleteDedupeKey({ card: { remId: 'xyz' } })).toBe('id:xyz');
   });
 
+  it('prefers card._id over card.remId when both exist', () => {
+    expect(
+      extractQueueCompleteDedupeKey({ card: { _id: 'card-instance', remId: 'parent-table-rem' } }),
+    ).toBe('id:card-instance');
+  });
+
+  it('suffixes shared remId with list/table position (table-style completions)', () => {
+    const a = extractQueueCompleteDedupeKey({ card: { remId: 'table-parent' }, listIndex: 0 });
+    const b = extractQueueCompleteDedupeKey({ card: { remId: 'table-parent' }, listIndex: 1 });
+    expect(a).toBe('id:table-parent~listIndex=0');
+    expect(b).toBe('id:table-parent~listIndex=1');
+    expect(a).not.toBe(b);
+  });
+
   it('returns null only for non-object payloads', () => {
     expect(extractQueueCompleteDedupeKey(null)).toBe(null);
   });
