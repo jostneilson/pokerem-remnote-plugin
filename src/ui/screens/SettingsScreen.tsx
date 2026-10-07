@@ -101,7 +101,7 @@ export function SettingsScreen({
   if (!loaded) {
     return (
       <Panel title="Settings" icon={<GameIcon name="gear" size={14} />}>
-        <p className="text-xs font-semibold" style={{ color: '#64748b' }}>
+        <p className="text-xs font-semibold" style={{ color: '#94a3b8' }}>
           Loading…
         </p>
       </Panel>
@@ -136,6 +136,7 @@ export function SettingsScreen({
 
   return (
     <div className="space-y-3">
+      <DonateSupportCard />
       <div className="pkr-settings-hero">
         <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
           Configuration
@@ -193,7 +194,7 @@ export function SettingsScreen({
                 <div className="text-[11px] font-black" style={{ color: '#f1f5f9' }}>
                   {row.action}
                 </div>
-                <div className="text-[8px] font-semibold leading-tight" style={{ color: '#64748b' }}>
+                <div className="text-[8px] font-semibold leading-tight" style={{ color: '#94a3b8' }}>
                   {row.line}
                 </div>
                 <div className="mt-1.5 text-[8px] font-bold" style={{ color: '#a5b4fc' }}>
@@ -204,7 +205,7 @@ export function SettingsScreen({
           ))}
         </div>
 
-        <p className="mt-3 text-[9px] leading-relaxed" style={{ color: '#64748b' }}>
+        <p className="mt-3 text-[9px] leading-relaxed" style={{ color: '#94a3b8' }}>
           Feature toggles and study pacing live in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
@@ -212,18 +213,18 @@ export function SettingsScreen({
       <Panel title="Behavior" icon={<GameIcon name="shield" size={14} />}>
         <div className="space-y-2">
           <StatChip label="Auto-clear battle log" value={settings.autoClearLog ? 'On' : 'Off'} on={settings.autoClearLog} />
-          <p className="text-[9px] leading-snug" style={{ color: '#64748b' }}>
+          <p className="text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
             Clears the battle log after each completed card when no encounter is active (matches plugin setting).
           </p>
           <StatChip label="Wild encounter pacing" value={pacingLabel} variant="info" />
           <StatChip label="Review rewards intensity" value={rewardLabel} variant="info" />
-          <p className="text-[9px] leading-snug" style={{ color: '#64748b' }}>
+          <p className="text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
             Scales Pokécoins, trainer XP, and (on pacing ticks) progress toward wild Pokémon. RemNote does not expose per-card grades to
             plugins yet — this knob stands in for study intensity.
           </p>
           <StatChip label="Reduced motion" value={settings.reducedMotion ? 'On' : 'Off'} on={settings.reducedMotion} />
         </div>
-        <p className="mt-2 text-[9px]" style={{ color: '#64748b' }}>
+        <p className="mt-2 text-[9px]" style={{ color: '#94a3b8' }}>
           Change in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
@@ -284,7 +285,7 @@ export function SettingsScreen({
               onConfigureStudy('custom', { reviews, weight });
             }}
           >
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#64748b' }}>
+            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#94a3b8' }}>
               Reviews / wild
               <input
                 name="reviews"
@@ -295,7 +296,7 @@ export function SettingsScreen({
                 className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 text-[11px] font-bold text-slate-100"
               />
             </label>
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#64748b' }}>
+            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#94a3b8' }}>
               Card XP (0.5–1.5)
               <input
                 name="weight"
@@ -323,7 +324,7 @@ export function SettingsScreen({
       ) : null}
 
       <Panel title="Customize" icon={<GameIcon name="diamond" size={14} />}>
-        <p className="mb-2 text-[9px] leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-2 text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
           Feature toggles are read from RemNote. Some changes may need a plugin reload depending on your app version.
         </p>
         <p className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
@@ -338,7 +339,7 @@ export function SettingsScreen({
           Appearance
         </p>
         <BoolRow label="Daily stats in battle header" on={settings.showDailyHeaderStats} />
-        <p className="mt-2 text-[9px]" style={{ color: '#64748b' }}>
+        <p className="mt-2 text-[9px]" style={{ color: '#94a3b8' }}>
           Edit in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
@@ -404,7 +405,7 @@ export function SettingsScreen({
           knowledge base syncs to RemNote Cloud, that data is included in your usual backup story — check your RemNote account / export habits
           for the full picture.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           The button below downloads a JSON snapshot you can keep on disk. It does not replace RemNote sync; it&apos;s an extra safety copy and
           a way to inspect or archive your save.
         </p>
@@ -434,7 +435,7 @@ export function SettingsScreen({
           Start completely over in <strong style={{ color: '#e2e8f0' }}>this knowledge base</strong>: your party, bag, Pokédex counts,
           Pokécoins, trainer XP, claimed rewards, achievements, streaks, and any active wild encounter are cleared from synced storage.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           Export a JSON backup above first if you might want this data later. Plugin preferences (pacing, toggles) are{' '}
           <strong style={{ color: '#94a3b8' }}>not</strong> reset.
         </p>
@@ -595,12 +596,171 @@ function StatChip({
             ? { background: 'rgba(30,58,138,0.35)', color: '#93c5fd' }
             : on
               ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' }
-              : { background: 'rgba(255,255,255,0.05)', color: '#64748b' }
+              : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }
         }
       >
         {value}
       </span>
     </div>
+  );
+}
+
+function DonateSupportCard() {
+  return (
+    <a
+      href="https://ko-fi.com/pokerem"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Support ${BRAND.wordmark} on Ko-fi`}
+      className="pkr-btn-gold group relative block overflow-hidden no-underline"
+      style={{
+        background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 55%, #b45309 100%)',
+        border: '2px solid #1c1917',
+        borderRadius: 6,
+        color: '#1c1917',
+        boxShadow:
+          '0 0 0 2px #78350f inset, 0 3px 0 #78350f, 0 5px 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.5)',
+        textDecoration: 'none',
+      }}
+    >
+      {/* sheen overlay */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(140% 80% at 0% 0%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 45%), radial-gradient(140% 80% at 100% 100%, rgba(120,53,15,0.2) 0%, rgba(120,53,15,0) 55%)',
+        }}
+      />
+
+      {/* Main row — 4px inner padding so content never touches the dark bevel */}
+      <div className="relative flex items-center gap-2.5" style={{ padding: '10px 12px' }}>
+        {/* Pokéball-style coin medallion */}
+        <div
+          className="relative grid shrink-0 place-items-center"
+          style={{
+            width: 42,
+            height: 42,
+            background:
+              'radial-gradient(circle at 32% 28%, #fff7d6 0%, #fde68a 35%, #f59e0b 70%, #92400e 100%)',
+            border: '2.5px solid #1c1917',
+            borderRadius: '50%',
+            boxShadow:
+              'inset 0 2px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(120,53,15,0.55), 0 2px 0 #78350f',
+            imageRendering: 'pixelated',
+          }}
+        >
+          <GameIcon name="coin" size={20} style={{ color: '#1c1917' }} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div
+            className="pkr-pixel-title font-black uppercase leading-none"
+            style={{
+              color: '#78350f',
+              fontSize: 6,
+              letterSpacing: '0.22em',
+              textShadow: '1px 1px 0 rgba(255,247,214,0.6)',
+            }}
+          >
+            Support the project
+          </div>
+          <div
+            className="pkr-pixel-title mt-1.5 leading-[1.25]"
+            style={{
+              color: '#1c1917',
+              fontSize: 9,
+              letterSpacing: '0.01em',
+              textShadow: '1px 1px 0 rgba(255,247,214,0.5)',
+            }}
+          >
+            Support on Ko-fi
+          </div>
+          <div
+            className="pkr-pixel-title mt-1.5 leading-[1.5]"
+            style={{
+              color: '#3f2d10',
+              fontSize: 7,
+              letterSpacing: 0,
+              textShadow: '1px 1px 0 rgba(255,247,214,0.4)',
+            }}
+          >
+            Support the student that supports your studying.
+          </div>
+        </div>
+
+        {/* Chunky game-style button — sized to sit flush with the text block */}
+        <div
+          className="pkr-pixel-title shrink-0 uppercase"
+          style={{
+            background: 'linear-gradient(180deg, #1c1917 0%, #0c0a09 100%)',
+            color: '#fde68a',
+            border: '2px solid #451a03',
+            borderRadius: 4,
+            boxShadow:
+              'inset 0 1px 0 rgba(253,224,71,0.2), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 0 #451a03',
+            padding: '7px 9px',
+            fontSize: 7,
+            letterSpacing: '0.18em',
+            lineHeight: 1,
+            textShadow: '1px 1px 0 rgba(0,0,0,0.6)',
+          }}
+        >
+          Donate ▶
+        </div>
+      </div>
+
+      {/* Pixel footer band — aligned to the same 12px gutter as the main row */}
+      <div
+        className="relative"
+        style={{
+          background: 'linear-gradient(180deg, rgba(180,83,9,0.3) 0%, rgba(120,53,15,0.45) 100%)',
+          borderTop: '2px dashed rgba(28,25,23,0.55)',
+          padding: '5px 12px',
+        }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className="pkr-pixel-title flex items-center gap-1.5"
+            style={{
+              color: '#1c1917',
+              fontSize: 6,
+              letterSpacing: '0.08em',
+              textShadow: '1px 1px 0 rgba(253,224,71,0.3)',
+            }}
+          >
+            <span
+              className="grid place-items-center"
+              style={{
+                width: 13,
+                height: 13,
+                background: '#1c1917',
+                color: '#fde68a',
+                border: '1.5px solid #451a03',
+                borderRadius: '50%',
+                fontSize: 6,
+                lineHeight: 1,
+                boxShadow: 'inset 0 1px 0 rgba(253,224,71,0.3)',
+              }}
+            >
+              K
+            </span>
+            ko-fi.com/pokerem
+          </span>
+          <span
+            className="pkr-pixel-title"
+            style={{
+              color: '#3f2d10',
+              fontSize: 6,
+              letterSpacing: '0.04em',
+              textShadow: '1px 1px 0 rgba(253,224,71,0.25)',
+            }}
+          >
+            Keeps {BRAND.wordmark} free &amp; growing
+          </span>
+        </div>
+      </div>
+    </a>
   );
 }
 
@@ -613,7 +773,7 @@ function BoolRow({ label, on }: { label: string; on: boolean }) {
       <span
         className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums"
         style={
-          on ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' } : { background: 'rgba(255,255,255,0.05)', color: '#64748b' }
+          on ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }
         }
       >
         {on ? 'On' : 'Off'}

@@ -22,7 +22,7 @@ This document locks the **visual and typography rules** for the RemNote plugin s
 |------|------|--------|----------------|
 | Pixel title / wordmark | Press Start 2P | Battle header wordmark, queue strip title, short HUD labels | `.pkr-pixel-title` |
 | Pixel dialogue | Press Start 2P | Battle outcome log, short system lines | `.pkr-pixel-dialog` |
-| Sidebar UI (bulk) | Press Start 2P | `.pokerem-sidebar.pkr-pixel-ui` subtree | Global override in `style.css` |
+| Sidebar UI (bulk) | Exo 2 | `.pokerem-sidebar.pkr-pixel-ui` subtree | Polish rules at end of `style.css` |
 | Tooltip / explainer body | Exo 2 | `StatHoverTip` portal, `.pkr-stat-tooltip` | `style.css` |
 | Sans body (explicit) | Exo 2 | Any surface that must stay readable outside sidebar pixel mode | `.pkr-text-sans-body` |
 | Muted meta | Exo 2 | Secondary lines next to sans body | `.pkr-text-sans-muted` |
@@ -98,3 +98,7 @@ Scene-specific accents continue to use **`battleAmbienceCssVars`** (`--pkr-accen
 - [ ] No conflicting wordmark in battle header vs queue strip.
 - [ ] One meter track/fill style across battle header XP, party HP/XP, progress rows, and `MeterBar`.
 - [ ] New contributor can answer “which font for tooltips?” and “which classes for HP bars?” from this file alone.
+
+## 1.2.0 polish
+
+Sidebar prose and controls use Exo 2 with an 11px minimum for supporting copy. Pixel type is reserved for explicit game titles and HUD roles. Panels use 12px radii and 1px quiet borders. Navigation shows labels at every width, with five columns below 520px and nine above. Compact view hides only the wild arena; actions and HP remain available. All descendant motion is disabled by the plugin or OS reduced-motion preference. Trainer animation is a 480ms presentation of a committed turn and never writes save data.

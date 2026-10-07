@@ -6,12 +6,12 @@
   "repoUrl": "https://github.com/jostneilson/pokerem-remnote-plugin",
   "version": {
     "major": 1,
-    "minor": 1,
-    "patch": 4
+    "minor": 2,
+    "patch": 0
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "Pokémon-style RemNote companion: encounters, catching, party, shop, achievements from reviews. OPEN: Flashcard Queue → AI chat (top-right) → sidebar → Pokéball icon. Unofficial fan project.",
+  "description": "Study RemNote like it's Pokémon: wild encounters from reviews, catching, party & Pokédex, trainer battles, XP doublers, shop, achievements. Open the Queue → Pokéball sidebar. Fan project.",
   "requestNative": false,
   "requiredScopes": [
     {

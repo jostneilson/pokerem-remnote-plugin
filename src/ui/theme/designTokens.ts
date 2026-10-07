@@ -29,9 +29,9 @@ export function brandCommandCaps(action: string): string {
 
 /** Layout radii (px) — align with `--pkr-radius-*` in CSS */
 export const radius = {
-  sm: 4,
-  md: 6,
-  panel: 8,
+  sm: 5,
+  md: 8,
+  panel: 12,
   chip: 6,
 } as const;
 

@@ -60,7 +60,7 @@ function RewardNode({
                   color: '#451a03',
                   boxShadow: '0 0 12px rgba(251,191,36,0.45)',
                 }
-              : { background: 'rgba(255,255,255,0.06)', color: '#475569', border: '1px solid rgba(255,255,255,0.06)' }
+              : { background: 'rgba(255,255,255,0.06)', color: '#8296a5', border: '1px solid rgba(255,255,255,0.06)' }
         }
       >
         {claimed ? <GameIcon name="starFilled" size={20} /> : <span className="tabular-nums">{reward.level}</span>}
@@ -163,13 +163,13 @@ export function RewardsScreen({
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-white/10 px-3 py-2 text-center text-[10px] font-semibold" style={{ color: '#64748b', background: 'rgba(0,0,0,0.15)' }}>
+        <div className="rounded-lg border border-white/10 px-3 py-2 text-center text-[10px] font-semibold" style={{ color: '#94a3b8', background: 'rgba(0,0,0,0.15)' }}>
           No unclaimed rewards right now. Earn trainer XP to level up and unlock the next tier.
         </div>
       )}
 
       <Panel title="How you earn trainer XP" icon={<GameIcon name="chart" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           Milestone achievements grant a one-time trainer XP burst by difficulty (common → epic). The rarest goals also add bonus items to your bag.
         </p>
         <div className="pkr-rewards-xp-grid space-y-0">
@@ -204,7 +204,7 @@ export function RewardsScreen({
       </Panel>
 
       <Panel title="Trainer milestones" icon={<GameIcon name="starFilled" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           Level rewards grant items, shop unlocks, and new rank titles. Claim each tier once you reach that trainer level.
         </p>
         <div className="space-y-2">

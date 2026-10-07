@@ -36,7 +36,7 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
   const list = dedupeMoveIds(moves);
   if (list.length === 0) {
     return (
-      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#64748b' }}>
+      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
         No moves in this moveset yet — use “Teachable moves” to pull from moves unlocked at this level.
       </div>
     );
@@ -99,7 +99,7 @@ function TeachableMovesBrowser({
 
   if (candidates.length === 0) {
     return (
-      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
         {unlocked.length === 0
           ? 'No learnset moves unlocked at this level yet — level up to grow this path.'
           : 'Every move unlocked at this level is already in the moveset. Level up to unlock more, or drop a move to swap one back in.'}
@@ -488,7 +488,7 @@ export function PartyScreen({
                           }}
                         >
                           <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#64748b' }}>
+                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#94a3b8' }}>
                               Slot {idx + 1}
                             </span>
                             {m ? (
@@ -503,11 +503,11 @@ export function PartyScreen({
                               {label}
                             </span>
                             {m && m.power > 0 ? (
-                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#64748b' }}>
+                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
                                 Pow {m.power}
                               </span>
                             ) : m ? (
-                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#64748b' }}>
+                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#94a3b8' }}>
                                 Status
                               </span>
                             ) : null}
@@ -651,7 +651,7 @@ export function PartyScreen({
       ) : null}
 
       <Panel title={`Party · ${party.length}/6`} icon={<GameIcon name="party" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           Tap a Pokémon for moves (re-equip from this level’s unlocked learnset or drop slots), rename, storage, or release. The{' '}
           <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
         </p>
@@ -665,13 +665,13 @@ export function PartyScreen({
               <GameIcon name="box" size={14} style={{ color: '#94a3b8' }} />
               <span style={{ color: '#e2e8f0' }}>PC storage</span>
             </span>
-            <span className="tabular-nums text-[10px] font-black" style={{ color: '#64748b' }}>
+            <span className="tabular-nums text-[10px] font-black" style={{ color: '#94a3b8' }}>
               {storage.length} · {showStorage ? 'hide' : 'show'}
             </span>
           </button>
           {showStorage ? (
             <div className="pkr-bag-shelf space-y-2">
-              <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#64748b' }}>
+              <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
                 Not in your party — use “To party” to swap or add.
               </p>
               {storage.map((p) => renderPokemon(p, false))}

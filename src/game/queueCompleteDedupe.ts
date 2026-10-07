@@ -5,11 +5,25 @@
  * Table-derived and list-style flashcards often reuse one parent `remId` / `card.remId`
  * while the stable per-completion identity lives on `card._id`, `rem._id`, row indices,
  * or similar — we must not treat every row as the same review.
+ *
+ * Dedupe is TIME-WINDOWED, not an LRU: the same card legitimately reappears many times in a
+ * single study session (e.g. "Again" requeues, short-interval spaced-repetition cards) and
+ * every one of those repeat reviews must count. We only swallow events that fire for the same
+ * key within {@link QUEUE_COMPLETE_DEDUPE_MS} of each other, which is the regime where
+ * back/forward/auto-advance navigation produces spurious duplicate events.
  */
 
 import { stableQueueEventJson } from './queueCompletionMeta';
 
 export const QUEUE_COMPLETE_RECENT_SESSION_KEY = 'pokerem.queueCompleteRecent';
+
+/**
+ * Any duplicate firing of the same card id within this window is treated as navigation noise
+ * and skipped. Chosen conservatively: long enough to swallow back/forward double-fires and
+ * RemNote internal re-broadcasts, short enough that normal spaced-repetition re-reviews still
+ * count (which typically take several seconds to a few minutes to come back around).
+ */
+export const QUEUE_COMPLETE_DEDUPE_MS = 2500;
 
 const MAX_RECENT_KEYS = 80;
 
@@ -152,33 +166,71 @@ export function extractQueueCompleteDedupeKey(event: unknown): string | null {
   }
 }
 
-export function parseRecentQueueCompleteKeys(raw: unknown): string[] {
-  if (raw == null) return [];
-  if (Array.isArray(raw)) {
-    return raw.filter((x): x is string => typeof x === 'string' && x.length > 0).slice(-MAX_RECENT_KEYS);
-  }
-  return [];
-}
-
-export function rememberQueueCompleteKey(recent: string[], key: string): string[] {
-  const without = recent.filter((k) => k !== key);
-  return [...without, key].slice(-MAX_RECENT_KEYS);
+/** Persisted shape: each recent key is stored with the epoch ms at which we last saw it. */
+export interface RecentKeyEntry {
+  key: string;
+  at: number;
 }
 
 /**
- * @param recentKeys keys already processed this session (newest last)
+ * Accept both the current `{ key, at }[]` shape and legacy plain-string arrays from earlier
+ * plugin versions. Legacy entries are treated as "just happened at epoch 0" and will fall
+ * outside the dedupe window immediately, so they don't block real reviews after a plugin
+ * upgrade.
+ */
+export function parseRecentQueueCompleteKeys(raw: unknown): RecentKeyEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const out: RecentKeyEntry[] = [];
+  for (const item of raw) {
+    if (typeof item === 'string' && item.length > 0) {
+      out.push({ key: item, at: 0 });
+      continue;
+    }
+    if (item && typeof item === 'object') {
+      const k = (item as { key?: unknown }).key;
+      const a = (item as { at?: unknown }).at;
+      if (
+        typeof k === 'string' &&
+        k.length > 0 &&
+        typeof a === 'number' &&
+        Number.isFinite(a)
+      ) {
+        out.push({ key: k, at: a });
+      }
+    }
+  }
+  return out.slice(-MAX_RECENT_KEYS);
+}
+
+export function rememberQueueCompleteKey(
+  recent: RecentKeyEntry[],
+  key: string,
+  now: number = Date.now(),
+): RecentKeyEntry[] {
+  const without = recent.filter((e) => e.key !== key);
+  return [...without, { key, at: now }].slice(-MAX_RECENT_KEYS);
+}
+
+/**
+ * @param recentKeys entries already processed this session (newest last)
  * @param extractedKey from {@link extractQueueCompleteDedupeKey} — null if unknown
+ * @param now epoch ms; defaults to Date.now(). Overridable for deterministic tests.
  * @returns whether to run the review pipeline, and updated key list to persist if processing
  */
 export function evaluateQueueCompleteDedupe(
-  recentKeys: string[],
+  recentKeys: RecentKeyEntry[],
   extractedKey: string | null,
-): { shouldProcess: boolean; nextKeysIfProcessed: string[] } {
+  now: number = Date.now(),
+): { shouldProcess: boolean; nextKeysIfProcessed: RecentKeyEntry[] } {
   if (extractedKey == null) {
     return { shouldProcess: true, nextKeysIfProcessed: recentKeys };
   }
-  if (recentKeys.includes(extractedKey)) {
+  const existing = recentKeys.find((e) => e.key === extractedKey);
+  if (existing && now - existing.at < QUEUE_COMPLETE_DEDUPE_MS) {
     return { shouldProcess: false, nextKeysIfProcessed: recentKeys };
   }
-  return { shouldProcess: true, nextKeysIfProcessed: rememberQueueCompleteKey(recentKeys, extractedKey) };
+  return {
+    shouldProcess: true,
+    nextKeysIfProcessed: rememberQueueCompleteKey(recentKeys, extractedKey, now),
+  };
 }

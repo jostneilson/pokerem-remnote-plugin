@@ -101,7 +101,7 @@ export function CollectionScreen({
           <div className="pkr-pixel-title text-[8px] font-black tabular-nums" style={{ color: '#6ee7b7' }}>
             {totalCaught}
           </div>
-          <div className="text-[6px] font-bold uppercase tracking-wider" style={{ color: '#64748b' }}>
+          <div className="text-[6px] font-bold uppercase tracking-wider" style={{ color: '#94a3b8' }}>
             / {SPECIES_LIST.length}
           </div>
         </div>
@@ -194,10 +194,10 @@ export function CollectionScreen({
           </span>{' '}
           caught
         </span>
-        <span className="mx-1.5 opacity-40" style={{ color: '#64748b' }}>
+        <span className="mx-1.5 opacity-40" style={{ color: '#94a3b8' }}>
           ·
         </span>
-        <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>
+        <span className="text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
           {filtered.length} shown
         </span>
       </div>
@@ -218,7 +218,7 @@ export function CollectionScreen({
             );
           })}
           {filtered.length === 0 && (
-            <div className="py-8 text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#64748b', gridColumn: '1 / -1' }}>
+            <div className="py-8 text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8', gridColumn: '1 / -1' }}>
               No species match these filters.
               <br />
               <span className="text-[9px] opacity-90">Try another generation or clear type / caught filters.</span>

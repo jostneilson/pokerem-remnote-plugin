@@ -1,4 +1,6 @@
 import '../style.css';
+import { SidebarNavigation } from '../ui/components/SidebarNavigation';
+import { StudyToolbar } from '../ui/components/StudyToolbar';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, usePlugin } from '@remnote/plugin-sdk';
 import { usePokeRemBattleActions } from '../hooks/usePokeRemBattleActions';
@@ -30,6 +32,14 @@ import {
   consumeCatchScopeScan,
   acknowledgeRouteFindNotice,
   dismissMainNotice,
+  lockTrainerTeam,
+  applyTrainerCombatTurn,
+  claimTrainerCatch,
+  dismissTrainerCatchOffer,
+  closeTrainerBattle,
+  activateXpDoubler,
+  claimAllAchievements,
+  acknowledgeWhatsNew,
 } from '../game/state/store';
 import type { PokeRemGameState, SectionTab } from '../game/state/model';
 import { StarterPickerScreen } from '../ui/screens/StarterPickerScreen';
@@ -51,6 +61,10 @@ import { ShopScreen } from '../ui/screens/ShopScreen';
 import { RewardsScreen } from '../ui/screens/RewardsScreen';
 import { neutralizeBrokenRegisterCSS } from '../neutralizeRemNoteCssApi';
 import { BattleReviewSurface } from '../ui/battle/BattleReviewSurface';
+import { TrainerBattleSurface } from '../ui/battle/TrainerBattleSurface';
+import { ULTRA_BALL_UNLOCK_LEVEL } from '../game/engine/shop';
+import { WhatsNewCard } from '../ui/components/WhatsNewCard';
+import { POKEREM_VERSION } from '../releaseMeta';
 import { GameIcon, type GameIconName } from '../ui/components/GameIcon';
 import { battleAmbienceCssVars, getBattleAmbience } from '../game/engine/battleAmbience';
 import {
@@ -60,22 +74,19 @@ import {
 import { getUnclaimedRewards } from '../game/engine/trainerLevel';
 import { OnboardingTipsBar } from '../ui/components/OnboardingTipsBar';
 const ALL_TABS: SectionTab[] = ['status', 'party', 'bag', 'shop', 'dex', 'types', 'progress', 'rewards'];
-const TAB_CONFIG: Record<string, { icon: GameIconName; label: string }> = {
-  status:   { icon: 'navStatus', label: 'Status' },
-  party:    { icon: 'navParty', label: 'Party' },
-  bag:      { icon: 'navBag', label: 'Bag' },
-  shop:     { icon: 'navShop', label: 'Shop' },
-  dex:      { icon: 'navDex', label: 'Dex' },
-  types:    { icon: 'navTypes', label: 'Types' },
-  progress: { icon: 'navProgress', label: 'Progress' },
-  rewards:  { icon: 'navRewards', label: 'Rewards' },
-};
 
 function PokeRemSidebar() {
   const plugin = usePlugin();
   neutralizeBrokenRegisterCSS(plugin);
   const [state, setState] = useState<PokeRemGameState>(() => createInitialStateV3());
   const [showSettings, setShowSettings] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const savingRef = useRef(false);
+  useEffect(() => { void plugin.storage.getSession('pokerem.compactView').then((v) => setCompact(v === true)).catch(() => {}); }, [plugin]);
+  const toggleCompact = () => { setCompact((v) => { const next = !v; void plugin.storage.setSession('pokerem.compactView', next).catch(() => {}); return next; }); };
   const [encounterRate, setEncounterRate] = useState(REVIEWS_PER_ENCOUNTER);
   const [encounterPacingModulo, setEncounterPacingModulo] = useState(1);
   const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
@@ -137,10 +148,11 @@ function PokeRemSidebar() {
     const raw = await getSyncedGameRaw(plugin);
     const s = parseGameState(raw);
     setState(s);
+    setLoaded(true);
     return s;
   }, [plugin]);
 
-  useEffect(() => { void refreshFromStorage(); }, [refreshFromStorage]);
+  useEffect(() => { void refreshFromStorage().catch(() => setSaveError('Could not load your save. Reopen the sidebar to retry.')); }, [refreshFromStorage]);
 
   useEffect(() => {
     if (!state.starterChosen || !state.studyDifficultyConfigured) return;
@@ -253,16 +265,28 @@ function PokeRemSidebar() {
   });
 
   const applyReducer = async (fn: (s: PokeRemGameState) => PokeRemGameState) => {
-    const next = await withSyncedGameWrite(async () => {
-      const raw = await getSyncedGameRaw(plugin);
-      const n = fn(parseGameState(raw));
-      await plugin.storage.setSynced(STORAGE_KEY, n);
-      try {
-        await plugin.messaging.broadcast({ channel: SYNC_BROADCAST_KEY, at: n.lastUpdatedAt });
-      } catch { /* non-fatal */ }
-      return n;
-    });
-    setState(next);
+    if (savingRef.current || !loaded) return;
+    savingRef.current = true;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const next = await withSyncedGameWrite(async () => {
+        const raw = await getSyncedGameRaw(plugin);
+        const prev = parseGameState(raw);
+        const n = fn(prev);
+        if (n === prev) return prev;
+        await plugin.storage.setSynced(STORAGE_KEY, n);
+        try { await plugin.messaging.broadcast({ channel: SYNC_BROADCAST_KEY, at: n.lastUpdatedAt }); } catch { /* non-fatal */ }
+        return n;
+      });
+      setState(next);
+    } catch (error) {
+      console.error('[PokéRem] Action save failed', error);
+      setSaveError('That action could not be saved. Please try again.');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
   const active = activePokemon(state);
@@ -290,6 +314,14 @@ function PokeRemSidebar() {
 
   const renderSidebarScrollTail = () => (
     <>
+      {state.whatsNewSeenVersion !== POKEREM_VERSION ? (
+        <div className="mx-2 mt-2">
+          <WhatsNewCard
+            seenVersion={state.whatsNewSeenVersion}
+            onDismiss={() => void applyReducer((s) => acknowledgeWhatsNew(s, POKEREM_VERSION))}
+          />
+        </div>
+      ) : null}
       {showOnboardingTips ? (
         <OnboardingTipsBar
           onOpenSettings={() => setShowSettings(true)}
@@ -308,62 +340,9 @@ function PokeRemSidebar() {
 
       <div className="pkr-seam shrink-0" />
 
-      <div
-        className="pkr-no-scrollbar pkr-tab-bar sticky z-[25] flex shrink-0 items-center gap-0.5 overflow-x-auto px-1 py-1.5 shadow-[0_-6px_18px_rgba(0,0,0,0.45)]"
-        style={{ top: 0 }}
-      >
-        {ALL_TABS.map((tab) => {
-          const cfg = TAB_CONFIG[tab];
-          const isActive = !showSettings && effectiveTab === tab;
-          const attentionRewards = tab === 'rewards' && rewardsTabAttention;
-          const attentionProgress = tab === 'progress' && progressTabGlow;
-          const iconAttention = attentionRewards
-            ? 'pkr-tab-tap__icon--attention-reward'
-            : attentionProgress
-              ? 'pkr-tab-tap__icon--attention'
-              : '';
-          const aria =
-            attentionRewards
-              ? `${cfg?.label ?? tab}, unclaimed trainer rewards`
-              : attentionProgress
-                ? `${cfg?.label ?? tab}, unclaimed achievement rewards`
-                : cfg?.label ?? tab;
-          return (
-            <button
-              key={tab}
-              type="button"
-              aria-label={aria}
-              onClick={() => {
-                setShowSettings(false);
-                void applyReducer((s) => setTab(s, tab));
-              }}
-              className={`pkr-tab-tap flex min-w-[2.75rem] shrink-0 items-center gap-1 px-2 py-1.5 text-[11px] ${
-                isActive ? 'pkr-tab-active' : 'pkr-tab-inactive'
-              }`}
-            >
-              <span className={`pkr-tab-tap__icon ${iconAttention}`.trim()} aria-hidden>
-                <GameIcon name={cfg?.icon} size={18} tabPixel />
-              </span>
-              <span className="hidden min-[360px]:inline" aria-hidden>
-                {cfg?.label}
-              </span>
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          aria-label="Settings"
-          onClick={() => setShowSettings((v) => !v)}
-          className={`pkr-tab-tap ml-auto flex min-w-[2.75rem] shrink-0 items-center justify-center gap-1 px-2 py-1.5 text-[11px] ${
-            showSettings ? 'pkr-tab-active' : 'pkr-tab-inactive'
-          }`}
-          title="Settings"
-        >
-          <span className="pkr-tab-tap__icon" aria-hidden>
-            <GameIcon name="navSettings" size={18} tabPixel />
-          </span>
-        </button>
-      </div>
+      <SidebarNavigation active={effectiveTab} settings={showSettings} rewardsAttention={rewardsTabAttention} progressAttention={progressTabGlow}
+        onSelect={(tab) => { setShowSettings(false); void applyReducer((s) => setTab(s, tab)); }}
+        onSettings={() => setShowSettings((v) => !v)} />
 
       <div className="pkr-content-vignette min-w-0 shrink-0 p-2">
         <div key={showSettings ? 'settings' : `tab-${effectiveTab}`} className="pkr-panel-mount min-w-0">
@@ -410,12 +389,16 @@ function PokeRemSidebar() {
                   rootURL={plugin.rootURL}
                   bag={state.bag}
                   currency={state.currency}
+                  state={state}
                   onUseItem={(itemId) =>
                     void applyReducer((s) =>
                       itemId === 'rare-candy' || itemId === 'exp-candy-s'
                         ? useLeadUtilityItem(s, itemId)
                         : useHealingItem(s, itemId as any),
                     )
+                  }
+                  onActivateXpDoubler={(tier) =>
+                    void applyReducer((s) => activateXpDoubler(s, tier))
                   }
                 />
               ) : null}
@@ -440,6 +423,9 @@ function PokeRemSidebar() {
                   reducedMotion={reducedMotion}
                   onClaimAchievement={(id) => {
                     void applyReducer((s) => claimAchievement(s, id));
+                  }}
+                  onClaimAllAchievements={() => {
+                    void applyReducer((s) => claimAllAchievements(s));
                   }}
                 />
               ) : null}
@@ -481,12 +467,16 @@ function PokeRemSidebar() {
   return (
     <div
       ref={sidebarRootRef}
-      className="pokerem-sidebar pkr-pixel-ui flex h-full min-h-0 min-w-0 w-full max-w-none flex-1 flex-col gap-0 self-stretch overflow-hidden"
+      className={`pokerem-sidebar pkr-pixel-ui flex h-full min-h-0 min-w-0 w-full max-w-none flex-1 flex-col gap-0 self-stretch overflow-hidden ${compact ? 'pkr-focus-mode' : ''}`}
+      data-reduced-motion={reducedMotion}
+      aria-busy={saving}
       style={ambienceStyle}
       onMouseDown={(e) => e.stopPropagation()}
     >
+      {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
+      {loaded && state.starterChosen && state.studyDifficultyConfigured ? <StudyToolbar compact={compact} onToggle={toggleCompact} active={active} trainerBattle={!!state.currentTrainerBattle} /> : null}
       {/* ── Starter selection ── */}
-      {!state.starterChosen ? (
+      {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
         <div className="mx-2 mb-2 mt-2 flex min-h-0 min-w-0 flex-1 flex-col">
           <StarterPickerScreen rootURL={plugin.rootURL} onChoose={(dex) => void applyReducer((s) => chooseStarter(s, dex))} />
         </div>
@@ -502,7 +492,35 @@ function PokeRemSidebar() {
         <>
           {/* Cave stays in the column above the scrollport; command deck + tabs scroll beneath it. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            {active ? (
+            {state.currentTrainerBattle ? (
+              <div className={scrollAreaClass}>
+                <TrainerBattleSurface
+                  key={state.currentTrainerBattle.id}
+                  state={state}
+                  rootURL={plugin.rootURL}
+                  reducedMotion={reducedMotion}
+                  onLockTeam={(ids) => void applyReducer((s) => lockTrainerTeam(s, ids))}
+                  busy={saving}
+                  onCombatTurn={(mid) => void applyReducer((s) => applyTrainerCombatTurn(s, mid))}
+                  onClaimCatch={(idx, ball) =>
+                    void applyReducer((s) => claimTrainerCatch(s, idx, ball))
+                  }
+                  onDismissCatchOffer={() => void applyReducer((s) => dismissTrainerCatchOffer(s))}
+                  onBuyBall={(id, price) => void applyReducer((s) => buyItem(s, id, price))}
+                  onClose={() => void applyReducer((s) => closeTrainerBattle(s))}
+                  ballPrices={[
+                    { id: 'poke-ball', price: 100, unlocked: true },
+                    { id: 'great-ball', price: 300, unlocked: true },
+                    {
+                      id: 'ultra-ball',
+                      price: 600,
+                      unlocked: (state.trainerLevel ?? 1) >= ULTRA_BALL_UNLOCK_LEVEL,
+                    },
+                  ]}
+                />
+                {renderSidebarScrollTail()}
+              </div>
+            ) : active ? (
               <BattleReviewSurface
                 widthSourceRef={sidebarRootRef}
                 rootURL={plugin.rootURL}

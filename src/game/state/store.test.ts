@@ -73,7 +73,7 @@ describe('parseGameState', () => {
       pendingCaughtMon: null,
     };
     const s = parseGameState(raw);
-    expect(s.schemaVersion).toBe(3);
+    expect(s.schemaVersion).toBe(4);
     expect(s.dailyStats?.reviews).toBe(3);
     expect(s.wildReviewAccum).toBe(0.25);
     expect(s.pendingCaughtMon).toBe(null);
@@ -157,6 +157,40 @@ describe('onQueueCardComplete', () => {
     expect(next.encounterProgress).toBe(4);
     expect((next.trainerXp ?? 0) - xp0).toBe(TRAINER_XP_SOURCES.cardReview);
     expect((next.currency ?? 0) - cur0).toBe(10);
+  });
+
+  it('passive heal trickles across cards and does not dump a lump-sum after a long healthy streak', () => {
+    // Reproduces the "HP jumps to the top on the first card after an encounter" bug:
+    // before the fix, studyHealCarries accumulated unboundedly while at full HP and then
+    // dumped ~maxHp at once on the first post-encounter card once the Pokémon took damage.
+    let s = createInitialStateV2();
+    s = chooseStarter(s, 1);
+
+    // Simulate 50 cards at full HP to let any carry build up in the (pre-fix) buggy path.
+    // (The Pokémon may level up — maxHp changes — but in all cases currentHp will track
+    // maxHp because passive heal fills any gap that leveling opens.)
+    for (let i = 0; i < 50; i += 1) {
+      s = onQueueCardComplete(s, [1], 99, { encounterPacingModulo: 100 });
+    }
+    expect(s.currentEncounter ?? null).toBeNull();
+
+    // Force the Pokémon to full HP, then drop to 20% — simulating "battle just ended".
+    const mon = s.party[0]!;
+    const topped = { ...mon, currentHp: mon.maxHp };
+    const woundedHp = Math.max(1, Math.floor(topped.maxHp * 0.2));
+    s = {
+      ...s,
+      party: s.party.map((p, i) => (i === 0 ? { ...topped, currentHp: woundedHp } : p)),
+    };
+
+    // First post-damage card: the heal should be a trickle (≤ ~ceil(maxHp*0.5/rate + 1)),
+    // not a lump-sum that instantly restores the Pokémon to full HP.
+    const afterOne = onQueueCardComplete(s, [1], 99, { encounterPacingModulo: 100 });
+    const hpAfterOne = afterOne.party[0]!.currentHp;
+    const perCardCeiling = Math.ceil((topped.maxHp * 0.5) / 5) + 1; // rate=5 default, +1 for carry rounding
+    expect(hpAfterOne - woundedHp).toBeLessThanOrEqual(perCardCeiling);
+    // And it should be strictly less than full — healing must still be distributed.
+    expect(hpAfterOne).toBeLessThan(topped.maxHp);
   });
 
   it('grants a Route Find after enough paced reviews when no wild spawns', () => {

@@ -19,3 +19,7 @@ coverage
 .turbo
 *.tsbuildinfo
 .cache
+.superdesign/tmp/
+.superdesign/init/
+.superdesign/resume.json
+.preview-dist/

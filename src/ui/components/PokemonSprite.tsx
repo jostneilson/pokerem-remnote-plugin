@@ -22,9 +22,9 @@ interface PokemonSpriteProps {
 }
 
 export function PokemonSprite({ src, alt, size, className = '', style, glow, lazy, shiny, reducedMotion }: PokemonSpriteProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [errored, setErrored] = useState(false);
-
+  const [imageState, setImageState] = useState({ src, loaded: false, errored: false });
+  const loaded = imageState.src === src && imageState.loaded;
+  const errored = imageState.src === src && imageState.errored;
   const effectiveSrc = errored ? FALLBACK_DATA_URI : src;
 
   const wrapStyle: CSSProperties = {
@@ -45,6 +45,7 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
         />
       )}
       <img
+        key={effectiveSrc}
         src={effectiveSrc}
         alt={alt}
         width={size}
@@ -54,9 +55,9 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
           ...(shiny && reducedMotion ? { filter: 'hue-rotate(26deg) saturate(1.28) brightness(1.06)' } : {}),
           ...style,
         }}
-        className={`drop-shadow-[2px_3px_0_rgba(0,0,0,0.35)] ${loaded ? '' : 'opacity-0'} ${shinyAnim}`}
-        onLoad={() => setLoaded(true)}
-        onError={() => { setErrored(true); setLoaded(true); }}
+        className={`pkr-sprite-image drop-shadow-[2px_3px_0_rgba(0,0,0,0.35)] ${loaded ? '' : 'opacity-0'} ${shinyAnim}`}
+        onLoad={() => setImageState({ src, loaded: true, errored })}
+        onError={() => setImageState({ src, loaded: true, errored: true })}
         loading={lazy ? 'lazy' : undefined}
       />
     </div>

@@ -56,7 +56,7 @@ export function MeterBar({
           </span>
         </div>
       )}
-      <div className={`pkr-meter-track ${trackH} w-full overflow-hidden`}>
+      <div className={`pkr-meter-track ${trackH} w-full overflow-hidden`} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={Math.max(0, max)} aria-valuenow={Math.max(0, Math.min(max, value))} aria-valuetext={valueText}>
         <div
           className={`pkr-meter-fill h-full transition-[width] duration-300 ${fillClass} ${shimmer ? 'pkr-xp-bar-fill--pulse' : ''}`}
           style={{
@@ -77,7 +77,7 @@ export function PartyHpMeter({ current, max, compact = true }: { current: number
       value={current}
       max={max}
       label="HP"
-      fillGradient={HP_FILL_GRADIENT}
+      fillGradient={current / Math.max(1, max) > .5 ? HP_FILL_GRADIENT : current / Math.max(1, max) > .2 ? 'linear-gradient(180deg,#fde68a,#eab308)' : 'linear-gradient(180deg,#fca5a5,#ef4444)'}
       showText
     />
   );

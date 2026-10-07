@@ -166,7 +166,7 @@ function cellStyle(eff: number): CSSProperties {
   if (eff === 0) {
     return {
       background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)',
-      color: '#64748b',
+      color: '#94a3b8',
       fontWeight: 900,
     };
   }
@@ -179,7 +179,7 @@ function cellStyle(eff: number): CSSProperties {
   }
   return {
     background: 'rgba(30,41,59,0.35)',
-    color: '#475569',
+    color: '#8296a5',
     fontWeight: 700,
   };
 }

@@ -89,7 +89,7 @@ export function ShopScreen({
               : {
                   borderColor: 'rgba(255,255,255,0.08)',
                   background: 'rgba(255,255,255,0.05)',
-                  color: '#64748b',
+                  color: '#94a3b8',
                 }
           }
         >

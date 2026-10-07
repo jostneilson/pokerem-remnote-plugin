@@ -7,21 +7,25 @@ import {
   getClosestAchievementGoal,
   type AchievementDef,
 } from '../../game/engine/achievements';
+import { computeTrainerBattleIdentity } from '../../game/engine/trainerRank';
 import { trainerXpProgress, getNextTrainerRewardGate, MAX_TRAINER_LEVEL } from '../../game/engine/trainerLevel';
 import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { TrainerIdentityCard } from '../components/TrainerIdentityCard';
 
-const CATEGORY_LABELS: Record<string, { label: string; iconName: 'book' | 'swords' | 'pokeball' | 'coin' | 'flame' | 'calendar' }> = {
+const CATEGORY_LABELS: Record<string, { label: string; iconName: 'book' | 'swords' | 'pokeball' | 'coin' | 'flame' | 'calendar' | 'trophy' | 'star' }> = {
   review: { label: 'Review milestones', iconName: 'book' },
   collection: { label: 'Collection', iconName: 'pokeball' },
   battle: { label: 'Battle', iconName: 'swords' },
   pokemon: { label: 'Pokemon', iconName: 'pokeball' },
   economy: { label: 'Economy', iconName: 'coin' },
   streak: { label: 'Streaks', iconName: 'flame' },
+  trainer: { label: 'Trainer battles', iconName: 'swords' },
+  generation: { label: 'Generation completion', iconName: 'trophy' },
+  prestige: { label: 'Prestige', iconName: 'star' },
 };
 
-const CATEGORY_ORDER = ['review', 'collection', 'battle', 'pokemon', 'economy', 'streak'];
+const CATEGORY_ORDER = ['review', 'collection', 'battle', 'pokemon', 'trainer', 'generation', 'economy', 'streak', 'prestige'];
 
 function AchievementRow({
   def,
@@ -55,7 +59,7 @@ function AchievementRow({
                 color: '#451a03',
                 boxShadow: '0 0 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }
-            : { background: 'rgba(255,255,255,0.05)', color: '#475569', border: '1px solid rgba(255,255,255,0.06)' }
+            : { background: 'rgba(255,255,255,0.05)', color: '#8296a5', border: '1px solid rgba(255,255,255,0.06)' }
         }
       >
         <GameIcon name={unlocked ? 'starFilled' : 'star'} size={17} />
@@ -67,7 +71,7 @@ function AchievementRow({
         <div className="text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           {def.description}
         </div>
-        <div className="mt-0.5 text-[8px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+        <div className="mt-0.5 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           <span className="mr-1 rounded px-1 py-px" style={{ background: 'rgba(251,191,36,0.12)', color: '#fcd34d' }}>
             {ACHIEVEMENT_TIER_LABEL[def.tier]}
           </span>
@@ -78,7 +82,7 @@ function AchievementRow({
             <div className="pkr-meter-track h-[5px] min-w-0 flex-1 overflow-hidden">
               <div className="pkr-meter-fill h-full transition-[width] duration-300" style={{ width: `${pct}%`, background: '#f59e0b' }} />
             </div>
-            <span className="text-[8px] font-bold tabular-nums" style={{ color: '#64748b' }}>
+            <span className="text-[8px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
               {progress.current}/{progress.target}
             </span>
           </div>
@@ -110,10 +114,12 @@ export function ProgressScreen({
   state,
   reducedMotion,
   onClaimAchievement,
+  onClaimAllAchievements,
 }: {
   state: PokeRemGameState;
   reducedMotion?: boolean;
   onClaimAchievement?: (id: string) => void;
+  onClaimAllAchievements?: () => void;
 }) {
   const claimedSet = new Set(state.claimedAchievementIds ?? []);
   const unlocked = ACHIEVEMENT_DEFS.filter((d) => state.achievements[d.id]).length;
@@ -123,6 +129,11 @@ export function ProgressScreen({
   const nextGate = getNextTrainerRewardGate(trainerLevel);
   const closest = getClosestAchievementGoal(state);
   const streak = state.currentStreak ?? 0;
+  const battleId = computeTrainerBattleIdentity(state);
+  const unclaimedCount = ACHIEVEMENT_DEFS.filter(
+    (d) => state.achievements[d.id] && !claimedSet.has(d.id),
+  ).length;
+  const prestigeBadges = state.prestigeBadges ?? [];
 
   const subtitle = useMemo(() => {
     if (streak > 0) return `${streak}-day study streak · keep it going`;
@@ -139,6 +150,60 @@ export function ProgressScreen({
         subtitle={subtitle}
         reducedMotion={reducedMotion}
       />
+
+      {battleId.id !== 'unranked' || prestigeBadges.length > 0 ? (
+        <div
+          className="flex flex-col gap-2 rounded-lg p-2.5"
+          style={{ background: 'rgba(15,23,42,0.45)', border: '1px solid rgba(148,163,184,0.25)' }}
+        >
+          {battleId.id !== 'unranked' ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#fde68a' }}>
+                Battle identity
+              </span>
+              <span className="text-[11px] font-black" style={{ color: '#f8fafc' }}>
+                {battleId.name}
+              </span>
+            </div>
+          ) : null}
+          {prestigeBadges.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#a78bfa' }}>
+                Prestige
+              </span>
+              {prestigeBadges.map((b) => (
+                <span
+                  key={b}
+                  className="rounded-full border px-2 py-0.5 text-[9px] font-black"
+                  style={{
+                    borderColor: 'rgba(167,139,250,0.45)',
+                    background: 'linear-gradient(180deg, rgba(167,139,250,0.2) 0%, rgba(76,29,149,0.3) 100%)',
+                    color: '#ede9fe',
+                  }}
+                >
+                  {b.replace(/_/g, ' ')}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {unclaimedCount > 0 && onClaimAllAchievements ? (
+        <button
+          type="button"
+          onClick={onClaimAllAchievements}
+          className="sticky top-1 z-10 w-full rounded-lg border-2 px-3 py-2 text-[10px] font-black uppercase tracking-wider"
+          style={{
+            borderColor: 'rgba(251,191,36,0.6)',
+            background: 'linear-gradient(180deg, rgba(251,191,36,0.3) 0%, rgba(217,119,6,0.25) 100%)',
+            color: '#fef3c7',
+            boxShadow: '0 2px 8px rgba(245,158,11,0.35)',
+          }}
+        >
+          Claim all ({unclaimedCount}) rewards
+        </button>
+      ) : null}
 
       <div className="pkr-progress-northstar">
         <div className="pkr-pixel-title mb-2 text-[6px] font-black uppercase tracking-widest" style={{ color: '#a5b4fc' }}>

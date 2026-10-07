@@ -9,6 +9,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 html {
   width: 100%;
   height: 100%;
@@ -2755,3 +2756,73 @@ body {
   color: #e2e8f0;
   box-shadow: inset 0 -1px 0 rgba(0,0,0,0.3);
 }
+
+/* 1.2.0: readable study UI around a deliberately pixel-art arena. */
+:root { --pkr-radius-panel:12px; --pkr-radius-md:8px; --pkr-radius-sm:5px; --pkr-ease-out:cubic-bezier(.16,1,.3,1); }
+.pokerem-sidebar { container-type:inline-size; background:#0c171b; color:#e6eef0; }
+.pokerem-sidebar::before { display:none; }
+.pokerem-sidebar.pkr-pixel-ui { font-family:'Exo 2',system-ui,sans-serif; letter-spacing:0; -webkit-font-smoothing:antialiased; font-size:12px; }
+.pokerem-sidebar.pkr-pixel-ui button,.pokerem-sidebar.pkr-pixel-ui input,.pokerem-sidebar.pkr-pixel-ui select,.pokerem-sidebar.pkr-pixel-ui textarea { font-family:inherit; }
+.pokerem-sidebar.pkr-pixel-ui .text-xs { font-size:12px!important; line-height:1.5!important; }
+.pokerem-sidebar.pkr-pixel-ui .text-sm { font-size:14px!important; line-height:1.45!important; }
+.pokerem-sidebar.pkr-pixel-ui :is(.text-\[7px\],.text-\[8px\],.text-\[9px\],.text-\[10px\]) { font-size:11px; line-height:1.5; }
+.pokerem-sidebar.pkr-pixel-ui .pkr-pixel-title,.pokerem-sidebar .pkr-battle-hud-role { font-family:'Press Start 2P',monospace; font-size:7px; line-height:1.7; letter-spacing:.02em; }
+.pokerem-sidebar.pkr-pixel-ui .pkr-panel-header { font-family:'Exo 2',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; line-height:1.5; text-shadow:none; }
+.pokerem-sidebar .pkr-panel { border:1px solid rgba(148,180,184,.18); background:linear-gradient(145deg,#18292e,#101d23); padding:12px; box-shadow:inset 0 1px 0 #ffffff06,0 4px 12px #00000018; }
+.pokerem-sidebar .pkr-panel-header { margin:-12px -12px 12px; padding:10px 12px; border-bottom:1px solid #ffffff08; background:rgba(255,255,255,.025); border-radius:11px 11px 0 0; color:#b2e8da; }
+.pokerem-sidebar .pkr-content-vignette { background:transparent; padding:12px; }
+.pokerem-sidebar .pkr-content-vignette>.pkr-panel-mount>div { gap:12px; }
+.pokerem-sidebar .pkr-content-vignette .space-y-2>*+* { margin-top:12px; }
+.pokerem-sidebar .pkr-seam { height:1px; background:#ffffff0c; }
+.pokerem-sidebar .pkr-navigation { position:sticky; top:0; z-index:25; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; padding:6px; background:#102127; border:0; border-bottom:1px solid #ffffff12; box-shadow:0 4px 12px #00000018; }
+.pokerem-sidebar.pkr-pixel-ui .pkr-navigation .pkr-tab-tap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:0; min-height:46px; border:0; border-radius:8px; padding:5px 2px; font-size:10px!important; font-weight:700; letter-spacing:0; line-height:1.2; text-shadow:none; transition:background 160ms,color 160ms,transform 160ms; }
+.pokerem-sidebar .pkr-navigation .pkr-tab-active { background:#67e8be18; color:#8aefcc; box-shadow:inset 0 0 0 1px #67e8be32; }
+.pokerem-sidebar .pkr-navigation .pkr-tab-inactive { background:transparent; color:#a1b4bd; }
+.pokerem-sidebar .pkr-navigation .pkr-tab-inactive:hover { color:#e7f7ef; background:#ffffff08; }
+.pkr-nav-icon { position:relative; display:flex; }
+.pkr-nav-dot { position:absolute; top:-2px; right:-4px; width:5px; height:5px; border-radius:50%; background:#fcd878; box-shadow:0 0 0 2px #102127; }
+@container (min-width:520px) { .pokerem-sidebar .pkr-navigation { grid-template-columns:repeat(9,minmax(0,1fr)); } }
+.pkr-study-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0; padding:8px 12px; background:#0d1c21; border-bottom:1px solid #ffffff0c; font-size:11px; color:#b8ccd1; }
+.pkr-study-toolbar strong { font-weight:600; }
+.pkr-study-status-dot { display:inline-block; width:5px; height:5px; background:#7ee4bd; border-radius:50%; margin-right:6px; }
+.pkr-study-toolbar button { flex-shrink:0; padding:4px 8px; border:1px solid #ffffff20; border-radius:6px; color:#c1eedc; background:#ffffff05; font-weight:600; font-size:11px; }
+.pkr-study-hp { display:block; margin-top:2px; color:#9fb2ba; font-size:10px; }
+.pkr-focus-mode .pkr-wild-field { display:none; }
+.pokerem-sidebar button { touch-action:manipulation; }
+.pokerem-sidebar button:focus-visible,.pokerem-sidebar input:focus-visible,.pokerem-sidebar select:focus-visible { outline:2px solid #9bf0d5; outline-offset:3px; }
+.pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-btn-destructive,.pkr-btn-gold,.pkr-game-btn) { min-height:32px; border-radius:8px; transition:transform 140ms var(--pkr-ease-out),box-shadow 140ms,filter 140ms,background 140ms; }
+.pokerem-sidebar :is(.pkr-btn-secondary,.pkr-game-btn) { box-shadow:inset 0 1px 0 #ffffff08,0 2px 4px #00000020; }
+.pokerem-sidebar button:disabled { cursor:not-allowed; filter:saturate(.5); opacity:.45; transform:none!important; }
+@media(hover:hover) { .pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-btn-gold,.pkr-game-btn):hover:not(:disabled) { filter:brightness(1.1); transform:translateY(-1px); } }
+.pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-btn-gold,.pkr-game-btn):active:not(:disabled) { transform:translateY(1px) scale(.985); }
+.pokerem-sidebar .pkr-meter-track,.pokerem-sidebar .pkr-battle-hp-track { border-radius:5px; border:1px solid #00000040; background:#050e13; box-shadow:inset 0 1px 2px #00000055; }
+.pokerem-sidebar .pkr-meter-fill,.pokerem-sidebar .pkr-battle-hp-fill { border-radius:4px; transition:width 440ms var(--pkr-ease-out); box-shadow:inset 0 1px 0 #ffffff35; }
+.pkr-panel-mount { animation:pkr-polish-reveal 200ms var(--pkr-ease-out) both; }
+@keyframes pkr-polish-reveal { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+.pkr-sprite-image { transition:opacity 180ms ease-out; }
+.pkr-save-feedback { position:relative; flex-shrink:0; padding:8px 12px; background:#43241d; border-bottom:1px solid #f9a58a40; color:#ffd9c9; font-size:12px; }
+.pkr-loading { display:grid; gap:12px; padding:16px; color:#b8cbd1; }
+.pkr-loading-skeleton { height:100px; border-radius:12px; background:linear-gradient(100deg,#ffffff04,#ffffff0c,#ffffff04); background-size:200% 100%; animation:pkr-loading-sweep 1.4s ease-in-out infinite; }
+@keyframes pkr-loading-sweep { to { background-position:-200% 0; } }
+.pkr-trainer-player-strike { animation:pkr-trainer-lunge 220ms var(--pkr-ease-out); }
+.pkr-trainer-enemy-strike { animation:pkr-trainer-lunge 220ms var(--pkr-ease-out) reverse; }
+@keyframes pkr-trainer-lunge { 0%,100% { transform:translate(0,0); } 40% { transform:translate(16px,-8px) scale(1.05); } }
+.pkr-trainer-log { padding:10px 12px; min-height:42px; border:1px solid #ffffff15; border-radius:8px; background:#071318; color:#d6e8e5; font-size:12px; line-height:1.5; }
+.pkr-trainer-log span { display:block; animation:pkr-polish-reveal 180ms ease-out both; }
+.pokerem-sidebar[data-reduced-motion="true"] *, .pokerem-sidebar[data-reduced-motion="true"] *::before, .pokerem-sidebar[data-reduced-motion="true"] *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+@media(prefers-reduced-motion:reduce) { .pokerem-sidebar *, .pokerem-sidebar *::before, .pokerem-sidebar *::after, .pkr-panel-mount,.pkr-sprite-image { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+.pokerem-sidebar .pkr-trainer-moves .pkr-game-btn { border:1px solid #8daab730; background:linear-gradient(145deg,#20373f,#15282e); min-height:58px; padding:10px 12px; }
+.pokerem-sidebar .pkr-btn-gold { border:1px solid #e9bf64; background:linear-gradient(180deg,#ffe6a2,#edbe63); color:#38270a; font-weight:800; box-shadow:inset 0 1px 0 #fff7,0 3px 6px #0003; }
+.pokerem-sidebar .pkr-bag-item--empty { opacity:.75; }
+.pokerem-sidebar .pkr-bag-item { border-radius:9px; }
+.pokerem-sidebar .pkr-achievement-locked { opacity:.82; border-style:solid; }
+.pokerem-sidebar .pkr-sprite-image { max-width:100%; }
+.pkr-trainer-enemy-strike { animation:pkr-trainer-counter 220ms var(--pkr-ease-out); }
+@keyframes pkr-trainer-counter { 0%,100% { transform:translate(0,0); } 40% { transform:translate(-16px,8px) scale(1.05); } }
+.pkr-adventure-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; margin-bottom:12px; border:1px solid #7de4c32a; border-radius:12px; background:linear-gradient(130deg,#183932,#152930); }
+.pkr-adventure-summary strong { color:#a5f1d3; font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; }
+.pkr-adventure-summary p { color:#b2ccc6; font-size:11px; line-height:1.5; }
+.pkr-adventure-summary .pkr-adventure-label { color:#9bb6b7; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.pokerem-sidebar .pkr-body-heading { font-family:'Exo 2',system-ui,sans-serif; font-size:16px; font-weight:800; }
+.pkr-trek-summary { color:#b8ddd0; font-family:'Exo 2',sans-serif; font-size:10px; white-space:nowrap; }

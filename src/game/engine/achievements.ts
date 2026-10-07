@@ -1,6 +1,7 @@
 import type { ItemId } from '../data/items';
 import { ITEM_BY_ID } from '../data/items';
 import type { PokeRemGameState } from '../state/model';
+import { SPECIES_LIST } from '../data/species';
 
 /** Drives trainer XP on unlock; rarer goals grant bigger bonuses. */
 export type AchievementTier = 'common' | 'uncommon' | 'rare' | 'epic';
@@ -19,18 +20,33 @@ export const ACHIEVEMENT_TIER_LABEL: Record<AchievementTier, string> = {
   epic: 'Epic',
 };
 
+export type AchievementBucket = 'daily' | 'milestone' | 'prestige';
+
 export interface AchievementDef {
   id: string;
   name: string;
   description: string;
-  category: 'review' | 'collection' | 'battle' | 'pokemon' | 'economy' | 'streak';
+  category:
+    | 'review' | 'collection' | 'battle' | 'pokemon'
+    | 'economy' | 'streak' | 'trainer' | 'generation' | 'prestige';
   tier: AchievementTier;
+  /** Grouping bucket for ProgressScreen. Derived from tier if absent. */
+  bucket?: AchievementBucket;
+  /** Optional prestige badge id awarded on claim (persisted in `state.prestigeBadges`). */
+  prestigeBadgeId?: string;
   /** Extra bag items granted once when unlocked (on top of tier trainer XP). */
   bonusItems?: Partial<Record<ItemId, number>>;
   /** If set, replaces tier-based trainer XP for this achievement. */
   trainerXpOverride?: number;
   check: (state: PokeRemGameState) => boolean;
   progress?: (state: PokeRemGameState) => { current: number; target: number };
+}
+
+export function achievementBucket(def: AchievementDef): AchievementBucket {
+  if (def.bucket) return def.bucket;
+  if (def.tier === 'epic') return 'prestige';
+  if (def.tier === 'common') return 'daily';
+  return 'milestone';
 }
 
 export function achievementTrainerXpReward(def: AchievementDef): number {
@@ -143,7 +159,102 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: 'streak100', name: 'Legendary Streak', description: '100-day study streak', category: 'streak', tier: 'epic',
     bonusItems: { 'rare-candy': 1 },
     check: (s) => (s.longestStreak ?? 0) >= 100 },
+
+  // Trainer battles
+  { id: 'trainer_first_win', name: 'First Trainer Down', description: 'Win your first trainer battle', category: 'trainer', tier: 'common',
+    check: (s) => (s.trainerBattleStats?.totalWon ?? 0) >= 1 },
+  { id: 'trainer_win5', name: 'Battle Regular', description: 'Win 5 trainer battles', category: 'trainer', tier: 'uncommon',
+    bonusItems: { 'xp-doubler-common': 1 },
+    check: (s) => (s.trainerBattleStats?.totalWon ?? 0) >= 5,
+    progress: (s) => ({ current: Math.min(s.trainerBattleStats?.totalWon ?? 0, 5), target: 5 }) },
+  { id: 'trainer_win25', name: 'Ace Challenger', description: 'Win 25 trainer battles', category: 'trainer', tier: 'rare',
+    bonusItems: { 'xp-doubler-rare': 1 },
+    check: (s) => (s.trainerBattleStats?.totalWon ?? 0) >= 25,
+    progress: (s) => ({ current: Math.min(s.trainerBattleStats?.totalWon ?? 0, 25), target: 25 }) },
+  { id: 'trainer_elite3', name: 'Elite Slayer', description: 'Defeat 3 elite trainers', category: 'trainer', tier: 'rare',
+    bonusItems: { 'ultra-ball': 3 },
+    check: (s) => (s.trainerBattleStats?.eliteWon ?? 0) >= 3,
+    progress: (s) => ({ current: Math.min(s.trainerBattleStats?.eliteWon ?? 0, 3), target: 3 }) },
+  { id: 'trainer_streak5', name: 'On Fire', description: 'Win 5 trainer battles in a row', category: 'trainer', tier: 'rare',
+    check: (s) => (s.trainerBattleStats?.longestWinStreak ?? 0) >= 5,
+    progress: (s) => ({ current: Math.min(s.trainerBattleStats?.longestWinStreak ?? 0, 5), target: 5 }) },
+  { id: 'trainer_champion', name: 'Champion Scholar', description: 'Win 100 trainer battles total', category: 'trainer', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'champion_scholar',
+    bonusItems: { 'xp-doubler-legendary': 1 },
+    check: (s) => (s.trainerBattleStats?.totalWon ?? 0) >= 100,
+    progress: (s) => ({ current: Math.min(s.trainerBattleStats?.totalWon ?? 0, 100), target: 100 }) },
+
+  // Generation completion (rewarding prestige)
+  { id: 'gen1_complete', name: 'Kanto Champion', description: 'Catch every Pokémon in Gen 1', category: 'generation', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'gen1_complete',
+    bonusItems: { 'xp-doubler-legendary': 1, 'ultra-ball': 5 },
+    check: (s) => generationCompleted(s, 1),
+    progress: (s) => generationProgress(s, 1) },
+  { id: 'gen2_complete', name: 'Johto Champion', description: 'Catch every Pokémon in Gen 2', category: 'generation', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'gen2_complete',
+    bonusItems: { 'xp-doubler-legendary': 1, 'ultra-ball': 5 },
+    check: (s) => generationCompleted(s, 2),
+    progress: (s) => generationProgress(s, 2) },
+  { id: 'gen3_complete', name: 'Hoenn Champion', description: 'Catch every Pokémon in Gen 3', category: 'generation', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'gen3_complete',
+    bonusItems: { 'xp-doubler-legendary': 1, 'ultra-ball': 5 },
+    check: (s) => generationCompleted(s, 3),
+    progress: (s) => generationProgress(s, 3) },
+  { id: 'all_gens_complete', name: 'Living Legend', description: 'Complete every enabled generation', category: 'generation', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'all_gens_complete',
+    bonusItems: { 'xp-doubler-legendary': 2, 'ultra-ball': 10 },
+    check: (s) => allEnabledGenerationsCompleted(s) },
+
+  // Trainer-level prestige
+  { id: 'trainer_level25', name: 'Trainer Lv25', description: 'Reach trainer level 25', category: 'prestige', tier: 'uncommon',
+    check: (s) => (s.trainerLevel ?? 1) >= 25,
+    progress: (s) => ({ current: Math.min(s.trainerLevel ?? 1, 25), target: 25 }) },
+  { id: 'trainer_level50', name: 'Trainer Lv50', description: 'Reach trainer level 50', category: 'prestige', tier: 'rare',
+    bonusItems: { 'xp-doubler-rare': 1 },
+    check: (s) => (s.trainerLevel ?? 1) >= 50,
+    progress: (s) => ({ current: Math.min(s.trainerLevel ?? 1, 50), target: 50 }) },
+  { id: 'trainer_level100', name: 'Trainer Lv100', description: 'Reach trainer level 100', category: 'prestige', tier: 'epic',
+    bucket: 'prestige', prestigeBadgeId: 'trainer_level100',
+    bonusItems: { 'xp-doubler-legendary': 1 },
+    check: (s) => (s.trainerLevel ?? 1) >= 100,
+    progress: (s) => ({ current: Math.min(s.trainerLevel ?? 1, 100), target: 100 }) },
 ];
+
+function speciesCountForGen(gen: number): number {
+  return SPECIES_LIST.filter((sp) => sp.generation === gen).length;
+}
+
+function caughtCountForGen(state: PokeRemGameState, gen: number): number {
+  const dex = state.collectionDex ?? {};
+  let n = 0;
+  for (const sp of SPECIES_LIST) {
+    if (sp.generation !== gen) continue;
+    if ((dex[sp.dexNum] ?? 0) > 0) n++;
+  }
+  return n;
+}
+
+export function generationProgress(state: PokeRemGameState, gen: number): { current: number; target: number } {
+  const target = speciesCountForGen(gen);
+  return { current: Math.min(caughtCountForGen(state, gen), target), target };
+}
+
+export function generationCompleted(state: PokeRemGameState, gen: number): boolean {
+  const total = speciesCountForGen(gen);
+  if (total <= 0) return false;
+  return caughtCountForGen(state, gen) >= total;
+}
+
+function enabledGensFromState(state: PokeRemGameState): number[] {
+  const raw = (state as unknown as { enabledGenerations?: number[] }).enabledGenerations;
+  if (Array.isArray(raw) && raw.length > 0) return raw;
+  return [1];
+}
+
+export function allEnabledGenerationsCompleted(state: PokeRemGameState): boolean {
+  const gens = enabledGensFromState(state);
+  return gens.every((g) => generationCompleted(state, g));
+}
 
 function uniqueCaught(s: PokeRemGameState): number {
   const dex = s.collectionDex;

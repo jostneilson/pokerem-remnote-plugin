@@ -4,7 +4,8 @@ export type ItemId =
   | 'oran-berry' | 'rare-candy' | 'exp-candy-s'
   | 'fire-stone' | 'water-stone' | 'thunder-stone' | 'leaf-stone' | 'moon-stone'
   | 'everstone'
-  | 'catch-scope';
+  | 'catch-scope'
+  | 'xp-doubler-common' | 'xp-doubler-rare' | 'xp-doubler-legendary';
 
 export interface ItemData {
   id: ItemId;
@@ -56,6 +57,30 @@ export const ITEMS: ItemData[] = [
     price: 200,
     description: 'One battle reading — estimates catch odds for your next throw (wild battles only).',
   },
+  {
+    id: 'xp-doubler-common',
+    name: 'XP Doubler (Common)',
+    iconFile: 'rare-candy.png',
+    kind: 'utility',
+    price: 800,
+    description: 'Doubles XP for every Pokémon for the next 25 reviewed cards. Queues if another doubler is active.',
+  },
+  {
+    id: 'xp-doubler-rare',
+    name: 'XP Doubler (Rare)',
+    iconFile: 'rare-candy.png',
+    kind: 'utility',
+    price: 1500,
+    description: 'Doubles XP for every Pokémon for the next 50 reviewed cards. Queues if another doubler is active.',
+  },
+  {
+    id: 'xp-doubler-legendary',
+    name: 'XP Doubler (Legendary)',
+    iconFile: 'rare-candy.png',
+    kind: 'utility',
+    price: 3000,
+    description: 'Doubles XP for every Pokémon for the next 100 reviewed cards. Queues if another doubler is active.',
+  },
 ];
 
 export const ITEM_BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
@@ -78,4 +103,7 @@ export const STARTING_BAG: Record<ItemId, number> = {
   'moon-stone': 0,
   'everstone': 0,
   'catch-scope': 1,
+  'xp-doubler-common': 0,
+  'xp-doubler-rare': 0,
+  'xp-doubler-legendary': 0,
 };

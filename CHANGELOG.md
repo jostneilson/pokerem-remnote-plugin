@@ -5,11 +5,44 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
-## [Unreleased]
+## [1.2.0] - 2026-10-07
+
+A real expansion: trainer battles slot in as rare mini-bosses, XP Doublers stack and queue across sessions, achievements grow into long-term and prestige tiers (with full-generation completion rewards), the battle and reward UIs get a polish pass, and Settings gains a Ko-fi support card. No save migration friction — v3 saves load as v4 with all new fields safely defaulted.
+
+### Polish pass — 2026-10-07
+
+- Readable sans-serif menu and body text, quieter panels, larger controls, visible keyboard focus, and labeled responsive navigation.
+- Compact study view retains encounter actions and lead HP while hiding the wild arena. The view preference is session-scoped and does not alter game saves.
+- Shorter responsive arena, smaller status sprite, next-achievement milestone and adventure summary.
+- Trainer turns animate after the save commits, with controls gated during the exchange; trainer moves now have complete button styling.
+- Explicit save-loading and save-failure feedback, synchronous guards against duplicate battle clicks, sprite fallback reset when species changes, adaptive trek dots for long encounter rates, and low-HP meter colors.
+- Skip a trainer challenge before locking a team, including an entirely fainted party; active battle restrictions remain intact.
+- Plugin and OS reduced-motion preferences suppress motion throughout the sidebar.
+- Added an isolated UI QA preview and preservation/rendering regression tests. Production entrypoints and CSS injection stay unchanged.
+
+### Added
+
+- **Trainer battles** as a rare mini-boss event that replaces a wild encounter on threshold (Off / Rare 100 / Normal 50 / Frequent 25 cards via new `pokerem.trainerBattleFrequency` setting). Pick 3 party Pokémon at battle start (locked in — no switching, healing, or items mid-battle); fight 3 themed enemies; on victory, choose 1 of the 3 to attempt to catch with a slightly boosted catch chance. **Elite trainers** appear as a rare prestige variant (~12% of trainer battles) with stronger scaling, evolved teams, guaranteed Rare XP Doubler reward, and a purple/gold visual treatment.
+- **XP Doubler consumables** in three tiers — Common (25 cards), Rare (50 cards), Legendary (100 cards). Activate from Bag → Boosters; only one active at a time, additional doublers queue automatically. Doubles XP for every Pokémon that gains XP (lead and bench), tracked by card count, never trainer XP. Clear status + queue strip in Bag and a `x2 XP · N` chip in the battle header.
+- **Long-term achievements & prestige** — new trainer-battle, party-growth, generation-completion, prestige, and 365-day streak achievements grouped into Daily / Milestone / Prestige buckets in Progress. Generation completion grants coins, a guaranteed Legendary XP Doubler, Ultra Balls, and a permanent prestige badge shown on the Status dashboard.
+- **Claim-all** for visible unclaimed achievements, plus inline claim from main-battle notice banners.
+- **Trainer-battle identity overlay** that layers progression titles (Rookie Challenger → Study Ace → Scholar Duelist → Elite Scholar → Champion Scholar) on top of the existing trainer-level rank as you accumulate trainer wins.
+- **Ko-fi support card** at the top of Settings — gold button linking to https://ko-fi.com/pokerem with the message "Support the student that supports you and your studying." No popups, no nags.
+- **What's New card** that appears once per version in the sidebar and dismisses to synced storage. Re-openable from Settings → About.
+
+### Changed
+
+- **Marketplace description** updated to communicate the full study-RPG loop (encounters, catching, party, trainer battles, XP doublers, shop, achievements) in one punchy line.
+- **Battle and reward UIs** polished: HP and XP bars use smooth width transitions with subtle pulses, reward banners share a cleaner `RewardBanner` layout primitive with number count-up, the floating encounter popup gets tighter framing, and the Status screen is restructured as a quick study-RPG dashboard (identity / rank / prestige / today / closest goal). All animations respect the existing `pokerem.reducedMotion` setting.
+- **Bag** gets a Boosters category at the top, surfacing the active XP Doubler countdown and queued doublers.
 
 ### Fixed
 
 - **Queue completion dedupe** no longer treats every **table / list-style** flashcard completion as the same review when RemNote reuses one parent `remId` — keys now prefer `card._id` (and related instance ids) and suffix row/list/column-style fields when only rem-scoped ids exist.
+
+### Notes for distributors
+
+- Save schema bumped to v4 (additive only). v3 saves upgrade automatically — no data loss; new fields default to safe values. Style bundling unchanged (`style-loader` for all widget CSS), `PluginZip.zip` rebuilt fresh on `npm run build`.
 
 ## [1.1.3] - 2026-04-17
 

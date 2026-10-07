@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "pokerem-remnote-plugin",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "author": "Jost Neilson",
   "engines": {
     "node": ">=18"
@@ -12,9 +12,11 @@
     "test": "vitest run",
     "generate:logo": "python3 scripts/generate-plugin-logo.py",
     "dev": "cross-env NODE_ENV=development webpack-dev-server --color --progress --no-open",
-    "build": "npx remnote-plugin validate && shx rm -rf dist && cross-env NODE_ENV=production webpack --color --progress && shx rm -f PluginZip.zip && cd dist && bestzip ../PluginZip.zip ./*",
+    "build": "npm run listing:check && npx remnote-plugin validate && shx rm -rf dist && cross-env NODE_ENV=production webpack --color --progress && shx rm -f PluginZip.zip && cd dist && bestzip ../PluginZip.zip ./*",
     "release": "npm run version:check && npm run check-types && npm test && npm run build",
-    "version:check": "node scripts/check-version-align.mjs"
+    "version:check": "node scripts/check-version-align.mjs",
+    "preview:qa": "cross-env NODE_ENV=development webpack-dev-server --config tools/preview/webpack.cjs --no-open",
+    "listing:check": "node scripts/check-listing-assets.mjs"
   },
   "dependencies": {
     "@remnote/plugin-sdk": "0.0.14",

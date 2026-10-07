@@ -55,3 +55,40 @@ export function computeTrainerRank(state: PokeRemGameState): string {
   }
   return 'Novice Trainer';
 }
+
+/** Battle-identity ladder rewarded by trainer-battle wins (cosmetic, shown beside rank). */
+interface BattleIdentityDef {
+  id: string;
+  name: string;
+  minTotalWon: number;
+  minEliteWon?: number;
+  minStreak?: number;
+}
+
+const BATTLE_IDENTITIES: BattleIdentityDef[] = [
+  { id: 'champion_scholar',  name: 'Champion Scholar',  minTotalWon: 100, minEliteWon: 15, minStreak: 8 },
+  { id: 'elite_challenger',  name: 'Elite Challenger',  minTotalWon: 50,  minEliteWon: 5 },
+  { id: 'study_ace',         name: 'Study Ace',         minTotalWon: 25 },
+  { id: 'scholar_trainer',   name: 'Scholar Trainer',   minTotalWon: 10 },
+  { id: 'rookie_challenger', name: 'Rookie Challenger', minTotalWon: 1 },
+  { id: 'unranked',          name: 'Untested',          minTotalWon: 0 },
+];
+
+export interface TrainerBattleIdentity {
+  id: string;
+  name: string;
+}
+
+export function computeTrainerBattleIdentity(state: PokeRemGameState): TrainerBattleIdentity {
+  const stats = state.trainerBattleStats;
+  const totalWon = stats?.totalWon ?? 0;
+  const eliteWon = stats?.eliteWon ?? 0;
+  const longestStreak = stats?.longestWinStreak ?? 0;
+  for (const t of BATTLE_IDENTITIES) {
+    if (totalWon < t.minTotalWon) continue;
+    if (t.minEliteWon && eliteWon < t.minEliteWon) continue;
+    if (t.minStreak && longestStreak < t.minStreak) continue;
+    return { id: t.id, name: t.name };
+  }
+  return { id: 'unranked', name: 'Untested' };
+}

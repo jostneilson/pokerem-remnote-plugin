@@ -1,3 +1,5 @@
+import { getClosestAchievementGoal } from '../../game/engine/achievements';
+import { computeTrainerBattleIdentity } from '../../game/engine/trainerRank';
 import { useMemo } from 'react';
 import type { PokeRemGameState, OwnedPokemon } from '../../game/state/model';
 import { xpProgressPercent } from '../../game/state/store';
@@ -37,6 +39,8 @@ export function StatusScreen({
   state: PokeRemGameState;
   active: OwnedPokemon;
 }) {
+  const goal = getClosestAchievementGoal(state);
+  const identity = computeTrainerBattleIdentity(state);
   const uniqueCaught = Object.values(state.collectionDex).filter((n) => n > 0).length;
   const ds = state.dailyStats;
   const streak = state.currentStreak ?? 0;
@@ -51,6 +55,14 @@ export function StatusScreen({
 
   return (
     <div className="space-y-2">
+      <div className="pkr-adventure-summary">
+        <div><div className="pkr-adventure-label">Your adventure</div><strong>{state.cardsReviewed}</strong><p>total cards reviewed</p></div>
+        <div className="text-right"><div className="pkr-adventure-label">{identity.name}</div><p>{state.trainerBattleStats?.totalWon ?? 0} trainer wins · {uniqueCaught} species</p><p>{streak > 0 ? `${streak}-day study streak` : 'Every card grows your team.'}</p></div>
+      </div>
+      {goal ? <Panel title="Your next milestone" icon={<GameIcon name="trophy" size={14} />}>
+        <div className="mb-2 flex items-center justify-between gap-2"><strong>{goal.def.name}</strong><span className="text-[11px] tabular-nums" style={{color:'#a7bfca'}}>{goal.current}/{goal.target}</span></div>
+        <MeterBar value={goal.current} max={goal.target} label={goal.def.name} color="#7dd3bb" showText={false}/>
+      </Panel> : null}
       <Panel title="Active Pokemon" icon={<GameIcon name="starFilled" size={14} />}>
         <div className="flex gap-2.5">
           <div
@@ -60,7 +72,7 @@ export function StatusScreen({
             <PokemonSprite
               src={frontSpriteUrl(rootURL, active.dexNum)}
               alt={active.nickname || active.name}
-              size={120}
+              size={88}
             />
           </div>
           <div className="min-w-0 flex-1 space-y-1.5">
@@ -84,17 +96,17 @@ export function StatusScreen({
                 ) : null}
               </div>
               {active.nickname && active.nickname !== active.name ? (
-                <div className="truncate text-[9px] font-semibold" style={{ color: '#64748b' }}>
+                <div className="truncate text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
                   Species · {active.name}
                 </div>
               ) : null}
               <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
                 <span>Lv {active.level}</span>
-                <span style={{ color: '#475569' }}>·</span>
+                <span style={{ color: '#8296a5' }}>·</span>
                 <span>#{String(active.dexNum).padStart(3, '0')}</span>
                 {partySlot >= 0 ? (
                   <>
-                    <span style={{ color: '#475569' }}>·</span>
+                    <span style={{ color: '#8296a5' }}>·</span>
                     <span style={{ color: 'var(--pkr-accent-muted, #cbd5e1)' }} title="Position in party">
                       Party {partySlot + 1}/{state.party.length}
                     </span>
@@ -102,7 +114,7 @@ export function StatusScreen({
                 ) : null}
                 {active.everstone ? (
                   <>
-                    <span style={{ color: '#475569' }}>·</span>
+                    <span style={{ color: '#8296a5' }}>·</span>
                     <span title="Holding Everstone — will not evolve from level-ups">Everstone</span>
                   </>
                 ) : null}
@@ -126,7 +138,7 @@ export function StatusScreen({
               ) : null}
             </div>
             <div>
-              <div className="mb-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#64748b' }}>
+              <div className="mb-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
                 Moves
               </div>
               <div className="flex flex-wrap gap-1">
@@ -177,18 +189,18 @@ export function StatusScreen({
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{ds.reviews}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Cards</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Cards</div>
             </div>
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#fde68a' }}>{ds.encounters}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Wilds</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Wilds</div>
             </div>
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#6ee7b7' }}>{ds.catches}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#64748b' }}>Catches</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Catches</div>
             </div>
           </div>
-          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
             Completed flashcards and battle outcomes for the current UTC calendar day ({ds.date}). Resets at UTC midnight.
           </p>
         </Panel>
@@ -233,7 +245,7 @@ export function StatusScreen({
             Best · {longest} day{longest === 1 ? '' : 's'}
           </span>
         </div>
-        <p className="mt-2 text-[9px] font-semibold" style={{ color: '#64748b' }}>
+        <p className="mt-2 text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
           Streak uses UTC calendar days with at least one completed flashcard while {BRAND.wordmark} is active.
         </p>
       </Panel>

@@ -54,13 +54,16 @@ export function PokeRemTrekStrip({
       };
 
   const a11yLabel = title ?? defaultTitle;
+  const safeRate = Math.max(1, Math.floor(effectiveRate));
+  const cells = Math.min(10, safeRate);
+  const filledCells = Math.floor(Math.max(0, Math.min(safeRate, progress)) / safeRate * cells);
 
   return (
     <div className={wrapClass} style={wrapStyle} role="group" aria-label={a11yLabel}>
-      {Array.from({ length: effectiveRate }, (_, i) => {
-        const filled = hasEncounter || i < progress;
-        const isLast = i === effectiveRate - 1;
-        const nearWild = !hasEncounter && i === progress && progress < effectiveRate;
+      {Array.from({ length: cells }, (_, i) => {
+        const filled = hasEncounter || i < filledCells;
+        const isLast = i === cells - 1;
+        const nearWild = !hasEncounter && i === filledCells && progress < safeRate;
         return (
           <div
             key={i}

@@ -216,6 +216,24 @@ async function onActivate(plugin: ReactRNPlugin) {
     // registerDropdownSetting may not be available in SDK 0.0.14
   }
 
+  try {
+    await plugin.settings.registerDropdownSetting({
+      id: 'pokerem.trainerBattleFrequency',
+      title: 'Trainer battle frequency',
+      description:
+        'How often a wild encounter is replaced with a trainer mini-boss battle. Trainer battles use 3 of your party Pokémon (locked in — no switching, healing, or items mid-battle). Winning grants rewards and a chance to catch one of the trainer\u2019s Pokémon.',
+      defaultValue: 'normal',
+      options: [
+        { key: '0', label: 'Off', value: 'off' },
+        { key: '1', label: 'Rare (every 100 cards)', value: 'rare' },
+        { key: '2', label: 'Normal (every 50 cards) — default', value: 'normal' },
+        { key: '3', label: 'Frequent (every 25 cards)', value: 'frequent' },
+      ],
+    });
+  } catch {
+    // registerDropdownSetting may not be available in SDK 0.0.14
+  }
+
   // Right-sidebar tab: same red ball as bag/shop (`public/assets/items/poke-ball.png`). Plugin list icon = `public/logo.png` + `logo.svg` at bundle root (not used here).
   const pluginBase = (plugin.rootURL ?? '').replace(/\/?$/, '/');
   const sidebarTabIconUrl = `${pluginBase}assets/items/poke-ball.png?v=${encodeURIComponent(POKEREM_VERSION)}`;

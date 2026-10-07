@@ -378,8 +378,8 @@ export function BattleReviewSurface({
     'opacity var(--pkr-motion-scene, 0.42s) var(--pkr-ease-out, cubic-bezier(0.22, 1, 0.36, 1))';
   const layoutW = useMemo(() => Math.max(260, frameW), [frameW]);
   const typeIconSize = Math.min(18, Math.max(12, Math.round(layoutW * 0.045)));
-  const battleHeight = Math.max(220, Math.min(360, Math.round(layoutW * 0.66)));
-  const spriteSize = Math.max(102, Math.min(178, Math.round(layoutW * 0.35)));
+  const battleHeight = Math.max(190, Math.min(270, Math.round(layoutW * 0.58)));
+  const spriteSize = Math.max(90, Math.min(142, Math.round(layoutW * 0.3)));
   /** Corner HUD width — tied to measured column, not iframe `vw` (avoids spill in narrow sidebars). */
   const hudPanelMaxPx = useMemo(
     () => Math.min(150, Math.max(88, Math.round(layoutW * 0.44))),
@@ -663,6 +663,26 @@ export function BattleReviewSurface({
               </div>
             </span>
         </StatHoverTip>
+        {state.xpBoosterActive ? (
+          <StatHoverTip
+            label={`XP Doubler active — all Pokémon gain x2 XP for the next ${state.xpBoosterActive.cardsRemaining} reviewed card(s).${
+              (state.xpBoosterQueue?.length ?? 0) > 0
+                ? ` Queued: ${state.xpBoosterQueue?.length}.`
+                : ''
+            }`}
+          >
+            <span
+              className="flex shrink-0 items-center gap-0.5 rounded-full border px-1.5 py-px text-[8px] font-black"
+              style={{
+                borderColor: 'rgba(253,224,71,0.5)',
+                background: 'linear-gradient(180deg, rgba(253,224,71,0.35) 0%, rgba(180,83,9,0.35) 100%)',
+                color: '#fef3c7',
+              }}
+            >
+              x2 XP · {state.xpBoosterActive.cardsRemaining}
+            </span>
+          </StatHoverTip>
+        ) : null}
         {(state.currentStreak ?? 0) > 0 && (
           <StatHoverTip
             label={`Study streak — consecutive UTC calendar days you completed at least one flashcard while ${BRAND.wordmark} is active. Resets if you skip a day.`}
@@ -727,7 +747,7 @@ export function BattleReviewSurface({
 
       {/* ═══ Battle field — classic Pokemon layout ═══ */}
       <div
-        className="pkr-battle-field relative w-full overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]"
+        className="pkr-battle-field pkr-wild-field relative w-full overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]"
         style={{ height: `${battleHeight}px` }}
       >
         <div className="pointer-events-none absolute inset-0 z-0">

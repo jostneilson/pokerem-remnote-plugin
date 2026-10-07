@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { RNPlugin } from '@remnote/plugin-sdk';
 import { getBattleFlowPhase } from '../game/battleFlow';
 import { STORAGE_KEY, SYNC_BROADCAST_KEY, getSyncedGameRaw } from '../game/constants';
@@ -18,14 +18,16 @@ export function usePokeRemBattleActions(
   plugin: RNPlugin,
   onStateCommitted: (next: PokeRemGameState) => void,
 ) {
+  const busyRef = useRef(false);
   const [battleBusy, setBattleBusy] = useState(false);
   const [busyAction, setBusyAction] = useState<null | 'catch' | 'fight' | 'run'>(null);
 
   const applyBattleAction = useCallback(
     async (action: 'catch' | 'fight' | 'run', fn: (s: PokeRemGameState) => PokeRemGameState) => {
-      if (battleBusy) {
+      if (busyRef.current) {
         return;
       }
+      busyRef.current = true;
       setBattleBusy(true);
       setBusyAction(action);
       try {
@@ -72,6 +74,7 @@ export function usePokeRemBattleActions(
           /* unknown host */
         }
       } finally {
+        busyRef.current = false;
         setBattleBusy(false);
         setBusyAction(null);
       }

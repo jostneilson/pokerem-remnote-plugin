@@ -75,7 +75,7 @@ export interface AchievementState {
   [key: string]: boolean;
 }
 
-export type MainNoticeKind = 'achievement_unlock' | 'trainer_reward';
+export type MainNoticeKind = 'achievement_unlock' | 'trainer_reward' | 'trainer_battle_result';
 
 /** Dismissible main-UI notice (synced); reward remains claimable in Progress / Rewards. */
 export interface MainNoticeItem {
@@ -85,9 +85,112 @@ export interface MainNoticeItem {
   subtitle: string;
 }
 
+// ── v4 additions ────────────────────────────────────────────────────────────
+
+/** Tier of an XP Doubler consumable; controls how many cards of x2 XP it grants. */
+export type XpDoublerTier = 'common' | 'rare' | 'legendary';
+
+/** A single XP Doubler instance — either active (counting down) or queued. */
+export interface XpDoublerEntry {
+  tier: XpDoublerTier;
+  /** Cards of XP-paying review remaining for this doubler. */
+  cardsRemaining: number;
+  /** Total cards this doubler was created with (for progress display). */
+  cardsTotal: number;
+}
+
+/** Trainer battle phases — drives UI gating in `BattleReviewSurface`. */
+export type TrainerBattlePhase = 'team_select' | 'active' | 'post_win' | 'post_loss';
+
+export type TrainerTier = 'standard' | 'elite';
+
+/** A trainer's identity card — display + flavor + theme. */
+export interface TrainerIdentity {
+  /** Stable archetype id (e.g. `bug_catcher`, `gym_leader_psychic`). */
+  archetypeId: string;
+  /** Display name of the trainer class (e.g. "Bug Catcher", "Psychic Adept"). */
+  className: string;
+  /** Optional short proper-name flair (e.g. "Wes", "Linda"). */
+  displayName?: string;
+  /** Theme types — used for elite glow tinting and flavor only. */
+  themeTypes: PokemonType[];
+  /** Short pre-battle taunt line. */
+  taunt: string;
+  /** Short on-defeat (player wins) line. */
+  defeatLine: string;
+  /** Short on-victory (player loses) line. */
+  victoryLine: string;
+}
+
+/** One enemy slot in a trainer battle. Mirrors `EncounterPokemon` shape but adds `defeated`. */
+export interface TrainerEnemyMon {
+  dexNum: number;
+  name: string;
+  level: number;
+  maxHp: number;
+  currentHp: number;
+  types: PokemonType[];
+  /** Move ids the enemy can use — chosen at generation time. */
+  moves: string[];
+  /** Set true after this enemy is KO'd. */
+  defeated?: boolean;
+}
+
+/** Reward bundle granted on trainer battle victory (mirrored on `rewardSnapshot`). */
+export interface TrainerRewardSnapshot {
+  coins: number;
+  trainerXp: number;
+  /** Bag items (count per id) added on victory. */
+  items: Partial<Record<string, number>>;
+  /** XP Doubler tier granted on victory, if any (rolled separately from `items`). */
+  xpDoublerTier?: XpDoublerTier;
+  /** Headline summary string for the post-win banner. */
+  headline: string;
+}
+
+/** Persisted trainer battle state — exists only while a trainer battle is in progress. */
+export interface TrainerBattleState {
+  /** Stable id for this battle instance — used for notice de-dupe. */
+  id: string;
+  phase: TrainerBattlePhase;
+  tier: TrainerTier;
+  trainer: TrainerIdentity;
+  /** Always 3 enemies, in send-out order. */
+  enemies: TrainerEnemyMon[];
+  /** Index into `enemies` of the active opposing Pokémon. */
+  activeEnemyIndex: number;
+  /** Locked-in party Pokémon ids (3) — set during `team_select` lock-in. */
+  selectedPartyIds: string[];
+  /** Party ids that fainted in this trainer battle (no switching back in). */
+  faintedSelectedIds: string[];
+  /** True after the player wins; false otherwise. Drives the catch offer. */
+  catchOfferActive: boolean;
+  /** True once the catch attempt has been made (success or fail). */
+  catchOfferClaimed: boolean;
+  /** Reward summary, populated on victory. */
+  rewardSnapshot?: TrainerRewardSnapshot;
+  /** Last short combat narration line specific to this battle. */
+  lastLog?: string;
+  /** Bumped on each turn so UI can animate damage / KOs. */
+  feedbackSeq: number;
+}
+
+/** Aggregate trainer-battle stats — drives identity overlay + achievements. */
+export interface TrainerBattleStats {
+  standardWon: number;
+  standardLost: number;
+  eliteWon: number;
+  eliteLost: number;
+  totalWon: number;
+  /** Consecutive wins without a loss (resets on any loss). */
+  currentWinStreak: number;
+  /** Best-ever consecutive trainer-battle win streak. */
+  longestWinStreak: number;
+}
+
 /** Persisted game state. User-facing product name: PokéRem (`BRAND.wordmark` in `designTokens.ts`). */
 export interface PokeRemGameState {
-  schemaVersion: 3;
+  schemaVersion: 4;
   lastUpdatedAt: number;
   starterChosen: boolean;
   activePokemonId: string | null;
@@ -174,4 +277,19 @@ export interface PokeRemGameState {
   studyHealCarries?: number[];
   /** Main battle chrome — achievement / trainer reward prompts (dismiss hides only this banner). */
   mainNoticeQueue?: MainNoticeItem[];
+  // ── v4 (1.2.0) additions — all optional with safe defaults in `parseGameStateCore` ──
+  /** Active XP Doubler counting down — null when no booster is active. */
+  xpBoosterActive?: XpDoublerEntry | null;
+  /** Queued XP Doublers — pulled into `xpBoosterActive` when the active one expires. */
+  xpBoosterQueue?: XpDoublerEntry[];
+  /** Cards reviewed since last trainer battle (only ticks when starter + difficulty configured). */
+  trainerBattleCounter?: number;
+  /** Active trainer battle — null when no trainer battle is in progress. */
+  currentTrainerBattle?: TrainerBattleState | null;
+  /** Aggregate trainer-battle stats; used by identity overlay + achievements. */
+  trainerBattleStats?: TrainerBattleStats;
+  /** Earned prestige badges (e.g. `gen1_complete`, `all_gens_complete`). String-only for forward-compat. */
+  prestigeBadges?: string[];
+  /** Most recent PokéRem version the user has acknowledged in the in-plugin "What's New" card. */
+  whatsNewSeenVersion?: string;
 }

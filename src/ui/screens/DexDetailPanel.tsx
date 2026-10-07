@@ -69,7 +69,7 @@ export function DexDetailPanel({
                   ))
                 ) : (
                   <span className="pkr-dex-detail-unregistered pkr-pixel-title inline-flex items-center gap-1 rounded-md border-2 border-dashed px-2 py-1 font-black uppercase">
-                    <GameIcon name="dot" size={11} style={{ color: '#64748b' }} />
+                    <GameIcon name="dot" size={11} style={{ color: '#94a3b8' }} />
                     Unregistered
                   </span>
                 )}

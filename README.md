@@ -1,138 +1,75 @@
 # PokéRem
 
-PokéRem is a gamified study companion for [RemNote](https://www.remnote.com/) that turns flashcard reviews into a light progression loop: wild encounters, catching, party and bag management, a shop, type matchups, trainer levels, achievements, and a growing collection—without replacing normal review.
+**Turn your flashcard reviews into a Pokémon study adventure.**
 
-As you study, your queue activity drives the game. The goal is to make consistent studying feel more rewarding while RemNote stays at the center of how you learn.
+Choose a starter, grow your team as you study, and meet wild Pokémon along the way. Catch, battle, collect, and build your trainer's progress inside the RemNote flashcard queue.
 
-## Overview
+## New in 1.2.0
 
-PokéRem is built directly into RemNote and is designed to sit alongside normal review rather than replace it. It adds a persistent game layer that responds to your study activity and gives you a more rewarding sense of momentum over time.
+- **Trainer challenges:** rare 3-on-3 battles, themed opponents, and tougher elite trainers. Choose your team before battle; a victory gives rewards and a chance to catch one opponent.
+- **XP Doublers:** boost every Pokémon that earns XP for 25, 50, or 100 reviewed cards. Activate one and queue more from your Bag.
+- **Long-term goals:** expanded achievements, generation-completion rewards, prestige badges, trainer battle titles, and claim-all on Progress.
+- **A smoother study companion:** clearer menus, labeled navigation, more readable text, improved trainer-turn feedback, and a compact view that keeps actions available while hiding the wild arena.
 
-Core features include:
+## See PokéRem
 
-- wild encounter progression tied to review activity
-- catching and party management
-- item shop and reward systems
-- trainer level and progression tracking
-- achievements and collection systems
-- retro-inspired battle and interface design
-- persistent save data stored through RemNote plugin storage
+Screenshots show feature details from a separate demo save; no personal notes or flashcards are shown.
 
-## Why PokéRem exists
+### Your study companion
 
-Studying is easier to sustain when progress feels visible. PokéRem was built to make review sessions feel more interactive, motivating, and satisfying while still keeping RemNote at the center of the workflow.
+Keep your team, review progress, and next milestone in view. Use **Compact view** when you want more space for studying.
 
-Instead of turning study time into a separate game, PokéRem tries to make your real study effort the thing that drives progression.
+![PokéRem 1.2.0 study companion with labeled navigation and the next achievement milestone](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/study-companion.jpg)
 
-## Sidebar Screenshots (Flashcard Queue Not Shown)
+### Trainer challenges
 
-<table>
-  <tr>
-    <td align="center">
-      <strong>Encounter and battle flow</strong><br><br>
-      <img src="docs/screenshots/battle-screen.png" alt="PokéRem battle screen" width="300">
-    </td>
-    <td align="center">
-      <strong>Main study companion interface</strong><br><br>
-      <img src="docs/screenshots/main-sidebar.png" alt="PokéRem main sidebar" width="300">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <strong>Shop and rewards</strong><br><br>
-      <img src="docs/screenshots/shop-screen.png" alt="PokéRem shop screen" width="300">
-    </td>
-    <td align="center">
-      <strong>Trainer progress and achievements</strong><br><br>
-      <img src="docs/screenshots/progress-screen.png" alt="PokéRem progress screen" width="300">
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">
-      <strong>Pokédex and collection systems</strong><br><br>
-      <img src="docs/screenshots/pokedex-screen.png" alt="PokéRem pokedex screen" width="300">
-    </td>
-  </tr>
-</table>
+Lock in your team, choose moves, and take on three opponents. Switching, healing, and item use are disabled during active trainer combat.
 
-## Status
+![PokéRem 1.2.0 trainer battle with opposing teams and move controls](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/trainer-battle.jpg)
 
-PokéRem is an actively developed RemNote plugin project.
+### Boost your team's growth
 
-The current version focuses on:
-- core progression loop
-- encounter and battle flow
-- party, bag, shop, dex, and reward systems
-- persistent save behavior
-- polished in-app UI and plugin integration
+Activate XP Doublers and queue more from your Bag. The review HUD keeps the number of boosted cards remaining in view.
 
-## Screens and surfaces
+![PokéRem 1.2.0 review HUD showing 25 boosted cards remaining](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/xp-doublers.jpg)
 
-PokéRem currently uses multiple RemNote plugin surfaces, depending on user settings and context:
+### Progress that keeps growing
 
-- right sidebar for the main management experience
-- queue-integrated surfaces for encounter and battle feedback
-- optional supplementary UI such as encounter popups and queue strip elements
+Track your achievements, trainer identity, and claimable rewards.
 
-## Using PokéRem
+![PokéRem 1.2.0 Progress screen showing achievements and trainer progression](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/progress.jpg)
 
-### Where to open PokéRem (most users look here first)
+### Build your collection
 
-1. Go to **Flashcard Queue** (your usual review session).
-2. Tap the **AI chat** button at the **top right** of the queue to open the right **sidebar**.
-3. At the **top of that sidebar**, select the **Pokéball** icon to open the PokéRem panel.
+Browse Pokémon by generation, filter by type or caught status, and search your Pokédex.
 
-After that:
+![PokéRem 1.2.0 Pokédex type filters and collection cards](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/collection.jpg)
 
-4. Choose your starter and initial study settings (first launch).
-5. Review cards as normal—encounters and progression follow your review activity.
-6. Catch, fight, manage your party, use the shop, and build long-term progression over time.
+## Open PokéRem
 
-PokéRem is intended to complement review, not interrupt it. Sprites load from [PokeAPI](https://pokeapi.co/) when online; see `ATTRIBUTION.md` for credits and disclaimers.
+1. Open your **Flashcard Queue** in RemNote.
+2. Open the right sidebar using the **AI chat / sidebar** button near the top right.
+3. Select the **Pokéball** tab at the top of the sidebar.
+4. Choose your starter and study difficulty on first launch, then review normally.
 
-## Save data
+Wild encounters and progression follow your review activity. Use the sidebar's **Catch**, **Fight**, and **Run** controls; RemNote commands and queue actions are also available for wild battles. **Party**, **Bag**, **Shop**, **Dex**, **Progress**, and **Rewards** keep your adventure organized.
 
-PokéRem stores its game state using RemNote plugin storage for the active knowledge base.
+## Fit it to your study sessions
 
-This includes:
-- starter choice
-- party and collection data
-- progress toward encounters
-- items, rewards, and trainer progression
-- other plugin-specific save state
+Adjust study difficulty and encounter pacing, choose which supplementary surfaces appear, and enable reduced motion. Compact view is available directly in the sidebar. PokéRem adds game progress alongside your review workflow; it does not change your flashcards or grade your answers.
 
-Backup, export, and reset-related controls are available inside the plugin.
+## Your progress
 
-## Project structure
+Party, storage, collection, inventory, trainer progress, achievements, and active boosters are saved through RemNote plugin storage for your knowledge base. Existing saves upgrade to the new format. Export a backup from PokéRem **Settings** before changing builds; avoid returning to an older version after upgrading.
 
-| Path | Purpose |
-|------|---------|
-| `src/widgets/` | RemNote widget entrypoints |
-| `src/game/` | Game logic, state, encounters, combat, progression |
-| `src/ui/` | React UI, screens, battle surfaces, and shared components |
-| `public/` | Manifest, public data, and shipped assets |
-| `docs/` | Supporting project and release documentation |
+Desktop only. Pokémon sprites require an internet connection; item icons and battle backgrounds are bundled with the plugin.
 
-## Documentation
+## Support and feedback
 
-Additional project documentation is available here:
+Found a bug or have an idea? [Open an issue](https://github.com/jostneilson/pokerem-remnote-plugin/issues).
 
-- `docs/RELEASE_CHECKLIST.md`
-- `docs/VERSIONING.md`
-- `docs/ASSETS.md`
-- `docs/SCOPE_AND_PRIVACY.md`
-- `ATTRIBUTION.md`
+Enjoying your study adventure? [Support PokéRem on Ko-fi](https://ko-fi.com/pokerem).
 
-## Development
+## Credits
 
-Project-specific development and release documentation is available in the `docs/` folder.
-
-## Disclaimer
-
-PokéRem is an unofficial fan-made project. It is not affiliated with, endorsed by, or associated with Nintendo, Game Freak, or The Pokémon Company.
-
-## License
-
-This repository is licensed under the terms described in `LICENSE`.
-
-Third-party notices, asset notes, and attribution details are documented in `ATTRIBUTION.md`.
+PokéRem is an unofficial fan-made project and is not affiliated with Nintendo, Game Freak, or The Pokémon Company. Pokémon and related names belong to their respective owners. See [attribution and asset credits](https://github.com/jostneilson/pokerem-remnote-plugin/blob/main/ATTRIBUTION.md) and the [project repository](https://github.com/jostneilson/pokerem-remnote-plugin).

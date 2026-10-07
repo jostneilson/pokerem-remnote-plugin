@@ -10,6 +10,11 @@ import { onQueueCardComplete, parseGameState } from './state/store';
 import { withSyncedGameWrite } from './state/syncedGameWriteLock';
 import type { PokeRemGameState } from './state/model';
 import { shouldShowPokeRemNotification } from './notificationGate';
+import {
+  DEFAULT_TRAINER_FREQUENCY,
+  parseTrainerFrequencyKey,
+  type TrainerFrequencyKey,
+} from './engine/trainerBattles';
 
 function parseGenSetting(value: unknown): number[] {
   const s = typeof value === 'string' ? value : 'gen1';
@@ -64,6 +69,14 @@ export async function runSingleReview(
     else if (rq === 'half') reviewWeight = 0.5;
   } catch { /* default full */ }
 
+  let trainerFrequency: TrainerFrequencyKey = DEFAULT_TRAINER_FREQUENCY;
+  try {
+    const tf = await plugin.settings.getSetting<string>('pokerem.trainerBattleFrequency');
+    if (typeof tf === 'string') trainerFrequency = parseTrainerFrequencyKey(tf);
+  } catch {
+    /* default normal */
+  }
+
   const { prev, next } = await withSyncedGameWrite(async () => {
     const raw = await getSyncedGameRaw(plugin);
     const prevInner = parseGameState(raw);
@@ -85,6 +98,7 @@ export async function runSingleReview(
       reviewWeight: effectiveReviewWeight,
       routeFindReviewsNeeded,
       encounterReviewMultiplier: queueOpts?.encounterReviewMultiplier,
+      trainerFrequency,
     });
     await plugin.storage.setSynced(STORAGE_KEY, nextInner);
     try {
@@ -100,6 +114,13 @@ export async function runSingleReview(
     const shouldNotify = await shouldShowPokeRemNotification(plugin);
     if (!shouldNotify) return next;
 
+    if (next.currentTrainerBattle && !prev.currentTrainerBattle) {
+      const t = next.currentTrainerBattle.trainer;
+      const eliteTag = next.currentTrainerBattle.tier === 'elite' ? '⚔︎ Elite Trainer ' : 'Trainer ';
+      await plugin.app.toast(
+        `${eliteTag}${t.className}${t.displayName ? ' ' + t.displayName : ''} challenges you!`,
+      );
+    }
     if (next.currentEncounter && !prev.currentEncounter) {
       const tier = next.currentEncounter.tier;
       const tierLabel = tier && tier !== 'Common' ? ` (${tier})` : '';

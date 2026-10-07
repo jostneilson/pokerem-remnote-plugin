@@ -39,6 +39,27 @@ import {
 } from '../engine/studyDifficulty';
 import { REVIEWS_PER_ENCOUNTER, ROUTE_FIND_REVIEWS_DEFAULT, XP_ON_DEFEAT } from '../constants';
 import { trainerLevelFromXp, TRAINER_XP_SOURCES, TRAINER_REWARDS } from '../engine/trainerLevel';
+import {
+  applyXpDoublerMultiplier,
+  isXpDoublerActive,
+  isXpDoublerItemId,
+  makeXpDoublerEntry,
+  xpDoublerItemForTier,
+  xpDoublerTierForItem,
+  XP_DOUBLER_QUEUE_MAX,
+} from '../engine/xpDoublers';
+import {
+  averageOwnedPartyLevel,
+  generateTrainer,
+  generateTrainerRewards,
+  rollTrainerBattleReplacement,
+  trainerCatchChance,
+  trainerEnemyAsEncounter,
+  DEFAULT_TRAINER_FREQUENCY,
+  isTrainerFrequencyEnabled,
+  parseTrainerFrequencyKey,
+  type TrainerFrequencyKey,
+} from '../engine/trainerBattles';
 import { BATTLE_SCENE_COUNT, normalizeBattleSceneIndex } from '../engine/battleAmbience';
 import { rollPostBattleScrap, rollTravelRouteFind, type RouteFindRollResult } from '../engine/routeFinds';
 import {
@@ -55,6 +76,14 @@ import type {
   MainNoticeItem,
   OwnedPokemon,
   SectionTab,
+  TrainerBattleState,
+  TrainerBattleStats,
+  TrainerEnemyMon,
+  TrainerIdentity,
+  TrainerRewardSnapshot,
+  TrainerTier,
+  XpDoublerEntry,
+  XpDoublerTier,
 } from './model';
 
 function sanitizeEncounterHp(enc: EncounterPokemon): EncounterPokemon {
@@ -75,9 +104,9 @@ function cloneBagDefaults() {
   return { ...STARTING_BAG };
 }
 
-export function createInitialStateV3(): PokeRemGameState {
+export function createInitialStateV4(): PokeRemGameState {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     lastUpdatedAt: 0,
     starterChosen: false,
     activePokemonId: null,
@@ -129,12 +158,36 @@ export function createInitialStateV3(): PokeRemGameState {
     lastCombatStrike: null,
     studyHealCarries: [],
     mainNoticeQueue: [],
+    xpBoosterActive: null,
+    xpBoosterQueue: [],
+    trainerBattleCounter: 0,
+    currentTrainerBattle: null,
+    trainerBattleStats: createInitialTrainerBattleStats(),
+    prestigeBadges: [],
+    whatsNewSeenVersion: undefined,
   };
 }
 
-/** @deprecated Prefer {@link createInitialStateV3}; kept for tests and older imports. */
+/** @deprecated Prefer {@link createInitialStateV4}; kept for legacy imports/tests. */
+export function createInitialStateV3(): PokeRemGameState {
+  return createInitialStateV4();
+}
+
+/** @deprecated Prefer {@link createInitialStateV4}; kept for tests and older imports. */
 export function createInitialStateV2(): PokeRemGameState {
-  return createInitialStateV3();
+  return createInitialStateV4();
+}
+
+export function createInitialTrainerBattleStats(): TrainerBattleStats {
+  return {
+    standardWon: 0,
+    standardLost: 0,
+    eliteWon: 0,
+    eliteLost: 0,
+    totalWon: 0,
+    currentWinStreak: 0,
+    longestWinStreak: 0,
+  };
 }
 
 const VALID_OUTCOMES: BattleOutcomeKind[] = [
@@ -284,7 +337,7 @@ function normalizeEncounter(raw: unknown): EncounterPokemon | null {
 }
 
 function migrateV1ToV2(v1: any): PokeRemGameState {
-  const base = createInitialStateV3();
+  const base = createInitialStateV4();
   const party = (Array.isArray(v1.party) ? v1.party : []).map((p: any) => {
     const species = SPECIES_BY_DEX.get(p.dexNum);
     const totalXp = typeof p.totalXp === 'number' ? p.totalXp : 0;
@@ -335,11 +388,21 @@ function normalizeMainNoticeQueue(raw: unknown, max: number): MainNoticeItem[] {
     const id = o.id;
     const title = o.title;
     const subtitle = o.subtitle;
-    if (kind !== 'achievement_unlock' && kind !== 'trainer_reward') continue;
+    if (
+      kind !== 'achievement_unlock' &&
+      kind !== 'trainer_reward' &&
+      kind !== 'trainer_battle_result'
+    )
+      continue;
     if (typeof id !== 'string' || id.length === 0 || id.length > 80) continue;
     if (typeof title !== 'string' || title.length === 0 || title.length > 120) continue;
     if (typeof subtitle !== 'string' || subtitle.length > 220) continue;
-    out.push({ kind, id, title: title.slice(0, 120), subtitle: subtitle.slice(0, 220) });
+    out.push({
+      kind: kind as MainNoticeItem['kind'],
+      id,
+      title: title.slice(0, 120),
+      subtitle: subtitle.slice(0, 220),
+    });
     if (out.length >= max) break;
   }
   return out;
@@ -353,8 +416,202 @@ function normalizeStudyHealCarriesSlice(raw: unknown, partyLen: number): number[
   });
 }
 
+function isXpDoublerTier(v: unknown): v is XpDoublerTier {
+  return v === 'common' || v === 'rare' || v === 'legendary';
+}
+
+function normalizeXpDoublerEntry(raw: unknown): XpDoublerEntry | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const e = raw as Record<string, unknown>;
+  if (!isXpDoublerTier(e.tier)) return null;
+  const totalRaw = e.cardsTotal;
+  const remRaw = e.cardsRemaining;
+  const total =
+    typeof totalRaw === 'number' && Number.isFinite(totalRaw)
+      ? Math.max(1, Math.floor(totalRaw))
+      : null;
+  const rem =
+    typeof remRaw === 'number' && Number.isFinite(remRaw)
+      ? Math.max(0, Math.floor(remRaw))
+      : null;
+  if (total == null) return null;
+  const cardsRemaining = rem == null ? total : Math.min(total, rem);
+  if (cardsRemaining <= 0) return null;
+  return { tier: e.tier, cardsTotal: total, cardsRemaining };
+}
+
+function normalizeXpDoublerQueue(raw: unknown, max: number): XpDoublerEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const out: XpDoublerEntry[] = [];
+  for (const r of raw) {
+    const e = normalizeXpDoublerEntry(r);
+    if (e) out.push(e);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+function normalizeTrainerBattleStats(raw: unknown): TrainerBattleStats {
+  const base = createInitialTrainerBattleStats();
+  if (!raw || typeof raw !== 'object') return base;
+  const o = raw as Record<string, unknown>;
+  const intField = (k: keyof TrainerBattleStats) => {
+    const v = o[k as string];
+    return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : base[k];
+  };
+  return {
+    standardWon: intField('standardWon'),
+    standardLost: intField('standardLost'),
+    eliteWon: intField('eliteWon'),
+    eliteLost: intField('eliteLost'),
+    totalWon: intField('totalWon'),
+    currentWinStreak: intField('currentWinStreak'),
+    longestWinStreak: intField('longestWinStreak'),
+  };
+}
+
+function normalizeTrainerEnemyMon(raw: unknown): TrainerEnemyMon | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const e = raw as Record<string, unknown>;
+  const dexNum = typeof e.dexNum === 'number' ? e.dexNum : null;
+  if (dexNum == null) return null;
+  const species = SPECIES_BY_DEX.get(dexNum);
+  const name =
+    typeof e.name === 'string' && e.name.length > 0 ? e.name : species?.name ?? `#${dexNum}`;
+  const level =
+    typeof e.level === 'number' && Number.isFinite(e.level) ? Math.max(1, Math.floor(e.level)) : 5;
+  const maxHp =
+    typeof e.maxHp === 'number' && Number.isFinite(e.maxHp)
+      ? Math.max(1, Math.floor(e.maxHp))
+      : maxHpFor(species?.baseHp ?? 40, level);
+  const currentHpRaw =
+    typeof e.currentHp === 'number' && Number.isFinite(e.currentHp)
+      ? Math.floor(e.currentHp)
+      : maxHp;
+  const currentHp = Math.max(0, Math.min(maxHp, currentHpRaw));
+  const types =
+    Array.isArray(e.types) && (e.types as unknown[]).length
+      ? (e.types as TrainerEnemyMon['types'])
+      : species?.types ?? ['Normal'];
+  const moves = Array.isArray(e.moves)
+    ? (e.moves as unknown[]).filter((m): m is string => typeof m === 'string' && !!MOVES[m])
+    : [];
+  const defeated = e.defeated === true || currentHp <= 0;
+  return { dexNum, name, level, maxHp, currentHp, types, moves, defeated };
+}
+
+function normalizeTrainerIdentity(raw: unknown): TrainerIdentity | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const t = raw as Record<string, unknown>;
+  const archetypeId = typeof t.archetypeId === 'string' ? t.archetypeId.slice(0, 60) : '';
+  const className = typeof t.className === 'string' ? t.className.slice(0, 60) : '';
+  if (!archetypeId || !className) return null;
+  return {
+    archetypeId,
+    className,
+    displayName:
+      typeof t.displayName === 'string' && t.displayName.length > 0
+        ? t.displayName.slice(0, 40)
+        : undefined,
+    themeTypes: Array.isArray(t.themeTypes)
+      ? (t.themeTypes as TrainerIdentity['themeTypes'])
+      : [],
+    taunt: typeof t.taunt === 'string' ? t.taunt.slice(0, 200) : '',
+    defeatLine: typeof t.defeatLine === 'string' ? t.defeatLine.slice(0, 200) : '',
+    victoryLine: typeof t.victoryLine === 'string' ? t.victoryLine.slice(0, 200) : '',
+  };
+}
+
+function normalizeTrainerRewardSnapshot(raw: unknown): TrainerRewardSnapshot | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  const items: Partial<Record<string, number>> = {};
+  if (r.items && typeof r.items === 'object') {
+    for (const [k, v] of Object.entries(r.items as Record<string, unknown>)) {
+      if (!ITEM_BY_ID.has(k as ItemId)) continue;
+      if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) continue;
+      items[k] = Math.max(0, Math.floor(v));
+    }
+  }
+  return {
+    coins:
+      typeof r.coins === 'number' && Number.isFinite(r.coins) ? Math.max(0, Math.floor(r.coins)) : 0,
+    trainerXp:
+      typeof r.trainerXp === 'number' && Number.isFinite(r.trainerXp)
+        ? Math.max(0, Math.floor(r.trainerXp))
+        : 0,
+    items,
+    xpDoublerTier: isXpDoublerTier(r.xpDoublerTier) ? r.xpDoublerTier : undefined,
+    headline: typeof r.headline === 'string' ? r.headline.slice(0, 220) : '',
+  };
+}
+
+function normalizeTrainerBattleState(raw: unknown): TrainerBattleState | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const t = raw as Record<string, unknown>;
+  const trainer = normalizeTrainerIdentity(t.trainer);
+  if (!trainer) return null;
+  const enemiesRaw = Array.isArray(t.enemies) ? (t.enemies as unknown[]).slice(0, 3) : [];
+  const enemies = enemiesRaw
+    .map(normalizeTrainerEnemyMon)
+    .filter((e): e is TrainerEnemyMon => e !== null);
+  if (enemies.length !== 3) return null;
+  const phase: TrainerBattleState['phase'] =
+    t.phase === 'team_select' ||
+    t.phase === 'active' ||
+    t.phase === 'post_win' ||
+    t.phase === 'post_loss'
+      ? t.phase
+      : 'team_select';
+  const tier: TrainerTier = t.tier === 'elite' ? 'elite' : 'standard';
+  const activeEnemyIndex =
+    typeof t.activeEnemyIndex === 'number' && Number.isFinite(t.activeEnemyIndex)
+      ? Math.max(0, Math.min(2, Math.floor(t.activeEnemyIndex)))
+      : 0;
+  const selectedPartyIds = Array.isArray(t.selectedPartyIds)
+    ? (t.selectedPartyIds as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3)
+    : [];
+  const faintedSelectedIds = Array.isArray(t.faintedSelectedIds)
+    ? (t.faintedSelectedIds as unknown[])
+        .filter((x): x is string => typeof x === 'string')
+        .slice(0, 3)
+    : [];
+  return {
+    id: typeof t.id === 'string' && t.id.length > 0 ? t.id.slice(0, 64) : `tb_${Date.now()}`,
+    phase,
+    tier,
+    trainer,
+    enemies,
+    activeEnemyIndex,
+    selectedPartyIds,
+    faintedSelectedIds,
+    catchOfferActive: t.catchOfferActive === true,
+    catchOfferClaimed: t.catchOfferClaimed === true,
+    rewardSnapshot: normalizeTrainerRewardSnapshot(t.rewardSnapshot),
+    lastLog: typeof t.lastLog === 'string' ? t.lastLog.slice(0, 220) : undefined,
+    feedbackSeq:
+      typeof t.feedbackSeq === 'number' && Number.isFinite(t.feedbackSeq)
+        ? Math.max(0, Math.floor(t.feedbackSeq))
+        : 0,
+  };
+}
+
+function normalizePrestigeBadges(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of raw) {
+    if (typeof v !== 'string' || v.length === 0 || v.length > 60) continue;
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+    if (out.length >= 32) break;
+  }
+  return out;
+}
+
 function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
-  const base = createInitialStateV3();
+  const base = createInitialStateV4();
   const claimedRaw = o.claimedAchievementIds;
   const claimedAchievementIds = Array.isArray(claimedRaw)
     ? (claimedRaw as unknown[]).filter((x): x is string => typeof x === 'string')
@@ -409,7 +666,24 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     routeFindNotice: normalizeRouteFindNotice(o.routeFindNotice),
     studyHealCarries: normalizeStudyHealCarriesSlice((o as { studyHealCarries?: unknown }).studyHealCarries, party.length),
     mainNoticeQueue: normalizeMainNoticeQueue((o as { mainNoticeQueue?: unknown }).mainNoticeQueue, 12),
-    schemaVersion: 3,
+    xpBoosterActive: normalizeXpDoublerEntry((o as { xpBoosterActive?: unknown }).xpBoosterActive),
+    xpBoosterQueue: normalizeXpDoublerQueue((o as { xpBoosterQueue?: unknown }).xpBoosterQueue, 8),
+    trainerBattleCounter:
+      typeof o.trainerBattleCounter === 'number' && Number.isFinite(o.trainerBattleCounter)
+        ? Math.max(0, Math.floor(o.trainerBattleCounter))
+        : 0,
+    currentTrainerBattle: normalizeTrainerBattleState(
+      (o as { currentTrainerBattle?: unknown }).currentTrainerBattle,
+    ),
+    trainerBattleStats: normalizeTrainerBattleStats(
+      (o as { trainerBattleStats?: unknown }).trainerBattleStats,
+    ),
+    prestigeBadges: normalizePrestigeBadges((o as { prestigeBadges?: unknown }).prestigeBadges),
+    whatsNewSeenVersion:
+      typeof o.whatsNewSeenVersion === 'string' && o.whatsNewSeenVersion.length <= 20
+        ? o.whatsNewSeenVersion
+        : undefined,
+    schemaVersion: 4,
   };
   if (state.selectedTab === 'battle') {
     state.selectedTab = 'status';
@@ -429,7 +703,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
 }
 
 export function parseGameState(raw: unknown): PokeRemGameState {
-  if (!raw || typeof raw !== 'object') return createInitialStateV3();
+  if (!raw || typeof raw !== 'object') return createInitialStateV4();
   const o = raw as any;
   if (o.schemaVersion === 1) {
     let s = migrateV1ToV2(o);
@@ -437,7 +711,7 @@ export function parseGameState(raw: unknown): PokeRemGameState {
     const unlockedIds = ACHIEVEMENT_DEFS.filter((d) => s.achievements[d.id]).map((d) => d.id);
     return {
       ...s,
-      schemaVersion: 3,
+      schemaVersion: 4,
       claimedAchievementIds: unlockedIds,
       studyDifficultyPreset: 'medium',
       studyReviewsPerEncounter: REVIEWS_PER_ENCOUNTER,
@@ -446,8 +720,10 @@ export function parseGameState(raw: unknown): PokeRemGameState {
     };
   }
   if (o.schemaVersion === 2) return parseGameStateCore(o, 2);
-  if (o.schemaVersion === 3) return parseGameStateCore(o, 3);
-  return createInitialStateV3();
+  if (o.schemaVersion === 3 || o.schemaVersion === 4) {
+    return parseGameStateCore(o, o.schemaVersion);
+  }
+  return createInitialStateV4();
 }
 
 function addTrainerXp(state: PokeRemGameState, amount: number): PokeRemGameState {
@@ -593,6 +869,11 @@ export type QueueCardCompleteOptions = {
    * reports more than one item in a single completion event.
    */
   encounterReviewMultiplier?: number;
+  /**
+   * Trainer battle frequency setting. When a wild encounter is due AND the trainer counter has
+   * met the threshold, the wild spawn is replaced by a trainer battle. Default `'normal'`.
+   */
+  trainerFrequency?: TrainerFrequencyKey;
 };
 
 export function clearBattleLog(state: PokeRemGameState): PokeRemGameState {
@@ -648,9 +929,12 @@ export function onQueueCardComplete(
   const clearedLog =
     autoClear && !working.currentEncounter ? clearBattleLog(working) : working;
 
-  if (working.currentEncounter) {
+  if (working.currentEncounter || working.currentTrainerBattle) {
+    // Pause progression while a wild encounter or trainer battle is on screen — XP and doubler
+    // ticks still apply (study reward), but we don't add to wild progress or trainer counter.
     const withXp = applyPartyStudyXpOnCard(clearedLog, Math.random);
-    return withTouch({ ...withXp, cardsReviewed: reviewed });
+    const withTick = tickXpDoublerOnCard(withXp);
+    return withTouch({ ...withTick, cardsReviewed: reviewed });
   }
 
   const modulo = typeof options?.encounterPacingModulo === 'number' && options.encounterPacingModulo >= 2
@@ -672,6 +956,12 @@ export function onQueueCardComplete(
     encounterProgress += wildRouteUnits;
   }
 
+  const trainerFreq: TrainerFrequencyKey = parseTrainerFrequencyKey(
+    options?.trainerFrequency ?? DEFAULT_TRAINER_FREQUENCY,
+  );
+  const trainerCounter =
+    (clearedLog.trainerBattleCounter ?? 0) + (countsTowardWild ? 1 : 0);
+
   const currencyEarned = Math.round(CURRENCY_REWARDS.review * reviewWeight);
   const trainerXpCard = Math.round(TRAINER_XP_SOURCES.cardReview * reviewWeight);
   let next: PokeRemGameState = addTrainerXp({
@@ -679,10 +969,12 @@ export function onQueueCardComplete(
     cardsReviewed: reviewed,
     encounterProgress,
     wildReviewAccum: 0,
+    trainerBattleCounter: trainerCounter,
     currency: (clearedLog.currency ?? 0) + currencyEarned,
     totalCurrencyEarned: (clearedLog.totalCurrencyEarned ?? 0) + currencyEarned,
   }, trainerXpCard);
   next = applyPartyStudyXpOnCard(next, Math.random);
+  next = tickXpDoublerOnCard(next);
 
   const effectiveRate = encounterRate ?? REVIEWS_PER_ENCOUNTER;
   const leadForWild = activePokemon(next);
@@ -704,23 +996,37 @@ export function onQueueCardComplete(
         ),
       };
     } else {
-      const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
-      const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
-        collectionDex: next.collectionDex ?? {},
-      });
-      const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
-      const narr = `Wild ${enc.name}${tierLabel} appeared!`;
-      const bgNext = ((next.battleSceneIndex ?? 0) + 1) % BATTLE_SCENE_COUNT;
-      const ds = next.dailyStats!;
-      next = {
-        ...next,
-        encounterProgress: 0,
-        currentEncounter: enc,
-        selectedTab: 'status',
-        battleSceneIndex: bgNext,
-        dailyStats: { ...ds, encounters: ds.encounters + 1 },
-        ...bumpBattleOutcome(next, 'spawn', narr),
-      };
+      // Trainer battle replacement: when due AND the player has at least 1 battle-ready party
+      // member, the wild spawn is consumed and a trainer battle starts in `team_select` instead.
+      const trainerTier =
+        isTrainerFrequencyEnabled(trainerFreq) && next.party.some((p) => p.currentHp > 0)
+          ? rollTrainerBattleReplacement(next, trainerFreq)
+          : null;
+      if (trainerTier) {
+        next = {
+          ...next,
+          encounterProgress: 0,
+        };
+        next = startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
+      } else {
+        const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
+        const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
+          collectionDex: next.collectionDex ?? {},
+        });
+        const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
+        const narr = `Wild ${enc.name}${tierLabel} appeared!`;
+        const bgNext = ((next.battleSceneIndex ?? 0) + 1) % BATTLE_SCENE_COUNT;
+        const ds = next.dailyStats!;
+        next = {
+          ...next,
+          encounterProgress: 0,
+          currentEncounter: enc,
+          selectedTab: 'status',
+          battleSceneIndex: bgNext,
+          dailyStats: { ...ds, encounters: ds.encounters + 1 },
+          ...bumpBattleOutcome(next, 'spawn', narr),
+        };
+      }
     }
   }
 
@@ -770,7 +1076,8 @@ function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): Po
   const leadIdx = state.party.findIndex((p) => p.id === aid);
   if (leadIdx < 0) return state;
   const party = state.party.map((p, i) => {
-    const delta = i === leadIdx ? rollLeadStudyXp(rng) : rollBenchStudyXp(rng);
+    const baseDelta = i === leadIdx ? rollLeadStudyXp(rng) : rollBenchStudyXp(rng);
+    const delta = applyXpDoublerMultiplier(state, baseDelta);
     if (delta <= 0) return p;
     const { pokemon } = growPokemonWithXp(p, delta);
     return pokemon;
@@ -779,8 +1086,64 @@ function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): Po
 }
 
 /**
+ * Activate an XP Doubler from the bag. If one is already active, queue the new one
+ * (oldest-first). Consumes one unit of the doubler's bag count. Returns state unchanged
+ * if the queue is full or the bag has none of the requested doubler.
+ */
+export function activateXpDoubler(
+  state: PokeRemGameState,
+  tier: XpDoublerTier,
+): PokeRemGameState {
+  const itemId = xpDoublerItemForTier(tier);
+  const have = state.bag?.[itemId] ?? 0;
+  if (have <= 0) return state;
+  const queue = Array.isArray(state.xpBoosterQueue) ? [...state.xpBoosterQueue] : [];
+  const active = state.xpBoosterActive;
+  if (active && active.cardsRemaining > 0 && queue.length >= XP_DOUBLER_QUEUE_MAX) {
+    return state;
+  }
+  const bag: Record<ItemId, number> = { ...state.bag };
+  bag[itemId] = Math.max(0, have - 1);
+  const entry = makeXpDoublerEntry(tier);
+  if (!active || active.cardsRemaining <= 0) {
+    return withTouch({ ...state, bag, xpBoosterActive: entry, xpBoosterQueue: queue });
+  }
+  queue.push(entry);
+  return withTouch({ ...state, bag, xpBoosterActive: active, xpBoosterQueue: queue });
+}
+
+/**
+ * Tick the active XP doubler down by one card. When it expires, pull the next from the queue.
+ * Pure helper — safe to call once per reviewed card. Skips work when no doubler is active.
+ */
+export function tickXpDoublerOnCard(state: PokeRemGameState): PokeRemGameState {
+  const active = state.xpBoosterActive;
+  if (!active || active.cardsRemaining <= 0) {
+    if (state.xpBoosterQueue && state.xpBoosterQueue.length > 0) {
+      const queue = [...state.xpBoosterQueue];
+      const next = queue.shift();
+      return { ...state, xpBoosterActive: next ?? null, xpBoosterQueue: queue };
+    }
+    return state;
+  }
+  const remaining = Math.max(0, active.cardsRemaining - 1);
+  if (remaining > 0) {
+    return { ...state, xpBoosterActive: { ...active, cardsRemaining: remaining } };
+  }
+  const queue = Array.isArray(state.xpBoosterQueue) ? [...state.xpBoosterQueue] : [];
+  const next = queue.shift();
+  return { ...state, xpBoosterActive: next ?? null, xpBoosterQueue: queue };
+}
+
+/**
  * Passive heal while reviewing with no active wild — spread so lead recovers ~50% max HP
  * and each bench slot ~25% max HP across `encounterRate` qualifying cards.
+ *
+ * Carries track the fractional HP "saved up" between cards so healing stays smooth when the
+ * per-card increment isn't a whole number. IMPORTANT: carries are reset whenever a Pokémon is
+ * at full HP (or fainted), otherwise they would accumulate during long stretches of healthy
+ * studying and then dump a massive lump-heal on the very first card after the next battle,
+ * making HP appear to "jump to the top" instead of trickling back across the encounter gap.
  */
 function applyStudyHealFromCard(
   state: PokeRemGameState,
@@ -796,16 +1159,24 @@ function applyStudyHealFromCard(
 
   const carries = normalizeStudyHealCarriesSlice(state.studyHealCarries, state.party.length);
   const party = state.party.map((p, i) => {
-    const inc = i === leadIdx ? (p.maxHp * 0.5) / rate : (p.maxHp * 0.25) / rate;
-    let c = (carries[i] ?? 0) + inc;
     if (p.currentHp <= 0) {
+      // Fainted — heals are blocked until revived; reset carry so nothing "stacks up".
       carries[i] = 0;
       return p;
     }
     if (p.currentHp >= p.maxHp) {
-      carries[i] = c;
+      // Already full — don't accumulate future heals while topped off. Reset carry so that
+      // the next time this Pokémon takes damage, healing resumes fresh over the next batch
+      // of cards instead of snapping to full on card #1.
+      carries[i] = 0;
       return p;
     }
+    const inc = i === leadIdx ? (p.maxHp * 0.5) / rate : (p.maxHp * 0.25) / rate;
+    // Cap the running carry so it can never add up to more than a single card's worth of
+    // heal on top of the current increment. This keeps per-card gains smooth even if some
+    // edge case somehow sneaks a large value into the carry.
+    const prevCarry = Math.min(carries[i] ?? 0, inc);
+    let c = prevCarry + inc;
     const heal = Math.floor(c);
     c -= heal;
     carries[i] = c;
@@ -1077,7 +1448,8 @@ export function applyCombatTurn(state: PokeRemGameState, moveId?: string): PokeR
 
   const pDmg = damageForMove(active.level, chosen, active.types, enc.types);
   const wHp = Math.max(0, enc.currentHp - pDmg);
-  const atkXp = xpFromPlayerAttack({ damage: pDmg, moveId: chosen, defenderTypes: enc.types });
+  const atkXpBase = xpFromPlayerAttack({ damage: pDmg, moveId: chosen, defenderTypes: enc.types });
+  const atkXp = applyXpDoublerMultiplier(state, atkXpBase);
 
   if (wHp <= 0) {
     const partyAfterAtk = state.party.map((p, i) =>
@@ -1104,7 +1476,10 @@ export function applyCombatTurn(state: PokeRemGameState, moveId?: string): PokeR
   const wildMove = pickWildCounterMove(enc.dexNum, enc.level);
   const wDmg = damageForMove(enc.level, wildMove, enc.types, active.types);
   const nextPlayerHp = Math.floor(active.currentHp - wDmg);
-  const takeXp = xpFromTakingHit({ damage: wDmg, wildMoveId: wildMove, playerTypes: active.types });
+  const takeXp = applyXpDoublerMultiplier(
+    state,
+    xpFromTakingHit({ damage: wDmg, wildMoveId: wildMove, playerTypes: active.types }),
+  );
   const combatXp = atkXp + takeXp;
 
   const pName = moveDisplayName(chosen);
@@ -1185,7 +1560,7 @@ export function defeatEncounter(
       ),
     });
   }
-  const xpGain = computeDefeatXp(state);
+  const xpGain = applyXpDoublerMultiplier(state, computeDefeatXp(state));
   let leveledUp = false;
   let evolvedMon: OwnedPokemon | null = null;
   let evolvedFromName = '';
@@ -1272,14 +1647,578 @@ export function runFromEncounter(state: PokeRemGameState): PokeRemGameState {
 }
 
 export function switchActivePokemon(state: PokeRemGameState, pokemonId: string): PokeRemGameState {
+  if (isTrainerBattleActive(state)) return state;
   const found = state.party.some((p) => p.id === pokemonId);
   if (!found) return state;
   return withTouch({ ...state, activePokemonId: pokemonId, selectedTab: 'status' });
 }
 
+// ── Trainer battle reducers (1.2.0) ─────────────────────────────────────────
+
+/** True while a trainer battle is in the `active` combat phase (no items/heal/switch). */
+export function isTrainerBattleActive(state: PokeRemGameState): boolean {
+  return state.currentTrainerBattle?.phase === 'active';
+}
+
+/** True whenever any trainer battle (any phase) is open. */
+export function hasTrainerBattle(state: PokeRemGameState): boolean {
+  return !!state.currentTrainerBattle;
+}
+
+/**
+ * Spawn a trainer battle in `team_select` phase. Generates archetype, identity, and 3 enemies
+ * scaled to the player's average party level; respects enabled generations.
+ *
+ * Idempotent: returns state unchanged if a trainer battle is already in progress, a wild encounter
+ * is active, or the player hasn't picked a starter yet.
+ */
+export function startTrainerBattle(
+  state: PokeRemGameState,
+  tier: TrainerTier,
+  enabledGens: number[],
+  rng: () => number = Math.random,
+): PokeRemGameState {
+  if (state.currentTrainerBattle || state.currentEncounter) return state;
+  if (!state.starterChosen || state.party.length === 0) return state;
+  const avgLevel = averageOwnedPartyLevel(state.party);
+  const { identity, enemies } = generateTrainer({
+    tier,
+    enabledGens: enabledGens && enabledGens.length > 0 ? enabledGens : [1],
+    averageLevel: avgLevel,
+    rng,
+  });
+  const battle: TrainerBattleState = {
+    id: `tb_${Date.now()}_${Math.floor(rng() * 1e6)}`,
+    phase: 'team_select',
+    tier,
+    trainer: identity,
+    enemies,
+    activeEnemyIndex: 0,
+    selectedPartyIds: [],
+    faintedSelectedIds: [],
+    catchOfferActive: false,
+    catchOfferClaimed: false,
+    feedbackSeq: 0,
+  };
+  return withTouch({
+    ...state,
+    currentTrainerBattle: battle,
+    trainerBattleCounter: 0,
+    selectedTab: 'status',
+    ...bumpBattleOutcome(
+      state,
+      'spawn',
+      `${identity.className}${identity.displayName ? ' ' + identity.displayName : ''} challenges you!`,
+    ),
+  });
+}
+
+/**
+ * Lock in three party Pokémon for the trainer battle and transition to `active`. Validates that
+ * each id is in the party and not fainted; auto-fills with available battle-ready party members
+ * if fewer than 3 valid ids are supplied (ensures the fight always starts).
+ */
+export function lockTrainerTeam(
+  state: PokeRemGameState,
+  ids: string[],
+): PokeRemGameState {
+  const battle = state.currentTrainerBattle;
+  if (!battle || battle.phase !== 'team_select') return state;
+  const seen = new Set<string>();
+  const picked: string[] = [];
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    const mon = state.party.find((p) => p.id === id);
+    if (!mon || mon.currentHp <= 0) continue;
+    seen.add(id);
+    picked.push(id);
+    if (picked.length === 3) break;
+  }
+  if (picked.length < 3) {
+    for (const p of state.party) {
+      if (picked.length >= 3) break;
+      if (seen.has(p.id) || p.currentHp <= 0) continue;
+      seen.add(p.id);
+      picked.push(p.id);
+    }
+  }
+  if (picked.length === 0) return state;
+  while (picked.length < 3) picked.push(picked[picked.length - 1]!);
+  const lead = picked[0]!;
+  return withTouch({
+    ...state,
+    activePokemonId: lead,
+    currentTrainerBattle: {
+      ...battle,
+      phase: 'active',
+      selectedPartyIds: picked,
+      activeEnemyIndex: 0,
+      feedbackSeq: battle.feedbackSeq + 1,
+      lastLog: `${battle.trainer.className} sent out ${battle.enemies[0]?.name ?? 'their first Pokémon'}!`,
+    },
+  });
+}
+
+/** Find next non-fainted, selected party id (cycles forward from current lead). */
+function nextSelectedPartyId(
+  battle: TrainerBattleState,
+  party: OwnedPokemon[],
+  startId: string | null,
+): string | null {
+  const order = battle.selectedPartyIds;
+  if (order.length === 0) return null;
+  const startIdx = startId ? order.indexOf(startId) : -1;
+  for (let i = 1; i <= order.length; i++) {
+    const id = order[(startIdx + i + order.length) % order.length]!;
+    if (battle.faintedSelectedIds.includes(id)) continue;
+    const mon = party.find((p) => p.id === id);
+    if (!mon || mon.currentHp <= 0) continue;
+    return id;
+  }
+  return null;
+}
+
+/**
+ * One trainer-battle combat exchange: player chosen mon strikes the active enemy; if it survives,
+ * the enemy strikes back. Drives KOs, enemy advancement, party fainting (no switching back),
+ * and final win/loss resolution.
+ */
+export function applyTrainerCombatTurn(
+  state: PokeRemGameState,
+  moveId?: string,
+): PokeRemGameState {
+  const battle = state.currentTrainerBattle;
+  if (!battle || battle.phase !== 'active') return state;
+
+  let aid = state.activePokemonId;
+  if (!aid || !battle.selectedPartyIds.includes(aid)) {
+    const next = nextSelectedPartyId(battle, state.party, null);
+    if (!next) return resolveTrainerBattle(state, 'loss');
+    aid = next;
+  }
+  const activeIdx = state.party.findIndex((p) => p.id === aid);
+  if (activeIdx < 0) return resolveTrainerBattle(state, 'loss');
+  const active = state.party[activeIdx]!;
+  if (active.currentHp <= 0) {
+    return continueAfterPartyFaint(state, battle, aid!);
+  }
+
+  const enemy = battle.enemies[battle.activeEnemyIndex];
+  if (!enemy || enemy.defeated || enemy.currentHp <= 0) {
+    return advanceEnemyOrFinish(state, battle);
+  }
+
+  const legalMoves = movesetForBattle(active);
+  if (legalMoves.length === 0) return state;
+  let chosen: string;
+  if (moveId) {
+    if (!legalMoves.includes(moveId)) return state;
+    chosen = moveId;
+  } else {
+    const pick = pickDefaultBattleMove(legalMoves);
+    if (!pick) return state;
+    chosen = pick;
+  }
+
+  const pDmg = damageForMove(active.level, chosen, active.types, enemy.types);
+  const wHp = Math.max(0, enemy.currentHp - pDmg);
+  const atkXp = applyXpDoublerMultiplier(
+    state,
+    xpFromPlayerAttack({ damage: pDmg, moveId: chosen, defenderTypes: enemy.types }),
+  );
+
+  // Apply player's attack XP up front (always); HP damage propagates below.
+  let party = state.party.map((p, i) =>
+    i === activeIdx ? growPokemonWithXp(p, atkXp).pokemon : p,
+  );
+
+  if (wHp <= 0) {
+    // Enemy KO'd — apply defeat XP, mark defeated, then either advance or finish.
+    const defeatXp = applyXpDoublerMultiplier(
+      state,
+      Math.max(8, Math.floor(XP_ON_DEFEAT * (1 + Math.max(0, enemy.level - active.level) * 0.05))),
+    );
+    party = party.map((p, i) =>
+      i === activeIdx ? growPokemonWithXp(p, defeatXp).pokemon : p,
+    );
+    const enemies = battle.enemies.map((e, i) =>
+      i === battle.activeEnemyIndex ? { ...e, currentHp: 0, defeated: true } : e,
+    );
+    const log = `${active.nickname || active.name} defeated ${enemy.name}!`;
+    const next: TrainerBattleState = {
+      ...battle,
+      enemies,
+      lastLog: log,
+      feedbackSeq: battle.feedbackSeq + 1,
+    };
+    const allDown = enemies.every((e) => e.defeated || e.currentHp <= 0);
+    if (allDown) {
+      return resolveTrainerBattle(
+        { ...state, party, currentTrainerBattle: next },
+        'win',
+      );
+    }
+    return advanceEnemyOrFinish(
+      { ...state, party, currentTrainerBattle: next },
+      next,
+    );
+  }
+
+  // Enemy counter-attack
+  const enemyMoves = enemy.moves && enemy.moves.length > 0 ? enemy.moves : ['tackle'];
+  const wMoveId =
+    enemyMoves.find((m) => (MOVES[m]?.power ?? 0) > 0) ?? enemyMoves[0]!;
+  const wDmg = damageForMove(enemy.level, wMoveId, enemy.types, active.types);
+  const nextPlayerHp = Math.max(0, Math.floor(active.currentHp - wDmg));
+  const takeXp = applyXpDoublerMultiplier(
+    state,
+    xpFromTakingHit({ damage: wDmg, wildMoveId: wMoveId, playerTypes: active.types }),
+  );
+
+  const enemies = battle.enemies.map((e, i) =>
+    i === battle.activeEnemyIndex ? { ...e, currentHp: wHp } : e,
+  );
+
+  if (nextPlayerHp <= 0) {
+    party = party.map((p, i) => {
+      if (i !== activeIdx) return p;
+      const grown = growPokemonWithXp(p, takeXp).pokemon;
+      return { ...grown, currentHp: 0 };
+    });
+    const log = `${active.nickname || active.name} fainted!`;
+    const fainted = [...battle.faintedSelectedIds];
+    if (!fainted.includes(aid!)) fainted.push(aid!);
+    const updated: TrainerBattleState = {
+      ...battle,
+      enemies,
+      faintedSelectedIds: fainted,
+      lastLog: log,
+      feedbackSeq: battle.feedbackSeq + 1,
+    };
+    const stateMid = { ...state, party, currentTrainerBattle: updated };
+    return continueAfterPartyFaint(stateMid, updated, aid!);
+  }
+
+  party = party.map((p, i) => {
+    if (i !== activeIdx) return p;
+    const grown = growPokemonWithXp(p, takeXp).pokemon;
+    return { ...grown, currentHp: nextPlayerHp };
+  });
+
+  const log = `${active.nickname || active.name} used ${moveDisplayName(chosen)}! ${enemy.name} used ${moveDisplayName(wMoveId)}!`;
+  return withTouch({
+    ...state,
+    party,
+    currentTrainerBattle: {
+      ...battle,
+      enemies,
+      lastLog: log,
+      feedbackSeq: battle.feedbackSeq + 1,
+    },
+  });
+}
+
+/** Bring out the next selected party Pokémon, or end the battle in defeat if none remain. */
+function continueAfterPartyFaint(
+  state: PokeRemGameState,
+  battle: TrainerBattleState,
+  faintedId: string,
+): PokeRemGameState {
+  const next = nextSelectedPartyId(battle, state.party, faintedId);
+  if (!next) {
+    return resolveTrainerBattle(state, 'loss');
+  }
+  return withTouch({
+    ...state,
+    activePokemonId: next,
+    currentTrainerBattle: {
+      ...battle,
+      lastLog: `Go, ${state.party.find((p) => p.id === next)?.nickname ?? state.party.find((p) => p.id === next)?.name ?? 'next'}!`,
+      feedbackSeq: battle.feedbackSeq + 1,
+    },
+  });
+}
+
+/** Advance to the next enemy slot (or end in victory if all are KO'd). */
+function advanceEnemyOrFinish(
+  state: PokeRemGameState,
+  battle: TrainerBattleState,
+): PokeRemGameState {
+  const nextIdx = battle.enemies.findIndex(
+    (e, i) => i > battle.activeEnemyIndex && !e.defeated && e.currentHp > 0,
+  );
+  if (nextIdx === -1) {
+    const anyAlive = battle.enemies.some((e) => !e.defeated && e.currentHp > 0);
+    if (!anyAlive) return resolveTrainerBattle(state, 'win');
+    return state;
+  }
+  const enemy = battle.enemies[nextIdx]!;
+  return withTouch({
+    ...state,
+    currentTrainerBattle: {
+      ...battle,
+      activeEnemyIndex: nextIdx,
+      lastLog: `${battle.trainer.className} sent out ${enemy.name}!`,
+      feedbackSeq: battle.feedbackSeq + 1,
+    },
+  });
+}
+
+/**
+ * Finalize a trainer battle. On `win`, generates rewards (coins/items/trainer XP/optional XP doubler),
+ * applies them to state, and surfaces a catch offer. On `loss`, leaves party HP/faint states intact.
+ */
+export function resolveTrainerBattle(
+  state: PokeRemGameState,
+  outcome: 'win' | 'loss',
+  rng: () => number = Math.random,
+): PokeRemGameState {
+  const battle = state.currentTrainerBattle;
+  if (!battle) return state;
+  if (battle.phase === 'post_win' || battle.phase === 'post_loss') return state;
+
+  const stats = state.trainerBattleStats ?? createInitialTrainerBattleStats();
+  const isElite = battle.tier === 'elite';
+
+  if (outcome === 'loss') {
+    const updatedStats: TrainerBattleStats = {
+      ...stats,
+      standardLost: stats.standardLost + (isElite ? 0 : 1),
+      eliteLost: stats.eliteLost + (isElite ? 1 : 0),
+      currentWinStreak: 0,
+    };
+    const post: TrainerBattleState = {
+      ...battle,
+      phase: 'post_loss',
+      lastLog: battle.trainer.victoryLine,
+      feedbackSeq: battle.feedbackSeq + 1,
+    };
+    return withTouch({
+      ...state,
+      currentTrainerBattle: post,
+      trainerBattleStats: updatedStats,
+      ...bumpBattleOutcome(
+        state,
+        'faint',
+        `Defeated by ${battle.trainer.className}. Better luck next session.`,
+      ),
+    });
+  }
+
+  const avgLevel = averageOwnedPartyLevel(state.party);
+  const reward = generateTrainerRewards(battle.tier, avgLevel, rng);
+  const bag: Record<ItemId, number> = { ...state.bag };
+  for (const [iid, qty] of Object.entries(reward.items)) {
+    if (!qty || qty <= 0) continue;
+    if (!ITEM_BY_ID.has(iid as ItemId)) continue;
+    bag[iid as ItemId] = (bag[iid as ItemId] ?? 0) + qty;
+  }
+  if (reward.xpDoublerTier) {
+    const doublerItem = xpDoublerItemForTier(reward.xpDoublerTier);
+    bag[doublerItem] = (bag[doublerItem] ?? 0) + 1;
+  }
+
+  const newStreak = stats.currentWinStreak + 1;
+  const updatedStats: TrainerBattleStats = {
+    ...stats,
+    standardWon: stats.standardWon + (isElite ? 0 : 1),
+    eliteWon: stats.eliteWon + (isElite ? 1 : 0),
+    totalWon: stats.totalWon + 1,
+    currentWinStreak: newStreak,
+    longestWinStreak: Math.max(stats.longestWinStreak, newStreak),
+  };
+
+  const post: TrainerBattleState = {
+    ...battle,
+    phase: 'post_win',
+    catchOfferActive: true,
+    catchOfferClaimed: false,
+    rewardSnapshot: reward,
+    lastLog: battle.trainer.defeatLine,
+    feedbackSeq: battle.feedbackSeq + 1,
+  };
+
+  const subline = [
+    `+${reward.coins} coins`,
+    reward.xpDoublerTier ? `${reward.xpDoublerTier === 'rare' ? 'Rare' : reward.xpDoublerTier === 'legendary' ? 'Legendary' : 'Common'} XP Doubler` : '',
+    `+${reward.trainerXp} TR XP`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const noticeQueue = [...(state.mainNoticeQueue ?? [])];
+  noticeQueue.push({
+    kind: 'trainer_battle_result',
+    id: `tb_result_${battle.id}`,
+    title: isElite ? `Elite Trainer defeated!` : `Trainer defeated!`,
+    subtitle: subline.slice(0, 220),
+  });
+
+  return withTouch(
+    addTrainerXp(
+      {
+        ...state,
+        bag,
+        currency: (state.currency ?? 0) + reward.coins,
+        totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + reward.coins,
+        currentTrainerBattle: post,
+        trainerBattleStats: updatedStats,
+        mainNoticeQueue: noticeQueue.slice(-12),
+        ...bumpBattleOutcome(
+          state,
+          'defeat',
+          `${battle.trainer.className} was defeated! ${reward.headline}`,
+        ),
+      },
+      reward.trainerXp,
+    ),
+  );
+}
+
+/**
+ * Attempt to catch one of the three defeated enemies (post-win pick). Mirrors wild-catch rules:
+ * on a miss the ball is consumed but the offer stays active so the player can try again (with
+ * the same or a different Pokémon, or buy more balls from the shop). On a successful catch the
+ * offer is marked `catchOfferClaimed` and the Pokémon is added to the collection.
+ */
+export function claimTrainerCatch(
+  state: PokeRemGameState,
+  enemyIndex: number,
+  ball: 'poke-ball' | 'great-ball' | 'ultra-ball' = 'poke-ball',
+): PokeRemGameState {
+  const battle = state.currentTrainerBattle;
+  if (!battle || battle.phase !== 'post_win') return state;
+  if (!battle.catchOfferActive || battle.catchOfferClaimed) return state;
+  if (enemyIndex < 0 || enemyIndex >= battle.enemies.length) return state;
+  const ballCount = state.bag[ball] ?? 0;
+  if (ballCount <= 0) return state;
+  const enemy = battle.enemies[enemyIndex]!;
+  const active = activePokemon(state);
+  const chance = trainerCatchChance(enemy, active, ball, battle.tier);
+  const success = Math.random() < chance;
+  const bag: Record<ItemId, number> = { ...state.bag, [ball]: Math.max(0, ballCount - 1) };
+  if (!success) {
+    // Miss: consume the ball, bump feedback, leave the catch offer open so the player can retry.
+    const stillOpen: TrainerBattleState = {
+      ...battle,
+      catchOfferActive: true,
+      catchOfferClaimed: false,
+      feedbackSeq: battle.feedbackSeq + 1,
+      lastLog: `${enemy.name} broke free!`,
+    };
+    return withTouch({ ...state, bag, currentTrainerBattle: stillOpen });
+  }
+
+  const closed: TrainerBattleState = {
+    ...battle,
+    catchOfferActive: false,
+    catchOfferClaimed: true,
+    feedbackSeq: battle.feedbackSeq + 1,
+    lastLog: `${enemy.name} was caught!`,
+  };
+
+  const enc = trainerEnemyAsEncounter(enemy);
+  const mon: OwnedPokemon = {
+    id: uid(),
+    dexNum: enc.dexNum,
+    name: enc.name,
+    level: enc.level,
+    totalXp: xpThresholdForLevel(enc.level),
+    currentHp: enc.maxHp,
+    maxHp: enc.maxHp,
+    types: enc.types,
+    moves: getInitialMoves(enc.dexNum, enc.level),
+  };
+  const collectionDex = {
+    ...state.collectionDex,
+    [enc.dexNum]: (state.collectionDex[enc.dexNum] ?? 0) + 1,
+  };
+  const ds = ensureDailyStats(state).dailyStats!;
+  if (state.party.length >= 6) {
+    return withTouch(
+      addTrainerXp(
+        {
+          ...state,
+          bag,
+          collectionDex,
+          pendingCaughtMon: mon,
+          selectedTab: 'party',
+          totalCaught: (state.totalCaught ?? 0) + 1,
+          currency: (state.currency ?? 0) + CURRENCY_REWARDS.catch,
+          totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + CURRENCY_REWARDS.catch,
+          dailyStats: { ...ds, catches: ds.catches + 1 },
+          currentTrainerBattle: closed,
+          ...bumpBattleOutcome(
+            state,
+            'catch_success',
+            `Caught ${enc.name}! Party is full — choose who goes to storage.`,
+          ),
+        },
+        TRAINER_XP_SOURCES.catch,
+      ),
+    );
+  }
+
+  const withRoster = addCaughtToRoster(
+    { ...state, bag, collectionDex, currentTrainerBattle: closed },
+    mon,
+  );
+  return withTouch(
+    addTrainerXp(
+      {
+        ...withRoster,
+        totalCaught: (state.totalCaught ?? 0) + 1,
+        currency: (state.currency ?? 0) + CURRENCY_REWARDS.catch,
+        totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + CURRENCY_REWARDS.catch,
+        dailyStats: { ...ds, catches: ds.catches + 1 },
+        ...bumpBattleOutcome(state, 'catch_success', `Caught ${enc.name}!`),
+      },
+      TRAINER_XP_SOURCES.catch,
+    ),
+  );
+}
+
+/**
+ * Player gives up on the post-win catch offer without actually throwing. Closes the catch window
+ * but keeps the rest of the post-win banner visible so the player can still review rewards and
+ * then head back to studying.
+ */
+export function dismissTrainerCatchOffer(state: PokeRemGameState): PokeRemGameState {
+  const battle = state.currentTrainerBattle;
+  if (!battle || battle.phase !== 'post_win') return state;
+  if (!battle.catchOfferActive) return state;
+  return withTouch({
+    ...state,
+    currentTrainerBattle: {
+      ...battle,
+      catchOfferActive: false,
+      catchOfferClaimed: true,
+      feedbackSeq: battle.feedbackSeq + 1,
+      lastLog: 'Walked away from the catch offer.',
+    },
+  });
+}
+
+/** Mark a given PokéRem version's "What's New" card as acknowledged (dismiss). */
+export function acknowledgeWhatsNew(state: PokeRemGameState, version: string): PokeRemGameState {
+  if (state.whatsNewSeenVersion === version) return state;
+  return withTouch({ ...state, whatsNewSeenVersion: version });
+}
+
+/** Close the trainer battle popup and return to studying. */
+export function closeTrainerBattle(state: PokeRemGameState): PokeRemGameState {
+  if (!state.currentTrainerBattle) return state;
+  return withTouch({
+    ...state,
+    currentTrainerBattle: null,
+    selectedTab: state.selectedTab === 'status' ? 'status' : state.selectedTab,
+  });
+}
+
 const EXP_CANDY_S_XP = 45;
 
 export function useHealingItem(state: PokeRemGameState, itemId: string): PokeRemGameState {
+  if (isTrainerBattleActive(state)) return state;
   const activeId = state.activePokemonId;
   if (!activeId) return state;
   const count = state.bag[itemId as keyof typeof state.bag] ?? 0;
@@ -1316,6 +2255,7 @@ export function useHealingItem(state: PokeRemGameState, itemId: string): PokeRem
 
 /** Rare Candy / Exp. Candy S on the lead Pokémon (consumes one from the bag). */
 export function useLeadUtilityItem(state: PokeRemGameState, itemId: string): PokeRemGameState {
+  if (isTrainerBattleActive(state)) return state;
   const activeId = state.activePokemonId;
   if (!activeId) return state;
   const id = itemId as ItemId;
@@ -1492,10 +2432,28 @@ export function claimAchievement(state: PokeRemGameState, id: string): PokeRemGa
   };
   next = addTrainerXp(next, achievementTrainerXpReward(def));
   next = addBagQuantities(next, achievementItemBonus(def));
+  if (def.prestigeBadgeId) {
+    const existing = next.prestigeBadges ?? [];
+    if (!existing.includes(def.prestigeBadgeId)) {
+      next = { ...next, prestigeBadges: [...existing, def.prestigeBadgeId] };
+    }
+  }
   next.mainNoticeQueue = (next.mainNoticeQueue ?? []).filter(
     (n) => !(n.kind === 'achievement_unlock' && n.id === id),
   );
   return withTouch(next);
+}
+
+/** Claim every unlocked-but-unclaimed achievement in one go. */
+export function claimAllAchievements(state: PokeRemGameState): PokeRemGameState {
+  let next = state;
+  const claimed = new Set(state.claimedAchievementIds ?? []);
+  for (const def of ACHIEVEMENT_DEFS) {
+    if (!state.achievements[def.id]) continue;
+    if (claimed.has(def.id)) continue;
+    next = claimAchievement(next, def.id);
+  }
+  return next;
 }
 
 export function configureStudyDifficulty(
