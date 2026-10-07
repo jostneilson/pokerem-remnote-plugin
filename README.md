@@ -19,31 +19,31 @@ Screenshots show feature details from a separate demo save; no personal notes or
 
 Keep your team, review progress, and next milestone in view. Use **Compact view** when you want more space for studying.
 
-![PokéRem 1.2.0 study companion with labeled navigation and the next achievement milestone](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/study-companion.jpg)
+![PokéRem 1.2.0 study companion with labeled navigation and the next achievement milestone](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2e8c437a8e15c12cbe4d01d23eb256f78e511006/public/assets/screenshots/study-companion.jpg)
 
 ### Trainer challenges
 
 Lock in your team, choose moves, and take on three opponents. Switching, healing, and item use are disabled during active trainer combat.
 
-![PokéRem 1.2.0 trainer battle with opposing teams and move controls](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/trainer-battle.jpg)
+![PokéRem 1.2.0 trainer battle with opposing teams and move controls](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2e8c437a8e15c12cbe4d01d23eb256f78e511006/public/assets/screenshots/trainer-battle.jpg)
 
 ### Boost your team's growth
 
 Activate XP Doublers and queue more from your Bag. The review HUD keeps the number of boosted cards remaining in view.
 
-![PokéRem 1.2.0 review HUD showing 25 boosted cards remaining](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/xp-doublers.jpg)
+![PokéRem 1.2.0 review HUD showing 25 boosted cards remaining](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2e8c437a8e15c12cbe4d01d23eb256f78e511006/public/assets/screenshots/xp-doublers.jpg)
 
 ### Progress that keeps growing
 
 Track your achievements, trainer identity, and claimable rewards.
 
-![PokéRem 1.2.0 Progress screen showing achievements and trainer progression](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/progress.jpg)
+![PokéRem 1.2.0 Progress screen showing achievements and trainer progression](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2e8c437a8e15c12cbe4d01d23eb256f78e511006/public/assets/screenshots/progress.jpg)
 
 ### Build your collection
 
 Browse Pokémon by generation, filter by type or caught status, and search your Pokédex.
 
-![PokéRem 1.2.0 Pokédex type filters and collection cards](https://remnoteplugins.com/pokerem/1.2.0/assets/screenshots/collection.jpg)
+![PokéRem 1.2.0 Pokédex type filters and collection cards](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2e8c437a8e15c12cbe4d01d23eb256f78e511006/public/assets/screenshots/collection.jpg)
 
 ## Open PokéRem
 

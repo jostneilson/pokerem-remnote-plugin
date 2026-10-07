@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "pokerem-remnote-plugin",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Jost Neilson",
   "engines": {
     "node": ">=18"
@@ -16,7 +16,8 @@
     "release": "npm run version:check && npm run check-types && npm test && npm run build",
     "version:check": "node scripts/check-version-align.mjs",
     "preview:qa": "cross-env NODE_ENV=development webpack-dev-server --config tools/preview/webpack.cjs --no-open",
-    "listing:check": "node scripts/check-listing-assets.mjs"
+    "listing:check": "node scripts/check-listing-assets.mjs",
+    "listing:check:remote": "node scripts/check-listing-assets.mjs --remote"
   },
   "dependencies": {
     "@remnote/plugin-sdk": "0.0.14",

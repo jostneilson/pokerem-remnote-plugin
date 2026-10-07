@@ -5,6 +5,14 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [1.2.1] - 2026-10-07
+
+### Fixed
+
+- Marketplace screenshot links now use immutable GitHub-hosted image URLs. The deployed RemNote asset URLs returned HTTP 403 despite the image files being present in the ZIP.
+- Added `listing:check:remote` to verify every public image returns an image response whose bytes match the bundled screenshot.
+- Gameplay and save schema remain the same as 1.2.0.
+
 ## [1.2.0] - 2026-10-07
 
 A real expansion: trainer battles slot in as rare mini-bosses, XP Doublers stack and queue across sessions, achievements grow into long-term and prestige tiers (with full-generation completion rewards), the battle and reward UIs get a polish pass, and Settings gains a Ko-fi support card. No save migration friction — v3 saves load as v4 with all new fields safely defaulted.

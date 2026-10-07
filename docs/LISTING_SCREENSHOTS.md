@@ -1,6 +1,6 @@
 # Marketplace image refresh — captures bundled
 
-The old README used relative `docs/screenshots` URLs. Webpack copied the README but not `docs/`, so those images were absent from the release assets. The rewritten overview uses absolute, version-specific RemNote asset URLs and expects the images in `public/assets/screenshots/`, which webpack already copies.
+The old README used relative `docs/screenshots` URLs. Webpack copied the README but not `docs/`, so those images were absent from the release assets. The 1.2.0 overview then used absolute RemNote asset URLs, but the live deployment returned HTTP 403 for all gallery images. The 1.2.1 patch uses raw GitHub image URLs pinned to the commit containing the verified captures. Images remain bundled in `public/assets/screenshots/`.
 
 The old images remain in `docs/screenshots/` for reference. They are not presented as updated 1.2.0 screenshots. The previous README was preserved in `docs/README-before-listing-refresh.md`.
 
@@ -20,7 +20,8 @@ If using PNG screenshots, keep `.png` filenames and update matching README URLs 
 
 ## Required checks before upload
 
-- `npm run listing:check` rejects missing images and mismatched host/version links. It is part of `npm run build`, so a release cannot silently ship broken image references.
+- `npm run listing:check` rejects missing images, unpinned hosting links, and invalid image paths. It is part of `npm run build`, so a release cannot silently ship broken image references.
+- Run `npm run listing:check:remote` to confirm public availability, image content type, and exact byte equality.
 - Visually inspect every new image; trainer combat and the booster queue must match the described features.
 - Run `npm run release`, then independently verify that every referenced image exists in the zip under the exact `assets/screenshots/` path.
 - After uploading, open the public listing and confirm every image renders there. Local files and zip checks cannot establish public CDN availability or marketplace rendering before publication.
