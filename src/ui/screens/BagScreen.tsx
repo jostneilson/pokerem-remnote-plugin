@@ -337,7 +337,7 @@ function ItemRow({
         ) : null}
         {!isEmpty && !canUse ? (
           <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
-            Equip for encounters
+            {item.kind === 'evolution' ? 'Party → select Pokémon → Stone evolution' : 'Equip for encounters'}
           </div>
         ) : null}
         {isEmpty ? (

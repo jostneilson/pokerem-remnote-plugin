@@ -34,7 +34,7 @@ export function PartyPokemonCard({
     >
       <button type="button" className="pkr-party-card__toggle" onClick={onToggle} aria-expanded={isExpanded}>
         <div className="pkr-party-card__sprite-well">
-          <PokemonSprite src={frontSpriteUrl(rootURL, p.dexNum)} alt={displayName} size={76} />
+          <PokemonSprite src={frontSpriteUrl(rootURL, p.dexNum, p.shiny === true)} alt={displayName} size={76} />
         </div>
         <div className="min-w-0 flex-1 py-0.5">
           <div className="flex items-baseline justify-between gap-1">

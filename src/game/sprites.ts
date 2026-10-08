@@ -4,12 +4,12 @@ function base(rootURL: string | undefined): string {
   return (rootURL ?? '').replace(/\/?$/, '/');
 }
 
-export function frontSpriteUrl(_rootURL: string | undefined, dexNum: number): string {
-  return `${POKEAPI_SPRITE_BASE}/${dexNum}.png`;
+export function frontSpriteUrl(_rootURL: string | undefined, dexNum: number, shiny = false): string {
+  return `${POKEAPI_SPRITE_BASE}/${shiny ? 'shiny/' : ''}${dexNum}.png`;
 }
 
-export function backSpriteUrl(_rootURL: string | undefined, dexNum: number): string {
-  return `${POKEAPI_SPRITE_BASE}/back/${dexNum}.png`;
+export function backSpriteUrl(_rootURL: string | undefined, dexNum: number, shiny = false): string {
+  return `${POKEAPI_SPRITE_BASE}/back/${shiny ? 'shiny/' : ''}${dexNum}.png`;
 }
 
 export function itemIconUrl(rootURL: string | undefined, file: string): string {

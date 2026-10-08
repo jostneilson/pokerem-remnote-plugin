@@ -1,3 +1,4 @@
+import { REVIEWS_PER_ENCOUNTER } from '../constants';
 import { SPECIES_BY_DEX, SPECIES_LIST } from '../data/species';
 import { STARTER_DEX_ALL } from '../data/pokedex';
 import { getEffectiveness } from '../data/typeChart';
@@ -96,6 +97,8 @@ export function isWildDexGenerationComplete(
 
 export type SpawnEncounterOpts = {
   collectionDex?: Record<number, number>;
+  /** Actual cadence; slower encounters receive proportionally higher shiny odds. */
+  pacing?: { reviewsPerEncounter: number; modulo?: number; unitsPerReview?: number };
   /** Injected RNG (defaults to `Math.random`) — use for tests. */
   rng?: () => number;
 };
@@ -154,7 +157,7 @@ export function spawnEncounter(
   const level = Math.max(1, Math.min(MAX_WILD_LEVEL, avg + band + tierLevelSkew(tier)));
   const maxHp = maxHpFor(species.baseHp, level);
 
-  const shinyOdds = dexComplete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE;
+  const shinyOdds = shinyOddsForPacing(dexComplete, opts?.pacing);
   const shiny = rng() < shinyOdds;
 
   return {
@@ -211,4 +214,17 @@ export function wildCatchChancePreview(
   }
   const hpRatio = enc.maxHp > 0 ? enc.currentHp / enc.maxHp : 1;
   return computeCatchChance(ballBonus + typeBonus, baseCatchRate, hpRatio);
+}
+
+/** Equalizes expected shiny discoveries per completed card against Medium/every-review pacing. */
+export function shinyOddsForPacing(complete: boolean, pacing?: SpawnEncounterOpts['pacing']): number {
+  const base = complete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE;
+  if (!pacing) return base;
+  const positive = (n: number | undefined, fallback: number) => typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : fallback;
+  const threshold = positive(pacing.reviewsPerEncounter, REVIEWS_PER_ENCOUNTER);
+  const modulo = Math.max(1, Math.floor(positive(pacing.modulo, 1)));
+  const units = Math.max(1, Math.floor(positive(pacing.unitsPerReview, 1)));
+  // Progress resets on spawn, so account for threshold rounding rather than fractional encounters.
+  const cardsPerEncounter = Math.ceil(threshold / units) * modulo;
+  return Math.min(1, base * cardsPerEncounter / REVIEWS_PER_ENCOUNTER);
 }

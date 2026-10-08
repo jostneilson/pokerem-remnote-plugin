@@ -6,6 +6,9 @@ interface Props {
 }
 
 const RELEASE_ENTRIES = [
+  { title: 'Stone evolution', body: 'Select a Pokémon in Party, choose a compatible stone, and confirm. Nine stone types are available.' },
+  { title: 'Keep your team going', body: 'Revives stay stocked at 200 coins and appear more often in route finds.' },
+  { title: 'True shinies', body: 'Rare wild Pokémon now use their actual shiny sprites, with a gold star celebration. Slower encounters get higher shiny odds.' },
   { title: 'Arcade revival', body: 'Crisp pixel lettering, framed menus, and responsive game controls.' },
   { title: 'More room to play', body: 'Play keeps the arena. Bag now brings your items and Shop together. Party and Dex get the full panel.' },
   { title: 'Auto attack', body: 'Weaken wild Pokémon automatically, then stop before knockout range and choose Catch. Compact view now lives in Settings.' },

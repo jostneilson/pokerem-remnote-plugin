@@ -1,7 +1,7 @@
 import { ITEMS, type ItemId, type ItemData } from '../data/items';
 
 /** Revive is always in stock at a fixed PokéCoin price (not daily rotation). */
-const REVIVE_SHOP_PRICE = 500;
+const REVIVE_SHOP_PRICE = 200;
 
 const ALWAYS_TAIL: ItemId[] = ['revive', 'potion', 'exp-candy-s', 'catch-scope'];
 
@@ -11,6 +11,7 @@ export const ULTRA_BALL_UNLOCK_LEVEL = 7;
 /** Daily deals exclude items that are also always-unlocked at common trainer levels (see getShopInventory). */
 const DAILY_POOL: ItemId[] = [
   'super-potion', 'max-potion', 'oran-berry',
+  'sun-stone', 'shiny-stone', 'dusk-stone', 'dawn-stone',
   'rare-candy', 'fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone',
 ];
 

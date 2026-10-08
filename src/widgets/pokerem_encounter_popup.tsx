@@ -29,6 +29,7 @@ function EncounterPopup() {
     level: number;
     types: string[];
     tier?: string;
+    shiny?: boolean;
   } | null>(null);
   const [sceneIndex, setSceneIndex] = useState(0);
 
@@ -91,7 +92,7 @@ function EncounterPopup() {
           }}
         >
           <PokemonSprite
-            src={frontSpriteUrl(plugin.rootURL, encounter.dexNum)}
+            src={frontSpriteUrl(plugin.rootURL, encounter.dexNum, encounter.shiny === true)}
             alt={encounter.name}
             size={48}
           />

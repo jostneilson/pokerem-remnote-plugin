@@ -4,7 +4,13 @@
 
 Choose a starter, grow your team as you study, and meet wild Pokémon along the way. Catch, battle, collect, and build your trainer's progress inside the RemNote flashcard queue.
 
-## New in 1.3.0 — Arcade revival
+## New in 1.3.1
+
+- **Stone evolution:** select a Pokémon in Party, open Stone evolution, and confirm a compatible stone. The stone is spent only when evolution succeeds. Nicknames, XP, and shiny status carry forward. Nine stone types are available through daily Shop deals and route finds.
+- **Accessible Revives:** always stocked for 200 coins, with more regular route drops and a boost when your party needs one.
+- **True shiny Pokémon:** rare wild shinies use their species-specific front and back shiny sprites. A gold star reveal celebrates the discovery and a successful catch. Reduced motion keeps the celebration still. At regular Medium pacing, shiny odds are 1/1,000, rising to 1/200 after completing the enabled wild Pokédex. Slower encounter settings increase the per-encounter odds proportionally: half as many encounters means double the shiny chance.
+
+## The 1.3 arcade revival
 
 - **A consistent 90s arcade look:** crisp pixel fonts, framed menus, larger icons, readable labels, and smooth feedback throughout the game. Fonts are bundled with the plugin.
 - **A simpler interface:** Play, Party, Bag, and Dex are always one tap away. Menu holds Progress, Rewards, Types, and Settings. Management screens have room to breathe without the arena above them.
@@ -15,7 +21,7 @@ Choose a starter, grow your team as you study, and meet wild Pokémon along the 
 
 ## See PokéRem
 
-Current 1.3.0 feature screenshots, cropped to the plugin only. No personal notes or flashcards are shown.
+Screenshots of the 1.3 arcade interface, cropped to the plugin only. No personal notes or flashcards are shown.
 
 ### Study, explore, and catch
 

@@ -159,7 +159,7 @@ function PokeRemQueueStrip() {
           </span>
           <div className="flex min-w-0 items-center gap-1 border-l border-white/10 pl-1.5">
             <img
-              src={backSpriteUrl(plugin.rootURL, active.dexNum)}
+              src={backSpriteUrl(plugin.rootURL, active.dexNum, active.shiny === true)}
               alt=""
               width={22}
               height={22}
@@ -209,7 +209,7 @@ function PokeRemQueueStrip() {
                 WILD
               </span>
               <img
-                src={frontSpriteUrl(plugin.rootURL, wild.dexNum)}
+                src={frontSpriteUrl(plugin.rootURL, wild.dexNum, wild.shiny === true)}
                 alt=""
                 width={22}
                 height={22}

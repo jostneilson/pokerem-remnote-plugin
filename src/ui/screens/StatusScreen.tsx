@@ -70,7 +70,7 @@ export function StatusScreen({
             style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 72%)' }}
           >
             <PokemonSprite
-              src={frontSpriteUrl(rootURL, active.dexNum)}
+              src={frontSpriteUrl(rootURL, active.dexNum, active.shiny === true)}
               alt={active.nickname || active.name}
               size={88}
             />

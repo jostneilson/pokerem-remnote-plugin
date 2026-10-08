@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 're
 import { createPortal } from 'react-dom';
 import type { OwnedPokemon } from '../../game/state/model';
 import type { PokemonType } from '../../game/data/species';
+import { ITEMS } from '../../game/data/items';
+import { checkItemEvolution } from '../../game/engine/evolution';
 import { MOVES } from '../../game/data/moves';
 import { dedupeMoveIds, getUnlockedLearnsetMoveIds, moveUiDescription } from '../../game/engine/moveLearn';
 import { frontSpriteUrl } from '../../game/sprites';
@@ -164,8 +166,13 @@ export function PartyScreen({
   onMoveToStorage,
   onMoveToParty,
   onSwapStorageForParty,
+  bag, onEvolve, evolutionBlocked = false, evolutionMessage,
 }: {
   rootURL: string | undefined;
+  bag?: Record<string, number>;
+  onEvolve?: (pokemonId: string, itemId: string) => void;
+  evolutionBlocked?: boolean;
+  evolutionMessage?: string;
   party: OwnedPokemon[];
   storagePokemon?: OwnedPokemon[];
   activeId: string | null;
@@ -180,6 +187,7 @@ export function PartyScreen({
   /** When party is full (6), swap a storage mon in for a chosen party member. */
   onSwapStorageForParty?: (storagePokemonId: string, replacePartyPokemonId: string) => void;
 }) {
+  const [pendingStone, setPendingStone] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -262,6 +270,25 @@ export function PartyScreen({
     const detail = (
       <>
         <PokemonGrowthPanel pokemon={p} />
+        {onEvolve && isParty ? <Panel title="Stone evolution">
+          {p.everstone ? <p>Everstone prevents evolution.</p> : null}
+          {evolutionMessage ? <p role="status" className="pkr-evolution-message">{evolutionMessage}</p> : null}
+          {evolutionBlocked ? <p>Finish the encounter before evolving.</p> : p.currentHp <= 0 ? <p>Revive this Pokémon before evolving.</p> : null}
+          {ITEMS.filter(item => item.kind === 'evolution' && checkItemEvolution(p, item.id)).map(item => {
+            const result = checkItemEvolution(p, item.id)!;
+            const key = p.id + ':' + item.id;
+            return <div key={key} className="mt-2">
+              <button type="button" className="pkr-game-btn w-full px-3 py-2" disabled={evolutionBlocked || p.currentHp <= 0 || !(bag?.[item.id])}
+                onClick={() => setPendingStone(key)}>{item.name} → {result.intoName} · ×{bag?.[item.id] ?? 0}</button>
+              {pendingStone === key ? <div className="mt-2" role="group" aria-label="Confirm stone evolution">
+                <p>Use one {item.name} to evolve into {result.intoName}?</p>
+                <button type="button" className="pkr-game-btn px-3 py-2" disabled={evolutionBlocked || p.currentHp <= 0 || !(bag?.[item.id])} onClick={() => { onEvolve(p.id, item.id); setPendingStone(null); }}>Confirm evolution</button>
+                <button type="button" className="pkr-btn-secondary px-3 py-2" onClick={() => setPendingStone(null)}>Cancel</button>
+              </div> : null}
+            </div>;
+          })}
+          {!ITEMS.some(item => item.kind === 'evolution' && checkItemEvolution(p, item.id)) ? <p>No compatible stone evolution for this Pokémon.</p> : <p className="mt-2">Find stones while studying or in Bag → Shop’s daily deals.</p>}
+        </Panel> : null}
         <div className="pkr-pixel-title mb-1 mt-1 text-[6px] font-black uppercase tracking-wide" style={{ color: '#94a3b8' }}>
           Moves ({dedupeMoveIds(p.moves ?? []).length}/4)
         </div>
@@ -625,7 +652,7 @@ export function PartyScreen({
                       setExpanded(null);
                     }}
                   >
-                    <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum)} alt={dn} size={48} />
+                    <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum, m.shiny === true)} alt={dn} size={48} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[10px] font-bold" style={{ color: '#f1f5f9' }}>
                         {dn}

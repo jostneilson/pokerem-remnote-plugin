@@ -3,6 +3,7 @@ export type ItemId =
   | 'potion' | 'super-potion' | 'max-potion' | 'revive'
   | 'oran-berry' | 'rare-candy' | 'exp-candy-s'
   | 'fire-stone' | 'water-stone' | 'thunder-stone' | 'leaf-stone' | 'moon-stone'
+  | 'sun-stone' | 'shiny-stone' | 'dusk-stone' | 'dawn-stone'
   | 'everstone'
   | 'catch-scope'
   | 'xp-doubler-common' | 'xp-doubler-rare' | 'xp-doubler-legendary';
@@ -48,6 +49,10 @@ export const ITEMS: ItemData[] = [
   { id: 'thunder-stone', name: 'Thunder Stone', iconFile: 'thunder-stone.png', kind: 'evolution', price: 1500, description: 'Evolves certain Electric-type Pokemon' },
   { id: 'leaf-stone', name: 'Leaf Stone', iconFile: 'leaf-stone.png', kind: 'evolution', price: 1500, description: 'Evolves certain Grass-type Pokemon' },
   { id: 'moon-stone', name: 'Moon Stone', iconFile: 'moon-stone.png', kind: 'evolution', price: 1500, description: 'Evolves certain Pokemon' },
+  { id: 'sun-stone', name: 'Sun Stone', iconFile: 'sun-stone.png', kind: 'evolution', price: 1500, description: 'Evolves compatible Pokémon. Select one in Party to use.' },
+  { id: 'shiny-stone', name: 'Shiny Stone', iconFile: 'shiny-stone.png', kind: 'evolution', price: 1500, description: 'Evolves compatible Pokémon. Select one in Party to use.' },
+  { id: 'dusk-stone', name: 'Dusk Stone', iconFile: 'dusk-stone.png', kind: 'evolution', price: 1500, description: 'Evolves compatible Pokémon. Select one in Party to use.' },
+  { id: 'dawn-stone', name: 'Dawn Stone', iconFile: 'dawn-stone.png', kind: 'evolution', price: 1500, description: 'Evolves compatible Pokémon. Select one in Party to use.' },
   { id: 'everstone', name: 'Everstone', iconFile: 'everstone.png', kind: 'hold', price: 500, description: 'Prevents evolution when held' },
   {
     id: 'catch-scope',
@@ -101,6 +106,10 @@ export const STARTING_BAG: Record<ItemId, number> = {
   'thunder-stone': 0,
   'leaf-stone': 0,
   'moon-stone': 0,
+  'sun-stone': 0,
+  'shiny-stone': 0,
+  'dusk-stone': 0,
+  'dawn-stone': 0,
   'everstone': 0,
   'catch-scope': 1,
   'xp-doubler-common': 0,

@@ -60,6 +60,7 @@ export function sceneIndexToRouteBiome(sceneIndex: number): RouteBiome {
 }
 
 const BASE_COMMON: WeightRow[] = [
+  ['revive', 12],
   ['poke-ball', 34],
   ['potion', 30],
   ['oran-berry', 24],
@@ -71,11 +72,15 @@ const BASE_UNCOMMON: WeightRow[] = [
   ['super-potion', 26],
   ['potion', 18],
   ['oran-berry', 14],
-  ['revive', 10],
+  ['revive', 18],
   ['ultra-ball', 4],
 ];
 
 const BASE_RARE: WeightRow[] = [
+  ['sun-stone', 4],
+  ['shiny-stone', 4],
+  ['dusk-stone', 4],
+  ['dawn-stone', 4],
   ['ultra-ball', 22],
   ['super-potion', 20],
   ['max-potion', 18],
@@ -360,7 +365,7 @@ function applyNeedBias(weights: [ItemId, number][], ctx: NeedBiasContext): [Item
     if (ctx.ballsLow && ballIds.has(id)) m *= 1.16;
     if (ctx.healsLow && healIds.has(id)) m *= 1.12;
     if (ctx.partyHurt && healIds.has(id)) m *= 1.08;
-    if (ctx.needRevive && id === 'revive') m *= 1.22;
+    if (ctx.needRevive && id === 'revive') m *= 1.75;
     return [id, m] as [ItemId, number];
   });
 }
@@ -537,7 +542,7 @@ export function rollPostBattleScrap(
   if (rng() >= 0.118) return null;
   const biome = sceneIndexToRouteBiome(state.battleSceneIndex ?? 0);
   const ctx = computeNeedBiasContext(state);
-  const rows = applyNeedBias(mergeWeights(SCRAP_ROWS[biome] ?? SCRAP_ROWS.grassland), ctx);
+  const rows = applyNeedBias(mergeWeights(SCRAP_ROWS[biome] ?? SCRAP_ROWS.grassland, [['revive', 6]]), ctx);
   const itemId = pickWeighted(rows, rng);
   const qty = itemId === 'oran-berry' && rng() < 0.4 ? 2 : 1;
   const meta = ITEM_BY_ID.get(itemId);

@@ -8,7 +8,7 @@ import {
   deriveAchievements,
 } from '../engine/achievements';
 import { nextCatchBallForBag, spawnEncounter, tryCatch, wildCatchChancePreview } from '../engine/encounters';
-import { checkLevelEvolution, applyEvolution } from '../engine/evolution';
+import { checkLevelEvolution, checkItemEvolution, applyEvolution } from '../engine/evolution';
 import {
   checkLearnMoves,
   dedupeMoveIds,
@@ -1012,6 +1012,7 @@ export function onQueueCardComplete(
         const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
         const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
           collectionDex: next.collectionDex ?? {},
+          pacing: { reviewsPerEncounter: effectiveRate, modulo, unitsPerReview: wildRouteUnits },
         });
         const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
         const narr = `Wild ${enc.name}${tierLabel} appeared!`;
@@ -2525,4 +2526,25 @@ export function xpProgressPercent(mon: OwnedPokemon): number {
   const span = xpSpanForCurrentLevel(mon.totalXp);
   const cur = xpIntoCurrentLevel(mon.totalXp);
   return Math.max(0, Math.min(100, (cur / span) * 100));
+}
+
+/** Consume exactly one compatible stone after all guards pass. No save migration. */
+export function useEvolutionStone(state: PokeRemGameState, pokemonId: string, itemId: string): PokeRemGameState {
+  if (isTrainerBattleActive(state) || state.currentEncounter) return state;
+  const item = ITEM_BY_ID.get(itemId as ItemId);
+  if (!item || item.kind !== 'evolution' || (state.bag[item.id] ?? 0) < 1) return state;
+  const mon = [...state.party, ...state.storagePokemon].find(p => p.id === pokemonId);
+  if (!mon || mon.currentHp <= 0) return state;
+  const evolution = checkItemEvolution(mon, itemId);
+  if (!evolution) return state;
+  const evolved = applyEvolution(mon, evolution);
+  return withTouch(addTrainerXp({
+    ...state,
+    bag: { ...state.bag, [item.id]: state.bag[item.id] - 1 },
+    party: state.party.map(p => p.id === pokemonId ? evolved : p),
+    storagePokemon: state.storagePokemon.map(p => p.id === pokemonId ? evolved : p),
+    collectionDex: { ...state.collectionDex, [evolution.intoDexNum]: Math.max(1, state.collectionDex[evolution.intoDexNum] ?? 0) },
+    totalEvolutions: (state.totalEvolutions ?? 0) + 1,
+    ...bumpBattleOutcome(state, 'evolution', `${mon.nickname || mon.name} evolved into ${evolution.intoName}!`),
+  }, TRAINER_XP_SOURCES.evolution));
 }

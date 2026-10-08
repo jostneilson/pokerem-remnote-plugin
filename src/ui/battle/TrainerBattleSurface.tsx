@@ -89,7 +89,9 @@ function LineupIcon({
   label,
   accent,
   reducedMotion,
+  shiny = false,
 }: {
+  shiny?: boolean;
   rootURL?: string;
   dexNum: number;
   defeated: boolean;
@@ -116,7 +118,7 @@ function LineupIcon({
       title={label}
     >
       <PokemonSprite
-        src={frontSpriteUrl(rootURL, dexNum)}
+        src={frontSpriteUrl(rootURL, dexNum, shiny)}
         alt={label}
         size={36}
         reducedMotion={reducedMotion}
@@ -199,6 +201,7 @@ function LineupStrip({
               key={`p-${i}`}
               rootURL={rootURL}
               dexNum={m.dexNum}
+              shiny={m.shiny === true}
               defeated={m.currentHp <= 0}
               active={m.id === state.activePokemonId && m.currentHp > 0}
               label={`${m.nickname ?? m.name} Lv${m.level}`}
@@ -396,7 +399,7 @@ function PartyPickRow({
       }}
     >
       <PokemonSprite
-        src={frontSpriteUrl(rootURL, mon.dexNum)}
+        src={frontSpriteUrl(rootURL, mon.dexNum, mon.shiny === true)}
         alt={mon.name}
         size={48}
         reducedMotion={reducedMotion}
@@ -633,7 +636,7 @@ export function TrainerBattleSurface({
           {activeMon && activeMon.currentHp > 0 ? (
             <div className={`pointer-events-none absolute bottom-[18%] left-[8%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
               <PokemonSprite
-                src={backSpriteUrl(rootURL, activeMon.dexNum)}
+                src={backSpriteUrl(rootURL, activeMon.dexNum, activeMon.shiny === true)}
                 alt={activeMon.name}
                 size={88}
                 reducedMotion={reducedMotion}

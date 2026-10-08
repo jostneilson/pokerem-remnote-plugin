@@ -751,6 +751,11 @@ export function BattleReviewSurface({
         </div>
       ) : null}
 
+      {showFieldWild && fieldWild?.shiny ? <div key={`shiny-${fieldWild.dexNum}-${isCatchOutcome}`} className="pkr-shiny-celebration" role="status">
+        <span aria-hidden="true" className="pkr-shiny-burst">✦ ✧ ✦</span>
+        <strong>{outcomeKind === 'catch_success' ? 'SHINY CAUGHT!' : 'A SHINY APPEARED!'}</strong>
+        <span>{fieldWild.name} · a rare find</span>
+      </div> : null}
       {/* ═══ Battle field — classic Pokemon layout ═══ */}
       <div
         className="pkr-battle-field pkr-wild-field relative w-full overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]"
@@ -987,7 +992,7 @@ export function BattleReviewSurface({
               className={`${wildAnimate ? 'animate-pkr-shake' : ''} ${wildFinishMotionClass} ${isCatchOutcome ? 'animate-pkr-catch-bounce' : ''} ${lungePhase === 'wild' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-wild' : ''} ${wildHitFlash ? 'pkr-battle-target-hit' : ''}`}
             >
               <PokemonSprite
-                src={frontSpriteUrl(rootURL, fieldWild.dexNum)}
+                src={frontSpriteUrl(rootURL, fieldWild.dexNum, fieldWild.shiny === true)}
                 alt={fieldWild.name}
                 size={spriteSize}
                 glow={tierGlow(fieldWild.tier)}
@@ -1015,7 +1020,7 @@ export function BattleReviewSurface({
             className={`${lungePhase === 'player' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-player' : ''} ${playerHitFlash ? 'pkr-battle-target-hit' : ''} ${isFaintLinger ? 'animate-pkr-fade-out' : ''}`}
           >
             <PokemonSprite
-              src={backSpriteUrl(rootURL, active.dexNum)}
+              src={backSpriteUrl(rootURL, active.dexNum, active.shiny === true)}
               alt={active.name}
               size={spriteSize}
               shiny={active.shiny === true}
@@ -1504,7 +1509,7 @@ export function BattleReviewSurface({
                     style={{ borderColor: 'var(--pkr-secondary-btn-border)', background: 'rgba(0,0,0,0.35)' }}
                     onClick={() => onPendingCatchReplace!(m.id)}
                   >
-                    <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum)} alt={dn} size={36} />
+                    <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum, m.shiny === true)} alt={dn} size={36} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[10px] font-bold" style={{ color: '#f1f5f9' }}>{dn}</div>
                       <div className="text-[8px] font-semibold" style={{ color: '#94a3b8' }}>Lv{m.level}</div>

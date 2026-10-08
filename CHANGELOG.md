@@ -5,6 +5,15 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [1.3.1] - 2026-10-07
+
+- Added confirmed stone evolution in Party, with one-stone consumption, compatible-target previews, battle/faint/Everstone guards, preserved identity and shiny status, collection progress, and evolution rewards.
+- Corrected 29 existing stone mappings against PokéAPI data; added Sun, Shiny, Dusk, and Dawn Stones with bundled icons, daily deals, and rare route drops.
+- Revives remain always stocked, now cost 200 coins, and can appear in common route finds and all biome scrap tables. Need bias increases their availability for a fainted party without multiplying item quantities.
+- Replaced arbitrary hue cycling with actual species-specific shiny front/back sprites across owned-Pokémon and encounter surfaces. Missing back sprites try the correct front variant before a neutral placeholder.
+- Added a finite gold-star reveal/catch celebration that respects reduced motion. Regular shiny odds stay the same, while slower encounter pacing proportionally increases odds per encounter. v4 save format is unchanged.
+- Automated evolution, save-preservation, revive-balance, and shiny-rendering tests added. Native animation timing is not independently verified.
+
 ## [1.3.0] - 2026-10-07
 
 ### Arcade revival

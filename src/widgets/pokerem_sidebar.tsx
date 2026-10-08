@@ -15,6 +15,7 @@ import {
   setTab,
   switchActivePokemon,
   useHealingItem,
+  useEvolutionStone,
   useLeadUtilityItem,
   activePokemon,
   forgetMoveAction,
@@ -371,6 +372,10 @@ function PokeRemSidebar() {
                 <PartyScreen
                   rootURL={plugin.rootURL}
                   party={state.party}
+                  bag={state.bag}
+                  evolutionBlocked={!!state.currentEncounter || !!state.currentTrainerBattle}
+                  evolutionMessage={state.lastOutcomeKind === 'evolution' ? state.lastBattleLog : undefined}
+                  onEvolve={(pid, item) => void applyReducer(s => useEvolutionStone(s, pid, item))}
                   storagePokemon={state.storagePokemon}
                   activeId={state.activePokemonId}
                   onSwitch={(id) => void applyReducer((s) => switchActivePokemon(s, id))}

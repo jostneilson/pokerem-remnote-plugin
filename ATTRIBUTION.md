@@ -56,3 +56,5 @@ Before each public release, verify:
 ## Bundled pixel fonts (1.3.0)
 
 Pixelify Sans and Press Start 2P are distributed under the SIL Open Font License 1.1. Font files and their original OFL notices are included in `public/assets/fonts/`. Sources: https://github.com/google/fonts/tree/main/ofl/pixelifysans and https://github.com/google/fonts/tree/main/ofl/pressstart2p.
+
+1.3.1 evolution stone mappings were checked against PokéAPI's `pokemon_evolution.csv` and `items.csv` (https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv). The reference snapshot in `src/game/data/stoneEvolutionReference.ts` supports offline regression checks. Sun/Shiny/Dusk/Dawn item icons and species-specific shiny sprites use https://github.com/PokeAPI/sprites. Existing simplified non-stone evolution rules are preserved.
