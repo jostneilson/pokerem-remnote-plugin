@@ -6,12 +6,12 @@
   "repoUrl": "https://github.com/jostneilson/pokerem-remnote-plugin",
   "version": {
     "major": 1,
-    "minor": 2,
-    "patch": 1
+    "minor": 3,
+    "patch": 0
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "Study RemNote like it's Pokémon: wild encounters from reviews, catching, party & Pokédex, trainer battles, XP doublers, shop, achievements. Open the Queue → Pokéball sidebar. Fan project.",
+  "description": "A pixel arcade Pokémon study adventure: wild encounters, auto attack, trainer battles, party & Pokédex, Bag & Shop, XP doublers, achievements. Open the Queue → Pokéball sidebar. Fan project.",
   "requestNative": false,
   "requiredScopes": [
     {

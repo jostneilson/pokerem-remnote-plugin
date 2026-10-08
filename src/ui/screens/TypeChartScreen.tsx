@@ -285,20 +285,9 @@ export function TypeChartScreen({ rootURL }: { rootURL?: string }) {
 
       {mode === 'simple' ? (
         <>
-          <div className="pkr-dex-toolbar mb-2">
-            <div className="pkr-dex-toolbar-label">Select type</div>
-            <div className="flex flex-wrap gap-1">
-              {ALL_TYPES.map((t) => (
-                <TypePickerButton
-                  key={t}
-                  rootURL={rootURL}
-                  type={t}
-                  selected={selected === t}
-                  onClick={() => setSelected(t)}
-                />
-              ))}
-            </div>
-          </div>
+          <label className="pkr-filter-select mb-3">Select type
+            <select value={selected} onChange={e=>setSelected(e.target.value as PokemonType)}>{ALL_TYPES.map(t=><option key={t} value={t}>{t}</option>)}</select>
+          </label>
           <SimpleView selected={selected} />
         </>
       ) : (

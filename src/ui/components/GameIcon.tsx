@@ -365,7 +365,7 @@ export function GameIcon({
       className={`pkr-game-icon inline-flex items-center justify-center ${tabCls}${fleeAlign} ${className}`.trim()}
       style={style}
     >
-      {render(size)}
+      {render(Math.max(size, 16))}
     </span>
   );
 }

@@ -652,7 +652,7 @@ export function PartyScreen({
 
       <Panel title={`Party · ${party.length}/6`} icon={<GameIcon name="party" size={14} />}>
         <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
-          Tap a Pokémon for moves (re-equip from this level’s unlocked learnset or drop slots), rename, storage, or release. The{' '}
+          Select a Pokémon to manage it. Your{' '}
           <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
         </p>
         <div className="space-y-2">{party.map((p) => renderPokemon(p, true))}</div>

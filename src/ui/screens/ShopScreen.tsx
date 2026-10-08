@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getShopInventory, type ShopItem } from '../../game/engine/shop';
 import { itemIconUrl } from '../../game/sprites';
 import { Panel } from '../components/Panel';
@@ -10,17 +10,22 @@ export function ShopScreen({
   trainerLevel,
   onBuy,
   reducedMotion,
+  bag,
 }: {
   rootURL: string | undefined;
   currency: number;
   trainerLevel: number;
   onBuy: (itemId: string, price: number) => void;
   reducedMotion?: boolean;
+  bag?: Record<string, number>;
 }) {
   const inventory = getShopInventory(trainerLevel);
   const always = inventory.filter((i) => !i.isDaily);
   const daily = inventory.filter((i) => i.isDaily);
   const [purchasePulseId, setPurchasePulseId] = useState<string | null>(null);
+
+  const pulseTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => { if (pulseTimer.current) clearTimeout(pulseTimer.current); }, []);
 
   const handleBuy = (si: ShopItem) => {
     if (currency < si.price) return;
@@ -28,7 +33,8 @@ export function ShopScreen({
     const key = si.item.id + (si.isDaily ? '-daily' : '');
     if (!reducedMotion) {
       setPurchasePulseId(key);
-      window.setTimeout(() => setPurchasePulseId(null), 700);
+      if (pulseTimer.current) clearTimeout(pulseTimer.current);
+      pulseTimer.current = setTimeout(() => setPurchasePulseId(null), 420);
     }
   };
 
@@ -53,7 +59,7 @@ export function ShopScreen({
             : {
                 borderColor: 'rgba(255,255,255,0.06)',
                 background: 'rgba(0,0,0,0.12)',
-                opacity: 0.72,
+                opacity: 1,
               }
         }
       >
@@ -70,15 +76,17 @@ export function ShopScreen({
           <div className="text-xs font-black" style={{ color: '#e2e8f0' }}>
             {si.item.name}
           </div>
-          <div className="mt-0.5 line-clamp-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
             {si.item.description}
           </div>
+          {bag ? <div className="pkr-shop-owned">Owned: {bag[si.item.id] ?? 0}</div> : null}
         </div>
         <button
           type="button"
+          aria-label={`Buy ${si.item.name} for ${si.price} Poké Dollars${canAfford ? '' : ', insufficient balance'}`}
           disabled={!canAfford}
           onClick={() => handleBuy(si)}
-          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 text-[10px] font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45"
+          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 text-[10px] font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-75"
           style={
             canAfford
               ? {
@@ -93,7 +101,7 @@ export function ShopScreen({
                 }
           }
         >
-          P{si.price}
+          Buy<br />P{si.price}
         </button>
       </div>
     );
@@ -108,7 +116,7 @@ export function ShopScreen({
               POKE MART
             </div>
             <p className="mt-0.5 max-w-[18rem] text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
-              Spend Poké Dollars on balls and supplies. Purchased items go straight to your bag — watch your balance update.
+              Buy supplies here, then switch to My items to use them.
             </p>
           </div>
         </div>
@@ -130,7 +138,7 @@ export function ShopScreen({
       <Panel title="Today's deals" icon={<GameIcon name="starFilled" size={13} style={{ color: '#f59e0b' }} />} accent="#d97706">
         <div className="space-y-1.5">{daily.map(renderItem)}</div>
         <div className="mt-2 text-center text-[9px] font-bold" style={{ color: '#fbbf24' }}>
-          Rotates daily · same great items, limited feel
+          Deals change daily
         </div>
       </Panel>
     </div>

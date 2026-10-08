@@ -52,3 +52,7 @@ Before each public release, verify:
 1. All CDN URLs and licenses above are still accurate.
 2. Any new bundled art or audio is listed with source and license.
 3. Fan-project disclaimer remains visible in the marketplace listing and README where appropriate.
+
+## Bundled pixel fonts (1.3.0)
+
+Pixelify Sans and Press Start 2P are distributed under the SIL Open Font License 1.1. Font files and their original OFL notices are included in `public/assets/fonts/`. Sources: https://github.com/google/fonts/tree/main/ofl/pixelifysans and https://github.com/google/fonts/tree/main/ofl/pressstart2p.

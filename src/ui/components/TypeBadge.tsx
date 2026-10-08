@@ -11,8 +11,8 @@ export function TypeBadge({ rootURL, type }: { rootURL: string | undefined; type
       <img
         src={typeSymbolUrl(rootURL, type)}
         alt=""
-        width={14}
-        height={14}
+        width={20}
+        height={20}
         className="pkr-type-orb shrink-0"
         style={{ imageRendering: 'auto' }}
       />

@@ -34,8 +34,8 @@ export function CollectionScreen({
     if (!el) return;
     const read = () => {
       const w = el.clientWidth;
-      if (w < 220) setDexCols(2);
-      else if (w < 340) setDexCols(3);
+      if (w < 250) setDexCols(2);
+      else if (w < 440) setDexCols(3);
       else setDexCols(4);
     };
     read();
@@ -107,29 +107,11 @@ export function CollectionScreen({
         </div>
       </div>
 
-      <div className="pkr-dex-toolbar">
-        <div className="pkr-dex-toolbar-label">Generation</div>
-        <div className="flex flex-wrap gap-1">
-          {GEN_LABELS.map((label, i) => {
-            const gen = i + 1;
-            const info = genCaughtCounts[gen];
-            const isActive = selectedGen === gen;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setSelectedGen(gen)}
-                className={`pkr-pill ${isActive ? 'pkr-pill-active' : 'pkr-pill-inactive'}`}
-              >
-                {label}{' '}
-                <span className="tabular-nums opacity-80">
-                  ({info.caught}/{info.total})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <label className="pkr-filter-select mb-3">Generation
+        <select value={selectedGen} onChange={e=>setSelectedGen(Number(e.target.value))}>
+          {GEN_LABELS.map((label,i)=><option key={i} value={i+1}>{label} · {genCaughtCounts[i+1].caught}/{genCaughtCounts[i+1].total}</option>)}
+        </select>
+      </label>
 
       <div className="pkr-dex-toolbar">
         <div className="pkr-dex-toolbar-label">Find</div>
@@ -138,7 +120,7 @@ export function CollectionScreen({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Name or dex #…"
-          className="pkr-input mb-2 w-full px-2.5 py-2 text-[11px]"
+          aria-label="Search Pokémon by name or dex number" className="pkr-input mb-2 w-full px-2.5 py-2 text-[11px]"
         />
         <div className="pkr-dex-toolbar-label">Caught</div>
         <div className="mb-2 flex flex-wrap gap-1">
@@ -153,34 +135,11 @@ export function CollectionScreen({
             </button>
           ))}
         </div>
-        <div className="pkr-dex-toolbar-label">Type</div>
-        <div className="flex flex-wrap gap-1">
-          <button
-            type="button"
-            onClick={() => setTypeFilter(null)}
-            className={`pkr-pill ${!typeFilter ? 'pkr-pill-active' : 'pkr-pill-inactive'}`}
-          >
-            All types
-          </button>
-          {ALL_TYPES.map((t) => {
-            const active = typeFilter === t;
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTypeFilter(active ? null : t)}
-                className={`flex items-center gap-1 rounded-md border-2 px-1.5 py-1 text-[7px] font-black uppercase transition-all ${
-                  active ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-[#0f172a]' : 'opacity-75 hover:opacity-100'
-                }`}
-                style={typePillStyle(t)}
-                title={t}
-              >
-                <TypeSymbolImage rootURL={rootURL} type={t} size={14} variant="resist" />
-                <span className="max-w-[3.25rem] truncate">{t}</span>
-              </button>
-            );
-          })}
-        </div>
+        <label className="pkr-filter-select">Type
+          <select value={typeFilter??''} onChange={e=>setTypeFilter((e.target.value||null) as PokemonType|null)}>
+            <option value="">All types</option>{ALL_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+        </label>
       </div>
 
       <div

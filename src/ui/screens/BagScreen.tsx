@@ -74,7 +74,9 @@ function BoostersPanel({
 
   return (
     <Panel
-      title="Boosters"
+      title={active ? `Boosters · ${active.cardsRemaining} cards left` : "Boosters"}
+      collapsible
+      defaultOpen={!!active || XP_DOUBLER_ITEMS.some(({id}) => (bag[id] ?? 0) > 0)}
       icon={<GameIcon name="coin" size={13} style={{ color: '#fde68a' }} />}
       accent="#fde68a"
     >
@@ -239,7 +241,7 @@ function BoostersPanel({
                 </div>
                 {!owned ? (
                   <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
-                    Empty slot · earn from trainer battles &amp; achievements
+                    Earn from trainer battles &amp; achievements
                   </div>
                 ) : null}
               </div>
@@ -335,12 +337,12 @@ function ItemRow({
         ) : null}
         {!isEmpty && !canUse ? (
           <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
-            Equip in battle or progression — not used from here
+            Equip for encounters
           </div>
         ) : null}
         {isEmpty ? (
           <div className="mt-1 text-[8px] font-bold" style={{ color: '#8296a5' }}>
-            Empty slot · visit the Shop to stock up
+            Out of stock · visit Shop
           </div>
         ) : null}
       </div>
@@ -392,7 +394,7 @@ export function BagScreen({
                 Your bag
               </div>
               <div className="text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
-                Items for catching, healing, and evolving. Medicine targets your <span className="font-bold text-slate-300">lead</span> —{' '}
+                Medicine treats your <span className="font-bold text-slate-300">lead</span>.{' '}
                 <span className="font-bold text-slate-300">Revive</span> only works on fainted Pokémon; other heals need them conscious first.
               </div>
             </div>
@@ -440,7 +442,7 @@ export function BagScreen({
           const hasAny = items.some((i) => (bag[i.id] ?? 0) > 0);
           if (!hasAny && label !== 'Poke Balls' && label !== 'Medicine') return null;
           return (
-            <Panel key={label} title={label} icon={icon} accent={accent}>
+            <Panel collapsible defaultOpen={hasAny} key={label} title={label} icon={icon} accent={accent}>
               <div className="pkr-bag-shelf space-y-1.5">
                 {items.map((item) => {
                   const count = bag[item.id] ?? 0;

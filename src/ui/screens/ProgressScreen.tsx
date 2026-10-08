@@ -284,7 +284,7 @@ export function ProgressScreen({
         const catInfo = CATEGORY_LABELS[cat];
         const catUnlocked = defs.filter((d) => state.achievements[d.id]).length;
         return (
-          <Panel key={cat} title={`${catInfo.label} · ${catUnlocked}/${defs.length}`} icon={<GameIcon name={catInfo.iconName} size={13} />}>
+          <Panel collapsible defaultOpen={defs.some(d => state.achievements[d.id] && !claimedSet.has(d.id))} key={cat} title={`${catInfo.label} · ${catUnlocked}/${defs.length}`} icon={<GameIcon name={catInfo.iconName} size={13} />}>
             <div className="space-y-1.5">
               {defs.map((def) => (
                 <AchievementRow

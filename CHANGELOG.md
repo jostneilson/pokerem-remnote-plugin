@@ -5,6 +5,22 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [1.3.0] - 2026-10-07
+
+### Arcade revival
+
+- Locally bundled Pixelify Sans and Press Start 2P fonts, consistent pixel typography, crisp framed chrome, and semantic battle/type colors.
+- Full-panel management screens; persistent Play/Party/Bag/Dex navigation and an expandable Menu with all secondary destinations.
+- Return to Play for pending encounters without dismissing them.
+- Collapsible secondary status stats, achievement categories, inventory categories, and Settings guidance.
+- Compact generation/type selectors, larger readable Pokédex labels, and a larger scrollable type matrix.
+- Matching detail-sheet styles, simpler Settings hierarchy, reduced decorative shimmer, and integer movement feedback.
+- Bag combines My items and Shop, with owned counts alongside purchases and readable unavailable items. Existing saved Shop destinations still open the Shop inside Bag.
+- Larger navigation, type, and trainer lineup icons, shorter notices, and menu/disclosure/purchase feedback that respects reduced motion.
+- Removed the Study companion / Compact view top strip; Compact view now lives in Settings > Display.
+- Opt-in wild auto attack uses the strongest effective move and stops at its critical-hit knockout ceiling, when the lead faints, on a changed encounter, or on Stop/manual actions/navigation. Catch remains manual. Each turn reloads and checks the synced save under the existing write lock.
+- Save schema remains v4. Normal attack randomness and existing progression are preserved. Automated safety and save compatibility checks pass. User-supplied native screenshots were inspected for the listing; auto-attack native interaction and animation timing were not independently verified.
+
 ## [1.2.1] - 2026-10-07
 
 ### Fixed

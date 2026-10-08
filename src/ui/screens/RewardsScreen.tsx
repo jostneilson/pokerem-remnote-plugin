@@ -168,7 +168,7 @@ export function RewardsScreen({
         </div>
       )}
 
-      <Panel title="How you earn trainer XP" icon={<GameIcon name="chart" size={14} />}>
+      <Panel collapsible title="How you earn trainer XP" icon={<GameIcon name="chart" size={14} />}>
         <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
           Milestone achievements grant a one-time trainer XP burst by difficulty (common → epic). The rarest goals also add bonus items to your bag.
         </p>

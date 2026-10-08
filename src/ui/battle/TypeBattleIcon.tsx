@@ -89,7 +89,7 @@ export function TypeSymbolImage({
       <TypeBattleIcon
         type={type}
         variant={variant}
-        size={size}
+        size={Math.max(size, 20)}
         reducedMotion={reducedMotion}
         showTooltip={showTooltip}
       />
@@ -99,8 +99,8 @@ export function TypeSymbolImage({
     <img
       src={typeSymbolUrl(rootURL, type)}
       alt=""
-      width={size}
-      height={size}
+      width={Math.max(size, 20)}
+      height={Math.max(size, 20)}
       className="pkr-type-orb inline-block shrink-0 select-none"
       style={{ imageRendering: 'auto' }}
       title={showTooltip ? type : undefined}

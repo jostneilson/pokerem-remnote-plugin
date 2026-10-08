@@ -185,7 +185,7 @@ export function StatusScreen({
       </Panel>
 
       {ds ? (
-        <Panel title="Today's stats (UTC)" icon={<GameIcon name="chart" size={14} />}>
+        <Panel collapsible title="Today's stats (UTC)" icon={<GameIcon name="chart" size={14} />}>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{ds.reviews}</div>
@@ -206,7 +206,7 @@ export function StatusScreen({
         </Panel>
       ) : null}
 
-      <Panel title="Statistics" icon={<GameIcon name="chart" size={14} />}>
+      <Panel collapsible title="Statistics" icon={<GameIcon name="chart" size={14} />}>
         <div className="space-y-0">
           {[
             { icon: 'dot' as const, iconColor: '#60a5fa', label: 'Unique caught', value: uniqueCaught },
@@ -233,7 +233,7 @@ export function StatusScreen({
         </div>
       </Panel>
 
-      <Panel title="Study streak" icon={<GameIcon name="flame" size={14} />}>
+      <Panel collapsible title="Study streak" icon={<GameIcon name="flame" size={14} />}>
         <p className="text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
           {streakStudyLine(streak, longest)}
         </p>
@@ -250,7 +250,7 @@ export function StatusScreen({
         </p>
       </Panel>
 
-      <Panel title="Trainer" icon={<GameIcon name="trainer" size={14} />}>
+      <Panel collapsible title="Trainer" icon={<GameIcon name="trainer" size={14} />}>
         <div className="relative overflow-hidden">
           <div className="absolute -right-3 -top-3 opacity-[0.04]">
             <GameIcon name="pokeball" size={64} />

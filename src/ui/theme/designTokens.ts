@@ -29,10 +29,10 @@ export function brandCommandCaps(action: string): string {
 
 /** Layout radii (px) — align with `--pkr-radius-*` in CSS */
 export const radius = {
-  sm: 5,
-  md: 8,
-  panel: 12,
-  chip: 6,
+  sm: 1,
+  md: 2,
+  panel: 2,
+  chip: 2,
 } as const;
 
 /** Z-index scale for stacked HUD (battle, tooltips). Keep low; RemNote hosts the shell. */
@@ -47,7 +47,7 @@ export const zIndex = {
 /**
  * Typography roles (which font / smoothing):
  * - **pixel**: Press Start 2P — short labels, menu titles, wordmark, dialogue box text.
- * - **sans**: Exo 2 — tooltips (`.pkr-stat-tooltip`), long descriptions, settings prose.
+ * - **body**: Pixelify Sans — tooltips (`.pkr-stat-tooltip`), long descriptions, settings prose.
  * Sidebar `.pkr-pixel-ui` forces pixel on most chrome; prefer explicit `.pkr-text-sans-*` on portaled sans-only surfaces when needed.
  */
 export const typographyRole = {

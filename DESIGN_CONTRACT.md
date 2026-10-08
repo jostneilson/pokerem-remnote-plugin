@@ -1,104 +1,37 @@
-# PokéRem design contract (Phase 0)
+# PokéRem arcade design contract — 1.3.0 candidate
 
-This document locks the **visual and typography rules** for the RemNote plugin so later phases (battle polish, Party/Bag, etc.) do not drift.  
-**Code truth:** `src/style.css` (`:root`, `.pkr-*`) + `src/ui/theme/designTokens.ts`.
+## Visual identity
 
----
+A crisp 90s handheld/arcade game inside a study tool. Pixel fonts, square framed panels, stepped highlights, restrained movement, and real Pokémon sprite art. No sound. Navy ink and cream are the shared chrome, violet is the supporting frame color, and gold signals rewards. Scene backgrounds and type/HP colors keep their gameplay meaning.
 
-## 1. Brand
+## Typography and assets
 
-- **Wordmark:** **PokéRem** (é = U+00E9) — canonical in normal / sentence case (`BRAND.wordmark`).
-- **All-caps / uppercase CSS:** use **`POKEREM`** (`BRAND.wordmarkCaps`) — no accent on a capital E; the é belongs on “Poké” with lowercase **e** only.
-- **Command palette names:** `brandCommandCaps` (e.g. `POKEREM: Catch`) so hosts that render commands in all caps stay legible.
-- **Styling:** Pixel/title treatment may be stylized; in mixed case it must still **read as PokéRem**, not plain `PokeRem`.
-- **Code identifiers** may stay ASCII (e.g. `PokeRemGameState`, `usePokeRemBattleActions`) for developer ergonomics.
-- **Internal IDs** (`pokerem_sidebar`, `pokerem_cmd`, storage keys) stay unchanged — RemNote/plugin API, not branding.
+- Pixelify Sans: body, menu controls, secondary labels, tooltips, and dialogue. Use 14–17px for normal content, with sufficient line height. It is a pixel font designed to remain readable in longer text.
+- Press Start 2P: short titles, wordmark, and short panel headings. Use 8px or larger. Do not apply it to paragraphs.
+- Both fonts are bundled in `public/assets/fonts`, including original SIL OFL notices. Font bytes are embedded as data URLs in the injected widget CSS during development and build. No external font request or separately hosted font asset is required.
+- Sprites use pixelated rendering. Avoid fractional scale animations on sprites; translate them instead.
 
----
+## Layout
 
-## 2. Typography map
+Play owns the arena. Party, Bag (including Shop), Dex, Progress, Rewards, Types, and Settings use the full panel without repeating the arena above their content. Play/Party/Bag/Dex and Menu stay available at the top. Menu reveals the less frequent destinations. Navigation shows labels, reward attention, and keyboard focus.
 
-| Role | Font | Where | CSS / class |
-|------|------|--------|----------------|
-| Pixel title / wordmark | Press Start 2P | Battle header wordmark, queue strip title, short HUD labels | `.pkr-pixel-title` |
-| Pixel dialogue | Press Start 2P | Battle outcome log, short system lines | `.pkr-pixel-dialog` |
-| Sidebar UI (bulk) | Exo 2 | `.pokerem-sidebar.pkr-pixel-ui` subtree | Polish rules at end of `style.css` |
-| Tooltip / explainer body | Exo 2 | `StatHoverTip` portal, `.pkr-stat-tooltip` | `style.css` |
-| Sans body (explicit) | Exo 2 | Any surface that must stay readable outside sidebar pixel mode | `.pkr-text-sans-body` |
-| Muted meta | Exo 2 | Secondary lines next to sans body | `.pkr-text-sans-muted` |
+A pending wild/trainer encounter gets a Return to Play button on management screens. Viewing menus does not dismiss encounters or override trainer restrictions. The underlying saves and reducers remain authoritative.
 
-**Rule:** Pixel font is for **short** strings (roughly &lt; 40 characters in a single line). Paragraphs and settings explanations use **sans**.
+Extra status statistics, help, Settings explanations, and achievement categories use native disclosures. Actions and owned items stay easy to reach. Dex uses generation/type selectors instead of a wall of buttons. No feature is removed.
 
----
+## Shared controls
 
-## 3. Design tokens (`:root`)
+1–2px corners; 2px frames; subtle inset light/dark pixels. Buttons have clear focus, hover, disabled, and pressed states. Press feedback uses a small translation, not scale. Main action targets are at least 36px tall. Meters use `pkr-meter-track`/`pkr-meter-fill` and retain semantic colors and accessible values.
 
-Defined in `src/style.css`:
+Reduced motion suppresses decorative animation throughout the sidebar. No continuous shimmer on currency. Modal/detail surfaces and standalone widgets must follow the same fonts and frames.
 
-| Token | Purpose |
-|-------|---------|
-| `--pkr-radius-sm` | Small controls, meter tracks |
-| `--pkr-radius-md` | HUD plates, compact panels |
-| `--pkr-radius-panel` | `.pkr-panel`, main cards |
-| `--pkr-shadow-panel` | Default panel drop shadow |
-| `--pkr-shadow-panel-inset` | Inner highlight + depth on panels |
-| `--pkr-bevel-light` / `--pkr-bevel-dark` | Shared inset bevel (existing) |
+## Verification boundary
 
-Scene-specific accents continue to use **`battleAmbienceCssVars`** (`--pkr-accent`, `--pkr-panel-border`, etc.).
+Source/type checks, reducer tests, server rendering, and archive checks do not prove visual quality. Inspect the running UI at narrow and wide widths, expand controls, open sheets, and check keyboard navigation before release. Keep screenshot evidence and remaining host checks in the milestone QA document.
 
----
+## Wild auto attack and display controls
 
-## 4. Meters (single visual language)
-
-**Canonical pair:** `.pkr-meter-track` + `.pkr-meter-fill`
-
-- Used for: **party HP**, **status HP**, **trainer XP** (header), **achievement progress**, **`MeterBar`** helper, and **battle wild/player HP** (via aliases below).
-- **Do not** introduce new ad-hoc `rounded-full` + `rgba(0,0,0,0.4)` bars for game UI; extend this pair or add a documented variant class.
-
-**Aliases (same computed style as meters):** `.pkr-battle-hp-track`, `.pkr-battle-hp-fill` — kept for battle-specific markup and backwards compatibility; they share rules with `.pkr-meter-*`.
-
----
-
-## 5. Component inventory (where things live)
-
-| Area | Main files |
-|------|------------|
-| Battle (queue) | `src/ui/battle/BattleReviewSurface.tsx`, `outcomeStyles.ts`, `StatHoverTip.tsx`, `RouteFindBanner.tsx` |
-| Sidebar shell | `src/widgets/pokerem_sidebar.tsx` |
-| Queue strip | `src/widgets/pokerem_queue_strip.tsx` |
-| Encounter popup | `src/widgets/pokerem_encounter_popup.tsx` |
-| Global chrome CSS | `src/style.css` |
-| Theme class names | `src/ui/theme/gameTheme.ts` |
-| TS tokens | `src/ui/theme/designTokens.ts` |
-| Panels | `src/ui/components/Panel.tsx` |
-| Meters helper | `src/ui/components/Bars.tsx` |
-| Screens | `src/ui/screens/*.tsx` |
-| Scene / ambience | `src/game/engine/battleAmbience.ts` |
-
----
-
-## 5b. Sidebar tab bar icons (`nav*`)
-
-- **Source of truth:** `GameIcon.tsx` — keys `navStatus`, `navParty`, `navBag`, `navShop`, `navDex`, `navTypes`, `navProgress`, `navRewards`, `navSettings`.
-- **Format:** 16×16 viewBox, **integer `rect` pixel grid** (`pixelSvg`), `currentColor` fill, `shape-rendering: crispEdges` via `.pkr-pixel-icon-svg` in tab mode.
-- **Safe area:** Primary silhouette lives in **x: 1–14, y: 3–13** so every tab glyph **optically matches** when scaled to 18px in a fixed slot.
-- **Read:** Each icon must be **distinct at a glance** (party = three Pokeballs; dex = clamshell dex; types = matchup nodes + arrow; progress = trophy cup; rewards = chest; bag = backpack straps; shop = storefront/awning).
-
----
-
-## 6. Phase boundaries
-
-- **Phase 0 (this doc):** tokens, typography rules, brand lock, meter unification, written contract.
-- **Phase 1+:** Do not change this contract without updating this file and `designTokens.ts`. Next: battle HUD composition and command deck (see product roadmap).
-
----
-
-## 7. Success check (Phase 0)
-
-- [ ] No conflicting wordmark in battle header vs queue strip.
-- [ ] One meter track/fill style across battle header XP, party HP/XP, progress rows, and `MeterBar`.
-- [ ] New contributor can answer “which font for tooltips?” and “which classes for HP bars?” from this file alone.
-
-## 1.2.0 polish
-
-Sidebar prose and controls use Exo 2 with an 11px minimum for supporting copy. Pixel type is reserved for explicit game titles and HUD roles. Panels use 12px radii and 1px quiet borders. Navigation shows labels at every width, with five columns below 520px and nine above. Compact view hides only the wild arena; actions and HP remain available. All descendant motion is disabled by the plugin or OS reduced-motion preference. Trainer animation is a 480ms presentation of a committed turn and never writes save data.
+- No Study companion / Compact view toolbar. Settings > Display owns the session-scoped Compact view control.
+- Auto attack is explicitly started for one wild encounter. It chooses the strongest effective legal move and checks the maximum critical damage before each turn. Equality with wild HP stops the loop. Catch always remains a user action.
+- Turns are spaced by 900ms and serialized through the synced save lock. Cancel on Stop, manual battle actions, leaving Play, hidden document, changed encounter/lead, save failure, or unmount. A 100-turn cap prevents an unbounded loop. No persistent auto-attack save field.
+- Automated verification: 95 tests pass, including six auto-attack safety cases and existing save compatibility checks. These checks do not establish animation quality or native-host end-to-end acceptance.

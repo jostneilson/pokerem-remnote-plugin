@@ -27,11 +27,15 @@ const REMNOTE_SETTINGS_PATH = `RemNote Settings → Plugins → ${BRAND.wordmark
 
 export function SettingsScreen({
   plugin,
+  compact = false,
+  onToggleCompact,
   onAfterGameReset,
   studyProfile,
   onConfigureStudy,
 }: {
   plugin: RNPlugin;
+  compact?: boolean;
+  onToggleCompact?: () => void;
   /** Sidebar refreshes local React state and usually closes settings after a full reset. */
   onAfterGameReset?: () => void | Promise<void>;
   studyProfile?: {
@@ -136,7 +140,13 @@ export function SettingsScreen({
 
   return (
     <div className="space-y-3">
-      <DonateSupportCard />
+
+      {onToggleCompact ? <Panel title="Display" icon={<GameIcon name="settings" size={20} />}>
+        <button type="button" className="pkr-game-btn w-full p-3 text-left" aria-pressed={compact} onClick={onToggleCompact}>
+          Compact view: {compact ? 'On' : 'Off'}
+        </button>
+        <p className="mt-2 text-sm">Hide the wild arena for more study space. Battle controls stay available.</p>
+      </Panel> : null}
       <div className="pkr-settings-hero">
         <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
           Configuration
@@ -154,7 +164,7 @@ export function SettingsScreen({
         </div>
       </div>
 
-      <Panel title="Recommended workflow" icon={<GameIcon name="book" size={14} />}>
+      <Panel collapsible title="Recommended workflow" icon={<GameIcon name="book" size={14} />}>
         <ol className="pkr-settings-workflow-list space-y-2 text-[10px] font-semibold leading-snug" style={{ color: '#cbd5e1' }}>
           <li>
             <span className="font-black text-amber-200">1.</span> Open the <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong>{' '}
@@ -177,7 +187,7 @@ export function SettingsScreen({
         </ol>
       </Panel>
 
-      <Panel title="Battle controls" icon={<GameIcon name="gear" size={14} />}>
+      <Panel collapsible title="Battle controls" icon={<GameIcon name="gear" size={14} />}>
         <p className="mb-3 text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
           Wild encounters are meant to be handled with <strong style={{ color: '#e2e8f0' }}>on-screen buttons</strong> in the sidebar (and the
           queue strip when RemNote shows it), plus <strong style={{ color: '#e2e8f0' }}>RemNote commands</strong> and the review{' '}
@@ -210,7 +220,7 @@ export function SettingsScreen({
         </p>
       </Panel>
 
-      <Panel title="Behavior" icon={<GameIcon name="shield" size={14} />}>
+      <Panel collapsible title="Behavior" icon={<GameIcon name="shield" size={14} />}>
         <div className="space-y-2">
           <StatChip label="Auto-clear battle log" value={settings.autoClearLog ? 'On' : 'Off'} on={settings.autoClearLog} />
           <p className="text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
@@ -230,7 +240,7 @@ export function SettingsScreen({
       </Panel>
 
       {studyProfile && onConfigureStudy ? (
-        <Panel title="Study difficulty" icon={<GameIcon name="book" size={14} style={{ color: '#fde68a' }} />}>
+        <Panel collapsible title="Study difficulty" icon={<GameIcon name="book" size={14} style={{ color: '#fde68a' }} />}>
           <p className="mb-2 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
             When configured here, your save uses these values for <strong style={{ color: '#e2e8f0' }}>reviews per wild</strong> and{' '}
             <strong style={{ color: '#e2e8f0' }}>card XP intensity</strong> instead of RemNote&apos;s encounter rate / review intensity
@@ -323,7 +333,7 @@ export function SettingsScreen({
         </Panel>
       ) : null}
 
-      <Panel title="Customize" icon={<GameIcon name="diamond" size={14} />}>
+      <Panel collapsible title="Customize" icon={<GameIcon name="diamond" size={14} />}>
         <p className="mb-2 text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
           Feature toggles are read from RemNote. Some changes may need a plugin reload depending on your app version.
         </p>
@@ -430,7 +440,7 @@ export function SettingsScreen({
         </button>
       </Panel>
 
-      <Panel title="Restart progress" icon={<GameIcon name="flame" size={14} style={{ color: '#fca5a5' }} />}>
+      <Panel collapsible title="Restart progress" icon={<GameIcon name="flame" size={14} style={{ color: '#fca5a5' }} />}>
         <p className="mb-2 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
           Start completely over in <strong style={{ color: '#e2e8f0' }}>this knowledge base</strong>: your party, bag, Pokédex counts,
           Pokécoins, trainer XP, claimed rewards, achievements, streaks, and any active wild encounter are cleared from synced storage.
@@ -556,7 +566,8 @@ export function SettingsScreen({
         </div>
       ) : null}
 
-      <Panel title="About" icon={<GameIcon name="pokeball" size={14} />}>
+      <Panel collapsible title="Support PokéRem" icon={<GameIcon name="coin" size={14} />}><DonateSupportCard /></Panel>
+      <Panel collapsible title="About" icon={<GameIcon name="pokeball" size={14} />}>
         <div className="space-y-1.5 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
           <p>
             <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong> v{POKEREM_VERSION}

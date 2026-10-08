@@ -23,3 +23,6 @@ coverage
 .superdesign/init/
 .superdesign/resume.json
 .preview-dist/
+
+# Fonts are generated from licensed public assets before development/build.
+src/arcade-fonts.generated.css

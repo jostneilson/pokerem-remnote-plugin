@@ -100,10 +100,10 @@ function LineupIcon({
 }) {
   return (
     <div
-      className="relative grid place-items-center rounded-full"
+      className="pkr-lineup-icon relative grid place-items-center rounded-full"
       style={{
-        width: 26,
-        height: 26,
+        width: 40,
+        height: 40,
         background: defeated
           ? 'rgba(15,23,42,0.85)'
           : active
@@ -118,7 +118,7 @@ function LineupIcon({
       <PokemonSprite
         src={frontSpriteUrl(rootURL, dexNum)}
         alt={label}
-        size={22}
+        size={36}
         reducedMotion={reducedMotion}
       />
       {defeated ? (
@@ -212,8 +212,8 @@ function LineupStrip({
               key={`empty-${i}`}
               className="grid place-items-center rounded-full text-[9px]"
               style={{
-                width: 26,
-                height: 26,
+                width: 40,
+                height: 40,
                 background: 'rgba(15,23,42,0.55)',
                 border: '1.5px dashed rgba(100,116,139,0.4)',
                 color: '#475569',

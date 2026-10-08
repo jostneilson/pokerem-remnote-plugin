@@ -136,6 +136,9 @@ export function BattleReviewSurface({
   wild,
   canCatch,
   battleBusy,
+  autoAttacking = false,
+  autoAttackMessage,
+  onToggleAutoAttack,
   flowPhase,
   outcomeKind,
   feedbackSeq,
@@ -176,6 +179,9 @@ export function BattleReviewSurface({
   wild: EncounterPokemon | null;
   canCatch: boolean;
   battleBusy: boolean;
+  autoAttacking?: boolean;
+  autoAttackMessage?: string;
+  onToggleAutoAttack?: () => void;
   flowPhase: BattleFlowPhase;
   outcomeKind: BattleOutcomeKind;
   feedbackSeq: number;
@@ -1349,7 +1355,7 @@ export function BattleReviewSurface({
                   type="button"
                   tabIndex={-1}
                   disabled={battleBusy || legalMoves.length === 0 || active.currentHp <= 0}
-                  onClick={() => setFightMenu(true)}
+                  onClick={() => { if (autoAttacking) onToggleAutoAttack?.(); setFightMenu(true); }}
                   className={`pkr-game-btn pkr-battle-cmd-fight group relative flex min-h-[58px] min-w-[38%] flex-[1.2] flex-col items-center justify-center gap-0.5 rounded-lg border-2 px-1.5 py-1.5 text-center transition-[transform,filter,box-shadow] duration-150 ease-out hover:brightness-[1.07] active:translate-y-px disabled:opacity-35 ${commandDeckHoverLift}`}
                   style={{
                     borderColor: '#fecaca',
@@ -1387,6 +1393,13 @@ export function BattleReviewSurface({
                   </div>
                 </button>
               </div>
+              {onToggleAutoAttack ? <div className="pkr-auto-attack">
+                <button type="button" className="pkr-game-btn w-full px-3 py-2" aria-pressed={autoAttacking}
+                  disabled={!autoAttacking && (battleBusy || active.currentHp <= 0)} onClick={onToggleAutoAttack}>
+                  {autoAttacking ? 'Stop auto attack' : 'Auto attack'}
+                </button>
+                <p role="status" className="mt-1 text-center text-sm">{autoAttackMessage || 'Weakens the wild Pokémon, then stops for Catch.'}</p>
+              </div> : null}
               {ballStockChips.length > 0 ? (
                 <div
                   className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-md border px-2 py-1"

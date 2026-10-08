@@ -15,6 +15,7 @@ export function damageForMove(
   moveId: string,
   attackerTypes: PokemonType[],
   defenderTypes: PokemonType[],
+  critical?: boolean,
 ): number {
   const move = MOVES[moveId];
   if (!move || move.power <= 0) return 0;
@@ -28,7 +29,7 @@ export function damageForMove(
   // Mild extra swing on clear type wins/losses (effectiveness is already in eff).
   if (eff >= 2) dmg = Math.floor(dmg * 1.06);
   else if (eff < 1) dmg = Math.max(1, Math.floor(dmg * 0.94));
-  if (Math.random() < 0.06) dmg = Math.max(1, Math.floor(dmg * 1.5));
+  if (critical ?? (Math.random() < 0.06)) dmg = Math.max(1, Math.floor(dmg * 1.5));
   return dmg;
 }
 

@@ -1,6 +1,5 @@
 import '../style.css';
 import { SidebarNavigation } from '../ui/components/SidebarNavigation';
-import { StudyToolbar } from '../ui/components/StudyToolbar';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, usePlugin } from '@remnote/plugin-sdk';
 import { usePokeRemBattleActions } from '../hooks/usePokeRemBattleActions';
@@ -46,7 +45,7 @@ import { StarterPickerScreen } from '../ui/screens/StarterPickerScreen';
 import { StudyDifficultyScreen } from '../ui/screens/StudyDifficultyScreen';
 import { StatusScreen } from '../ui/screens/StatusScreen';
 import { PartyScreen } from '../ui/screens/PartyScreen';
-import { BagScreen } from '../ui/screens/BagScreen';
+import { ItemsScreen } from '../ui/screens/ItemsScreen';
 const CollectionScreen = lazy(() =>
   import('../ui/screens/CollectionScreen').then((m) => ({ default: m.CollectionScreen })),
 );
@@ -57,7 +56,6 @@ import { SettingsScreen } from '../ui/screens/SettingsScreen';
 const TypeChartScreen = lazy(() =>
   import('../ui/screens/TypeChartScreen').then((m) => ({ default: m.TypeChartScreen })),
 );
-import { ShopScreen } from '../ui/screens/ShopScreen';
 import { RewardsScreen } from '../ui/screens/RewardsScreen';
 import { neutralizeBrokenRegisterCSS } from '../neutralizeRemNoteCssApi';
 import { BattleReviewSurface } from '../ui/battle/BattleReviewSurface';
@@ -292,6 +290,7 @@ function PokeRemSidebar() {
   const active = activePokemon(state);
   const sidebarTab = state.selectedTab === 'battle' ? 'status' : state.selectedTab;
   const effectiveTab = ALL_TABS.includes(sidebarTab) ? sidebarTab : 'status';
+  useEffect(() => { if (showSettings || effectiveTab !== 'status') battle.stopAutoAttack(); }, [showSettings, effectiveTab, battle.stopAutoAttack]);
   const canCatch = (state.bag['poke-ball'] ?? 0) > 0 || (state.bag['great-ball'] ?? 0) > 0 || (state.bag['ultra-ball'] ?? 0) > 0;
 
   const ambienceStyle = battleAmbienceCssVars(getBattleAmbience(state.battleSceneIndex ?? 0));
@@ -340,15 +339,15 @@ function PokeRemSidebar() {
 
       <div className="pkr-seam shrink-0" />
 
-      <SidebarNavigation active={effectiveTab} settings={showSettings} rewardsAttention={rewardsTabAttention} progressAttention={progressTabGlow}
-        onSelect={(tab) => { setShowSettings(false); void applyReducer((s) => setTab(s, tab)); }}
-        onSettings={() => setShowSettings((v) => !v)} />
+
 
       <div className="pkr-content-vignette min-w-0 shrink-0 p-2">
         <div key={showSettings ? 'settings' : `tab-${effectiveTab}`} className="pkr-panel-mount min-w-0">
           {showSettings ? (
             <SettingsScreen
               plugin={plugin}
+              compact={compact}
+              onToggleCompact={toggleCompact}
               onAfterGameReset={async () => {
                 await refreshFromStorage();
                 setShowSettings(false);
@@ -384,11 +383,12 @@ function PokeRemSidebar() {
                   onSwapStorageForParty={(sid, rid) => void applyReducer((s) => swapPartyWithStorage(s, sid, rid))}
                 />
               ) : null}
-              {effectiveTab === 'bag' ? (
-                <BagScreen
+              {effectiveTab === 'bag' || effectiveTab === 'shop' ? (
+                <ItemsScreen
+                  initialView={effectiveTab === 'shop' ? 'shop' : 'inventory'}
+                  reducedMotion={reducedMotion}
+                  onBuy={(itemId, price) => void applyReducer((s) => buyItem(s, itemId, price))}
                   rootURL={plugin.rootURL}
-                  bag={state.bag}
-                  currency={state.currency}
                   state={state}
                   onUseItem={(itemId) =>
                     void applyReducer((s) =>
@@ -400,15 +400,6 @@ function PokeRemSidebar() {
                   onActivateXpDoubler={(tier) =>
                     void applyReducer((s) => activateXpDoubler(s, tier))
                   }
-                />
-              ) : null}
-              {effectiveTab === 'shop' ? (
-                <ShopScreen
-                  rootURL={plugin.rootURL}
-                  currency={state.currency ?? 0}
-                  trainerLevel={state.trainerLevel ?? 1}
-                  reducedMotion={reducedMotion}
-                  onBuy={(itemId, price) => void applyReducer((s) => buyItem(s, itemId, price))}
                 />
               ) : null}
               {effectiveTab === 'dex' ? (
@@ -443,7 +434,7 @@ function PokeRemSidebar() {
         {!showSettings ? (
           <div className="mt-3 pt-2">
             <div className="pkr-seam mb-2" />
-            {state.currentEncounter ? (
+            {state.currentEncounter && effectiveTab === 'status' ? (
               <p className="text-center text-[10px] font-semibold" style={{ color: 'rgba(252,211,77,0.9)' }}>
                 Wild encounter — use <strong className="font-black" style={{ color: '#fde68a' }}>Catch</strong>,{' '}
                 <strong className="font-black" style={{ color: '#fde68a' }}>Fight</strong> (first damaging move), or{' '}
@@ -467,14 +458,14 @@ function PokeRemSidebar() {
   return (
     <div
       ref={sidebarRootRef}
-      className={`pokerem-sidebar pkr-pixel-ui flex h-full min-h-0 min-w-0 w-full max-w-none flex-1 flex-col gap-0 self-stretch overflow-hidden ${compact ? 'pkr-focus-mode' : ''}`}
+      className={`pokerem-sidebar pkr-pixel-ui flex h-full min-h-0 min-w-0 w-full max-w-none flex-1 flex-col gap-0 self-stretch overflow-hidden ${compact ? 'pkr-focus-mode' : ''} ${showSettings || effectiveTab !== 'status' ? 'pkr-menu-view' : ''}`}
       data-reduced-motion={reducedMotion}
       aria-busy={saving}
       style={ambienceStyle}
       onMouseDown={(e) => e.stopPropagation()}
     >
+      {loaded && (state.currentTrainerBattle || state.currentEncounter) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
       {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
-      {loaded && state.starterChosen && state.studyDifficultyConfigured ? <StudyToolbar compact={compact} onToggle={toggleCompact} active={active} trainerBattle={!!state.currentTrainerBattle} /> : null}
       {/* ── Starter selection ── */}
       {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
         <div className="mx-2 mb-2 mt-2 flex min-h-0 min-w-0 flex-1 flex-col">
@@ -490,9 +481,12 @@ function PokeRemSidebar() {
         </div>
       ) : (
         <>
-          {/* Cave stays in the column above the scrollport; command deck + tabs scroll beneath it. */}
+                <SidebarNavigation active={effectiveTab} settings={showSettings} rewardsAttention={rewardsTabAttention} progressAttention={progressTabGlow}
+        onSelect={(tab) => { setShowSettings(false); void applyReducer((s) => setTab(s, tab)); }}
+        onSettings={() => setShowSettings((v) => !v)} />
+          {/* Menus use the full panel; Play owns the arena. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            {state.currentTrainerBattle ? (
+            {!showSettings && effectiveTab === 'status' && state.currentTrainerBattle ? (
               <div className={scrollAreaClass}>
                 <TrainerBattleSurface
                   key={state.currentTrainerBattle.id}
@@ -520,7 +514,7 @@ function PokeRemSidebar() {
                 />
                 {renderSidebarScrollTail()}
               </div>
-            ) : active ? (
+            ) : !showSettings && effectiveTab === 'status' && active ? (
               <BattleReviewSurface
                 widthSourceRef={sidebarRootRef}
                 rootURL={plugin.rootURL}
@@ -535,6 +529,9 @@ function PokeRemSidebar() {
                 feedbackSeq={state.battleFeedbackSeq}
                 busyAction={battle.busyAction}
                 onCatch={battle.makeCatch}
+                autoAttacking={battle.autoAttacking}
+                autoAttackMessage={battle.autoAttackMessage}
+                onToggleAutoAttack={() => battle.autoAttacking ? battle.stopAutoAttack() : void battle.startAutoAttack(state)}
                 onFightMove={(id) => battle.makeFightMove(id)}
                 onRun={battle.makeRun}
                 encounterRate={effectiveEncounterRate}
