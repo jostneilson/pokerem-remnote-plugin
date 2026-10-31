@@ -7,9 +7,13 @@ export interface LearnsetEntry {
   moveId: string;
 }
 
-/** Level-up moves may only be the species' own typings or Normal. */
+/** Canonical level-up learnsets legitimately contain off-type coverage moves. */
 export function allowedTypesForLearnset(speciesTypes: readonly PokemonType[]): Set<PokemonType> {
-  return new Set<PokemonType>(['Normal', ...speciesTypes]);
+  void speciesTypes;
+  return new Set<PokemonType>([
+    'Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison',
+    'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Dark', 'Steel', 'Fairy',
+  ]);
 }
 
 export function isMoveTypeLegalForSpecies(
@@ -29,17 +33,17 @@ export function validateLearnsetAgainstSpecies(
   speciesTypes: readonly PokemonType[],
   entries: readonly LearnsetEntry[],
 ): void {
-  const allow = allowedTypesForLearnset(speciesTypes);
+  void speciesTypes;
+  const seen = new Set<string>();
   for (const e of entries) {
     const m = MOVES[e.moveId];
     if (!m) throw new Error(`[learnset] dex ${dexNum}: unknown move id "${e.moveId}"`);
-    if (!allow.has(m.type)) {
-      throw new Error(
-        `[learnset] dex ${dexNum}: illegal move "${e.moveId}" (${m.type}) for types [${speciesTypes.join(', ')}]`,
-      );
-    }
     if (e.level < 0 || e.level > 100) {
       throw new Error(`[learnset] dex ${dexNum}: level ${e.level} out of range for move "${e.moveId}"`);
     }
+    if (seen.has(e.moveId)) {
+      throw new Error(`[learnset] dex ${dexNum}: duplicate move id "${e.moveId}"`);
+    }
+    seen.add(e.moveId);
   }
 }

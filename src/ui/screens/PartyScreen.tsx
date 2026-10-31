@@ -13,6 +13,9 @@ import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
+import { PokemonAppraisal } from '../components/PokemonAppraisal';
+import { battleStats, ivAverage, powerUpPreview } from '../../game/engine/pokemonStats';
+import '../collection.css';
 
 function sortTeachableMoves(types: readonly PokemonType[], ids: string[]): string[] {
   const primary = types[0];
@@ -167,6 +170,7 @@ export function PartyScreen({
   onMoveToParty,
   onSwapStorageForParty,
   bag, onEvolve, evolutionBlocked = false, evolutionMessage,
+  currency = 0, onPowerUp, onToggleFavorite, powerUpBlocked = false,
 }: {
   rootURL: string | undefined;
   bag?: Record<string, number>;
@@ -186,6 +190,10 @@ export function PartyScreen({
   onMoveToParty?: (pokemonId: string) => void;
   /** When party is full (6), swap a storage mon in for a chosen party member. */
   onSwapStorageForParty?: (storagePokemonId: string, replacePartyPokemonId: string) => void;
+  currency?: number;
+  onPowerUp?: (id: string, expectedLevel: number) => void;
+  onToggleFavorite?: (id: string) => void;
+  powerUpBlocked?: boolean;
 }) {
   const [pendingStone, setPendingStone] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -196,10 +204,25 @@ export function PartyScreen({
   const [releaseTarget, setReleaseTarget] = useState<{ id: string; name: string } | null>(null);
   const [movePickerPokemonId, setMovePickerPokemonId] = useState<string | null>(null);
   const [moveReplacePrompt, setMoveReplacePrompt] = useState<{ pokemonId: string; moveId: string } | null>(null);
+  const [search, setSearch] = useState('');
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'level' | 'power' | 'iv' | 'species'>('level');
+  const [powerConfirm, setPowerConfirm] = useState<string | null>(null);
   const replacePanelRef = useRef<HTMLDivElement | null>(null);
   const releasePanelRef = useRef<HTMLDivElement | null>(null);
   const storage = storagePokemon ?? [];
   const incomingReplace = replaceStorageId ? storage.find((x) => x.id === replaceStorageId) : undefined;
+  const filterAndSort = (list: OwnedPokemon[]) => list.filter((p) => {
+    const q = search.trim().toLowerCase();
+    return (!favoritesOnly || p.favorite === true) && (!q || `${p.nickname ?? ''} ${p.name} ${p.dexNum}`.toLowerCase().includes(q));
+  }).sort((a, b) => {
+    if (sortBy === 'species') return a.name.localeCompare(b.name) || a.dexNum - b.dexNum;
+    if (sortBy === 'iv') return ivAverage(b) - ivAverage(a) || b.level - a.level;
+    if (sortBy === 'power') return battleStats(b).power - battleStats(a).power || b.level - a.level;
+    return b.level - a.level || a.name.localeCompare(b.name);
+  });
+  const visibleParty = filterAndSort(party);
+  const visibleStorage = filterAndSort(storage);
 
   const replaceKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key !== 'Tab' || !replacePanelRef.current) return;
@@ -266,10 +289,27 @@ export function PartyScreen({
     const isExpanded = expanded === p.id;
     const isActive = p.id === activeId;
     const displayName = p.nickname || p.name;
+    const preview = p.level < 100 ? powerUpPreview(p) : null;
+    const currentStats = battleStats(p);
+    const powerDisabled = !onPowerUp || powerUpBlocked || p.level >= 100 || !preview || currency < preview.cost;
 
     const detail = (
       <>
+        <PokemonAppraisal pokemon={p} />
         <PokemonGrowthPanel pokemon={p} />
+        {onPowerUp ? <section className="pkr-power-up" aria-label="Power up Pokemon">
+          <div className="flex items-center justify-between gap-2"><strong>POWER UP</strong><span>₽{preview?.cost ?? '—'}</span></div>
+          {preview ? <>
+            <p>Lv{p.level} → Lv{preview.level}</p>
+            <div className="pkr-power-up__stats">
+              <span>HP +{Math.max(0, preview.stats.hp - currentStats.hp)}</span>
+              <span>ATK +{Math.max(0, preview.stats.attack - currentStats.attack)}</span>
+              <span>DEF +{Math.max(0, preview.stats.defense - currentStats.defense)}</span>
+            </div>
+            {preview.newMoves.length ? <p>Unlocks: {preview.newMoves.map((id) => MOVES[id]?.name ?? id).join(', ')}</p> : <p>No move unlock this level.</p>}
+            {powerConfirm === p.id ? <div className="mt-2 flex flex-wrap gap-2"><button type="button" className="pkr-btn-primary" disabled={powerDisabled} onClick={() => { onPowerUp(p.id, p.level); setPowerConfirm(null); }}>Confirm ₽{preview.cost}</button><button type="button" className="pkr-btn-secondary" onClick={() => setPowerConfirm(null)}>Cancel</button></div> : <button type="button" className="pkr-btn-primary mt-2 w-full" disabled={powerDisabled} onClick={() => setPowerConfirm(p.id)}>{powerUpBlocked ? 'Finish encounter first' : currency < preview.cost ? `Need ₽${preview.cost - currency}` : `Power up · ₽${preview.cost}`}</button>}
+          </> : <p>Maximum level reached.</p>}
+        </section> : null}
         {onEvolve && isParty ? <Panel title="Stone evolution">
           {p.everstone ? <p>Everstone prevents evolution.</p> : null}
           {evolutionMessage ? <p role="status" className="pkr-evolution-message">{evolutionMessage}</p> : null}
@@ -406,8 +446,8 @@ export function PartyScreen({
               {onRelease ? (
                 <button
                   type="button"
-                  disabled={isParty && party.length <= 1}
-                  title={isParty && party.length <= 1 ? 'You need at least one Pokémon in your party' : undefined}
+                  disabled={p.favorite === true || (isParty && party.length <= 1)}
+                  title={p.favorite ? 'Remove this Pokémon from favorites before releasing it' : isParty && party.length <= 1 ? 'You need at least one Pokémon in your party' : undefined}
                   onClick={() => setReleaseTarget({ id: p.id, name: displayName })}
                   className="pkr-btn-destructive disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -430,6 +470,7 @@ export function PartyScreen({
         isExpanded={isExpanded}
         onToggle={() => setExpanded(isExpanded ? null : p.id)}
         detail={detail}
+        onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(p.id) : undefined}
       />
     );
   }
@@ -567,6 +608,14 @@ export function PartyScreen({
     <div className="space-y-3">
       {replaceMovePortal}
 
+      <section className="pkr-collection-tools" aria-label="Collection filters">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or Pokédex #" aria-label="Search Pokemon" />
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} aria-label="Sort Pokemon">
+          <option value="level">Level</option><option value="power">Battle power</option><option value="iv">IV rating</option><option value="species">Species</option>
+        </select>
+        <label className="pkr-collection-tools__favorites"><input type="checkbox" checked={favoritesOnly} onChange={(e) => setFavoritesOnly(e.target.checked)} /> Favorites only</label>
+      </section>
+
       {releaseTarget && onRelease ? (
         <div
           className="fixed inset-0 z-[110] flex items-end justify-center p-2 sm:items-center"
@@ -682,7 +731,7 @@ export function PartyScreen({
           Select a Pokémon to manage it. Your{' '}
           <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
         </p>
-        <div className="space-y-2">{party.map((p) => renderPokemon(p, true))}</div>
+        <div className="space-y-2">{visibleParty.length ? visibleParty.map((p) => renderPokemon(p, true)) : <div className="pkr-empty-filter">No party Pokémon match these filters.</div>}</div>
       </Panel>
 
       {storage.length > 0 ? (
@@ -701,7 +750,7 @@ export function PartyScreen({
               <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
                 Not in your party — use “To party” to swap or add.
               </p>
-              {storage.map((p) => renderPokemon(p, false))}
+              {visibleStorage.length ? visibleStorage.map((p) => renderPokemon(p, false)) : <div className="pkr-empty-filter">No stored Pokémon match these filters.</div>}
             </div>
           ) : null}
         </section>

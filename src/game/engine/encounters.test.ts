@@ -97,12 +97,12 @@ describe('wild dex completion + encounter pool', () => {
     expect(enc.dexNum).toBe(target.dexNum);
   });
 
-  it('after completion, shiny uses 1/200 (post-complete odds)', () => {
+  it('after completion, shiny uses 1/250 (post-complete odds)', () => {
     const universe = wildEncounterSpeciesDexSet([1]);
     const collection: Record<number, number> = {};
     for (const d of universe) collection[d] = 1;
-    expect(SHINY_ODDS_POST_DEX_COMPLETE).toBe(1 / 200);
-    expect(SHINY_ODDS_PRE_DEX_COMPLETE).toBe(1 / 1000);
+    expect(SHINY_ODDS_POST_DEX_COMPLETE).toBe(1 / 250);
+    expect(SHINY_ODDS_PRE_DEX_COMPLETE).toBe(1 / 250);
 
     let i = 0;
     const seq = [0, 0, 0, 0.001];
@@ -115,7 +115,7 @@ describe('wild dex completion + encounter pool', () => {
     expect(enc.shiny).toBe(true);
   });
 
-  it('before completion, shiny uses 1/1000 baseline', () => {
+  it('before completion, shiny uses 1/250 baseline', () => {
     const universe = wildEncounterSpeciesDexSet([1]);
     const collection: Record<number, number> = {};
     for (const d of universe) collection[d] = 1;
@@ -123,7 +123,7 @@ describe('wild dex completion + encounter pool', () => {
     collection[one] = 0;
 
     let i = 0;
-    const seq = [0, 0, 0, 0.0005];
+    const seq = [0, 0, 0, 0.001];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;
@@ -133,7 +133,7 @@ describe('wild dex completion + encounter pool', () => {
     expect(enc.shiny).toBe(true);
   });
 
-  it('before completion, shiny roll above 1/1000 is not shiny', () => {
+  it('before completion, shiny roll above 1/250 is not shiny', () => {
     const universe = wildEncounterSpeciesDexSet([1]);
     const collection: Record<number, number> = {};
     for (const d of universe) collection[d] = 1;
@@ -141,7 +141,7 @@ describe('wild dex completion + encounter pool', () => {
     collection[one] = 0;
 
     let i = 0;
-    const seq = [0, 0, 0, 0.002];
+    const seq = [0, 0, 0, 0.005];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;

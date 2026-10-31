@@ -7,6 +7,8 @@ import { PokemonSprite } from './PokemonSprite';
 import { GameIcon } from './GameIcon';
 import { checkLevelEvolution } from '../../game/engine/evolution';
 import { PartyHpMeter, PartyXpMeter } from './Bars';
+import { PokemonAppraisal } from './PokemonAppraisal';
+import { SPECIES_BY_DEX } from '../../game/data/species';
 
 export function PartyPokemonCard({
   rootURL,
@@ -16,6 +18,7 @@ export function PartyPokemonCard({
   isExpanded,
   onToggle,
   detail,
+  onToggleFavorite,
 }: {
   rootURL: string | undefined;
   pokemon: OwnedPokemon;
@@ -24,14 +27,19 @@ export function PartyPokemonCard({
   isExpanded: boolean;
   onToggle: () => void;
   detail?: ReactNode;
+  onToggleFavorite?: () => void;
 }) {
   const displayName = p.nickname || p.name;
   const isParty = variant === 'party';
+  const classification = SPECIES_BY_DEX.get(p.dexNum)?.classification ?? 'ordinary';
 
   return (
     <div
-      className={`pkr-party-card ${!isParty ? 'pkr-party-card--storage' : ''} ${isParty && isActive ? 'pkr-party-card--lead' : ''}`}
+      className={`pkr-party-card pkr-party-card--${classification} ${p.shiny ? 'pkr-party-card--shiny' : ''} ${!isParty ? 'pkr-party-card--storage' : ''} ${isParty && isActive ? 'pkr-party-card--lead' : ''}`}
     >
+      {onToggleFavorite ? (
+        <button type="button" className="pkr-favorite-btn" aria-label={`${p.favorite ? 'Remove' : 'Add'} ${displayName} ${p.favorite ? 'from' : 'to'} favorites`} aria-pressed={p.favorite === true} onClick={onToggleFavorite}>★</button>
+      ) : null}
       <button type="button" className="pkr-party-card__toggle" onClick={onToggle} aria-expanded={isExpanded}>
         <div className="pkr-party-card__sprite-well">
           <PokemonSprite src={frontSpriteUrl(rootURL, p.dexNum, p.shiny === true)} alt={displayName} size={76} />
@@ -42,6 +50,8 @@ export function PartyPokemonCard({
               {displayName}
             </span>
             <span className="flex shrink-0 flex-wrap items-center justify-end gap-0.5">
+              {classification !== 'ordinary' ? <span className="pkr-classification-badge">{classification === 'ultra-beast' ? 'Ultra Beast' : classification}</span> : null}
+              {p.shiny ? <span className="pkr-classification-badge pkr-classification-badge--shiny">Shiny</span> : null}
               {checkLevelEvolution(p) ? (
                 <span
                   className="flex items-center gap-0.5 rounded px-1 py-px text-[7px] font-black uppercase"
@@ -111,6 +121,7 @@ export function PartyPokemonCard({
               </span>
             ) : null}
           </div>
+          <PokemonAppraisal pokemon={p} compact />
         </div>
       </button>
       {isExpanded && detail ? <div className="pkr-party-card__detail">{detail}</div> : null}

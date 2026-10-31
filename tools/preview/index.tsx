@@ -26,6 +26,10 @@ function fixture(){
 const captureParams=new URLSearchParams(window.location.search);
 const captureMode=captureParams.get('capture')==='1';
 const captureScreen=captureParams.get('screen')??'status';
+const captureScenario=captureParams.get('scenario')??'common';
+const requestedWidth=Number(captureParams.get('width'));
+const captureWidth=[280,320,400,520].includes(requestedWidth)?requestedWidth:400;
+const requestedReducedMotion=captureParams.get('reducedMotion')==='1';
 function captureFixture(){
  let s=fixture();
  if(captureScreen==='trainer'){
@@ -36,20 +40,31 @@ function captureFixture(){
   s=game.activateXpDoubler(s,'common');
   s=game.activateXpDoubler(s,'rare');
  }
+ const seed=s.party[0]!;
+ const owned=(id:string,dexNum:number,name:string,extra:Partial<typeof seed>={})=>({...seed,id,dexNum,name,ivs:{hp:2,attack:3,defense:2} as const,...extra});
+ if(captureScenario==='legendary') s={...s,party:[owned('qa-legendary',150,'Mewtwo',{types:['Psychic'],level:42,totalXp:30000,ivs:{hp:3,attack:3,defense:3}})],activePokemonId:'qa-legendary'};
+ if(captureScenario==='ultra-beast') s={...s,party:[owned('qa-ultra',793,'Nihilego',{types:['Rock','Poison'],level:36,totalXp:22000,ivs:{hp:3,attack:2,defense:3}})],activePokemonId:'qa-ultra'};
+ if(captureScenario==='shiny') s={...s,party:[owned('qa-shiny',4,'Charmander',{types:['Fire'],shiny:true,level:18,totalXp:6000,ivs:{hp:3,attack:3,defense:2}})],activePokemonId:'qa-shiny'};
+ if(captureScenario==='fainted') s={...s,party:s.party.map((p,i)=>i===0?{...p,currentHp:0,ivs:{hp:1,attack:2,defense:3}}:p)};
+ if(captureScenario==='cash-bonus') s={...s,lastStudyReward:{seq:s.cardsReviewed,leadXp:14,benchXp:4,bonus:2500,tier:'Jackpot'}};
+ if(captureScenario==='full-party-catch') {
+  const six=[...s.party,owned('qa-4',25,'Pikachu',{types:['Electric']}),owned('qa-5',133,'Eevee',{types:['Normal']})].slice(0,6);
+  s={...s,party:six,activePokemonId:six[0]!.id,pendingCaughtMon:owned('qa-catch',147,'Dratini',{types:['Dragon'],level:14,totalXp:2500,ivs:{hp:3,attack:3,defense:2}}),currentEncounter:null,currentTrainerBattle:null};
+ }
  return s;
 }
 function Preview(){
  const [s,set]=useState<PokeRemGameState>(captureMode?captureFixture:fixture);const [tab,setTab]=useState<SectionTab>(captureScreen==='trainer'?'status':captureScreen as SectionTab);
  const [settings,setSettings]=useState(false);
 
- const [width,setWidth]=useState(400),[compact,setCompact]=useState(false),[rm,setRm]=useState(false),[news,setNews]=useState(false); const demoPlugin={settings:{getSetting:async(key:string)=>key.includes('reducedMotion')?rm:true},storage:{getSynced:async()=>s,setSynced:async()=>{}},app:{toast:async()=>{}}} as any;
+ const [width,setWidth]=useState(captureMode?captureWidth:400),[compact,setCompact]=useState(false),[rm,setRm]=useState(captureMode?requestedReducedMotion:false),[news,setNews]=useState(false); const demoPlugin={settings:{getSetting:async(key:string)=>key.includes('reducedMotion')?rm:true},storage:{getSynced:async()=>s,setSynced:async()=>{}},app:{toast:async()=>{}}} as any;
  const act=(f:(s:PokeRemGameState)=>PokeRemGameState)=>set(f);
  const active=game.activePokemon(s)!;
  const tail=<><div className="pkr-content-vignette"><div className="pkr-panel-mount" key={tab}>
  {news?<WhatsNewCard seenVersion="" onDismiss={()=>setNews(false)}/>:null}
  {settings?<SettingsScreen compact={compact} onToggleCompact={()=>setCompact(v=>!v)} plugin={demoPlugin} studyProfile={{configured:true,preset:s.studyDifficultyPreset,reviews:s.studyReviewsPerEncounter,weight:s.studyCardWeight}} onConfigureStudy={(p,c)=>act(s=>game.configureStudyDifficulty(s,p,c))}/>:null}
  {!settings && tab==='status'?<StatusScreen rootURL="/" state={s} active={active}/>:null}
- {!settings && tab==='party'?<PartyScreen rootURL="/" party={s.party} bag={s.bag} evolutionBlocked={!!s.currentEncounter || !!s.currentTrainerBattle} evolutionMessage={s.lastOutcomeKind==='evolution'?s.lastBattleLog:undefined} onEvolve={(pid,item)=>act(s=>game.useEvolutionStone(s,pid,item))} activeId={s.activePokemonId} storagePokemon={s.storagePokemon} onSwitch={id=>act(s=>game.switchActivePokemon(s,id))} onLearnMove={(id,mid,i)=>act(s=>game.learnMoveAction(s,id,mid,i))} onRename={(id,name)=>act(s=>game.renamePokemon(s,id,name))}/>:null}
+ {!settings && tab==='party'?<PartyScreen rootURL="/" party={s.party} bag={s.bag} currency={s.currency} powerUpBlocked={!!s.currentEncounter || !!s.currentTrainerBattle || !!s.pendingCaughtMon} evolutionBlocked={!!s.currentEncounter || !!s.currentTrainerBattle} evolutionMessage={s.lastOutcomeKind==='evolution'?s.lastBattleLog:undefined} onPowerUp={(id,level)=>act(s=>game.powerUpPokemon(s,id,level))} onToggleFavorite={id=>act(s=>game.togglePokemonFavorite(s,id))} onEvolve={(pid,item)=>act(s=>game.useEvolutionStone(s,pid,item))} activeId={s.activePokemonId} storagePokemon={s.storagePokemon} onSwitch={id=>act(s=>game.switchActivePokemon(s,id))} onLearnMove={(id,mid,i)=>act(s=>game.learnMoveAction(s,id,mid,i))} onRename={(id,name)=>act(s=>game.renamePokemon(s,id,name))} onRelease={id=>act(s=>game.releasePokemon(s,id))} onMoveToStorage={id=>act(s=>game.moveToStorage(s,id))} onMoveToParty={id=>act(s=>game.moveToParty(s,id))} onSwapStorageForParty={(sid,pid)=>act(s=>game.swapPartyWithStorage(s,sid,pid))}/>:null}
  {!settings && (tab==='bag'||tab==='shop')?<ItemsScreen rootURL="/" state={s} initialView={tab==='shop'?'shop':'inventory'} reducedMotion={rm} onUseItem={id=>act(s=>id==='rare-candy'||id==='exp-candy-s'?game.useLeadUtilityItem(s,id):game.useHealingItem(s,id))} onActivateXpDoubler={tier=>act(s=>game.activateXpDoubler(s,tier))} onBuy={(id,price)=>act(s=>game.buyItem(s,id,price))}/>:null}
  {!settings && tab==='dex'?<CollectionScreen rootURL="/" collectionDex={s.collectionDex}/>:null}
  {!settings && tab==='types'?<TypeChartScreen rootURL="/"/>:null}
@@ -58,7 +73,7 @@ function Preview(){
  </div></div></>;
  return <main style={{display:'flex',gap:32,padding:captureMode?0:24,background:captureMode?'#0c171b':'#e8eeed',minHeight:'100vh',alignItems:'flex-start'}}>
  {!captureMode?<aside style={{width:230,fontFamily:'system-ui',color:'#234',position:'sticky',top:24}}><h1 style={{fontSize:20,fontWeight:800}}>PokéRem QA</h1><p style={{fontSize:13,margin:'12px 0'}}>Isolated demo save. No RemNote connection. All gameplay controls below use the real game reducers.</p>
- <div style={{display:'grid',gap:8}}>{[280,320,400,560].map(w=><button key={w} onClick={()=>setWidth(w)} style={{background:'#fff',padding:8,borderRadius:8}}>{w}px sidebar</button>)}
+ <div style={{display:'grid',gap:8}}>{[280,320,400,520].map(w=><button key={w} onClick={()=>setWidth(w)} style={{background:'#fff',padding:8,borderRadius:8}}>{w}px sidebar</button>)}
  <button onClick={()=>act(s=>game.onQueueCardComplete(s,[1,6],10,{trainerFrequency:'off'}))}>Review demo card</button>
  <button onClick={()=>act(s=>({...s,currentEncounter:{dexNum:25,name:'Pikachu',level:12,maxHp:62,currentHp:62,types:['Electric'],moves:['thunder-shock'],shiny:false,tier:'Common'},currentTrainerBattle:null}))}>Wild encounter</button>
  <button onClick={()=>act(s=>game.startTrainerBattle({...s,currentEncounter:null,currentTrainerBattle:null},'standard',[1],()=>.4))}>Trainer challenge</button>
@@ -68,7 +83,7 @@ function Preview(){
  <pre style={{fontSize:11,marginTop:16,whiteSpace:'pre-wrap'}}>Cards: {s.cardsReviewed} · coins: {s.currency}<br/>Booster: {s.xpBoosterActive?.cardsRemaining??0} · queued: {s.xpBoosterQueue?.length??0}<br/>Trainer: {s.currentTrainerBattle?.phase??'none'} · turns: {s.currentTrainerBattle?.feedbackSeq??0}</pre></aside>:null}
  <div className={`pokerem-sidebar pkr-pixel-ui ${compact?'pkr-focus-mode':''}`} data-reduced-motion={rm} style={{...battleAmbienceCssVars(getBattleAmbience(s.battleSceneIndex??0)),position:'relative',width,flexShrink:0,height:900,display:'flex',flexDirection:'column',overflow:'hidden',borderRadius:captureMode?0:14,boxShadow:captureMode?'none':'0 18px 60px #10232430'}}>
  <SidebarNavigation active={tab} settings={settings} rewardsAttention={true} progressAttention={true} onSelect={t=>{setSettings(false);setTab(t);}} onSettings={()=>setSettings(v=>!v)}/>
- {settings||tab!=='status'?<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto',minHeight:0,flex:1}}>{tail}</div>:s.currentTrainerBattle?<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto'}}><TrainerBattleSurface key={s.currentTrainerBattle.id} state={s} rootURL="/" reducedMotion={rm} onLockTeam={ids=>act(s=>game.lockTrainerTeam(s,ids))} onCombatTurn={mid=>act(s=>game.applyTrainerCombatTurn(s,mid))} onClaimCatch={(idx,ball)=>act(s=>game.claimTrainerCatch(s,idx,ball))} onDismissCatchOffer={()=>act(game.dismissTrainerCatchOffer)} onBuyBall={(id,price)=>act(s=>game.buyItem(s,id,price))} onClose={()=>act(game.closeTrainerBattle)} ballPrices={[{id:'poke-ball',price:100,unlocked:true}]}/>{tail}</div>:
- <BattleReviewSurface state={s} rootURL="/" active={active} hasEncounter={!!s.currentEncounter} wild={s.currentEncounter} canCatch={(s.bag['poke-ball']??0)>0} battleBusy={false} flowPhase={getBattleFlowPhase(s,false)} outcomeKind={s.lastOutcomeKind} feedbackSeq={s.battleFeedbackSeq} busyAction={null} onCatch={()=>act(game.catchEncounter)} onFightMove={mid=>act(s=>game.applyCombatTurn(s,mid))} onRun={()=>act(game.runFromEncounter)} encounterRate={10} currency={s.currency} reducedMotion={rm} onBuyBall={()=>act(s=>game.buyItem(s,'poke-ball',100))} onDismissMainNotice={id=>act(s=>game.dismissMainNotice(s,id))} sidebarSplitLayout={({sticky,lower})=><>{sticky}<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto',minHeight:0,flex:1}}>{lower}{tail}</div></>}/>}</div></main>;
+ {settings||tab!=='status'?<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto',minHeight:0,flex:1}}>{tail}</div>:s.currentTrainerBattle&&!s.pendingCaughtMon?<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto'}}><TrainerBattleSurface key={s.currentTrainerBattle.id} state={s} rootURL="/" reducedMotion={rm} onLockTeam={ids=>act(s=>game.lockTrainerTeam(s,ids))} onCombatTurn={mid=>act(s=>game.applyTrainerCombatTurn(s,mid))} onClaimCatch={(idx,ball)=>act(s=>game.claimTrainerCatch(s,idx,ball))} onDismissCatchOffer={()=>act(game.dismissTrainerCatchOffer)} onBuyBall={(id,price)=>act(s=>game.buyItem(s,id,price))} onClose={()=>act(game.closeTrainerBattle)} ballPrices={[{id:'poke-ball',price:100,unlocked:true}]}/>{tail}</div>:
+ <BattleReviewSurface state={s} rootURL="/" active={active} hasEncounter={!!s.currentEncounter} wild={s.currentEncounter} canCatch={(s.bag['poke-ball']??0)>0} battleBusy={false} flowPhase={getBattleFlowPhase(s,false)} outcomeKind={s.lastOutcomeKind} feedbackSeq={s.battleFeedbackSeq} busyAction={null} onCatch={()=>act(game.catchEncounter)} onFightMove={mid=>act(s=>game.applyCombatTurn(s,mid))} onRun={()=>act(game.runFromEncounter)} encounterRate={10} currency={s.currency} reducedMotion={rm} pendingCaughtMon={s.pendingCaughtMon} partyForReplace={s.party} activePartyId={s.activePokemonId} onPendingCatchReplace={id=>act(s=>game.resolvePendingCaughtReplace(s,id))} onPendingCatchCancel={()=>act(game.cancelPendingCaught)} onBuyBall={()=>act(s=>game.buyItem(s,'poke-ball',100))} onDismissMainNotice={id=>act(s=>game.dismissMainNotice(s,id))} sidebarSplitLayout={({sticky,lower})=><>{sticky}<div className="pkr-sidebar-scroll-body" style={{overflowY:'auto',minHeight:0,flex:1}}>{lower}{tail}</div></>}/>}</div></main>;
 }
 render(<Preview/>,document.getElementById('app'));

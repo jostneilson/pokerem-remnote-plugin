@@ -8,8 +8,14 @@ export interface SpeciesData {
   name: string;
   types: PokemonType[];
   baseHp: number;
+  baseAttack?: number;
+  baseDefense?: number;
+  baseSpecialAttack?: number;
+  baseSpecialDefense?: number;
+  baseSpeed?: number;
   baseCatchRate: number;
   tier: 'Common' | 'Baby' | 'Ultra' | 'Legendary' | 'Mythical';
+  classification: 'ordinary' | 'legendary' | 'mythical' | 'ultra-beast';
   generation: number;
 }
 

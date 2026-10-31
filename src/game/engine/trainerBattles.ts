@@ -352,8 +352,8 @@ export function generateTrainerRewards(
   const isElite = tier === 'elite';
   const lvScale = Math.max(1, averageLevel);
   const coins = isElite
-    ? 200 + Math.floor(lvScale * 4) + Math.floor(rng() * 60)
-    : 80 + Math.floor(lvScale * 2) + Math.floor(rng() * 30);
+    ? 1500 + Math.floor(lvScale * 25) + Math.floor(rng() * 300)
+    : 600 + Math.floor(lvScale * 15) + Math.floor(rng() * 150);
   const trainerXp = isElite ? 120 : 45;
   const items: Partial<Record<string, number>> = isElite
     ? { 'great-ball': 2, 'super-potion': 2, revive: 1 }
@@ -409,6 +409,7 @@ export function trainerEnemyAsEncounter(enemy: TrainerEnemyMon): EncounterPokemo
     currentHp: Math.max(1, Math.min(enemy.maxHp, enemy.currentHp)),
     maxHp: enemy.maxHp,
     types: enemy.types,
+    ivs: enemy.ivs,
   };
 }
 

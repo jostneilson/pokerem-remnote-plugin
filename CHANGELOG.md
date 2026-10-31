@@ -5,6 +5,23 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [1.4.0] - 2026-10-31
+
+### Collection, Combat & Appraisal Revamp
+
+- **Species & Learnsets**: Imported canonical battle stats, physical/special attack and defense split, and authentic species-specific level-up learnsets from pinned PokéAPI dataset across 905 species. Pokémon can learn legitimate coverage moves outside their elemental types.
+- **Combat Mechanics**: Added genuine battle mechanics including status ailments (sleep, burn, freeze, paralysis, poison, confusion), stat stages (-6 to +6), flinching, healing moves, authentic Splash exceptions, and critical hit calculation.
+- **Unified Battle Calculations**: Shared `battleStats` and `damageCeiling` logic across wild encounters, trainer battles, damage preview, and auto-attack knockout safety checks.
+- **Individual Values (IVs) & Appraisal**: Introduced HP, Attack, and Defense IVs (rolled 1–3 equally), permanent across evolutions, storage, and reloads. Appraisal displays 3 stat bars and precise clipped stars (e.g. 2⅓ stars) with accessible text. IV multipliers (90%, 100%, 110%) scale calculated battle stats.
+- **Party Power Up**: Added Power Up action previewing next level, stat increases, unlocked moves, and cash cost (`100 + 20L + 2L²` coins). Gated during active combat.
+- **Defeat vs Catch Rewards**: Defeating a Pokémon awards substantially more money (250+ coins + level bonus) and full combat XP compared to catching.
+- **High-Value Rewards & Bonuses**: Increased study review cash to 25 coins, expanded cash bonus rolls (Lucky find 350–850, Rare find 2,000–5,000, Jackpot 10,000–25,000 coins), and boosted trainer battle purses (600–2,000+ coins).
+- **Type-Sharing Collection XP Boost**: Defeating or catching any Pokémon grants an XP resonance boost to all other caught Pokémon in your collection sharing a type, with a larger boost for party members and a minor boost for stored Pokémon.
+- **Average Party Level Scaling**: Wild encounter levels dynamically scale based on the average level of all active party members.
+- **Full-Party Catch Flow**: Wild and trainer catches with a full party present an in-place review on Play, allowing inspection of moves, stats, and IVs to swap a party member to storage or send the catch directly to storage.
+- **Shiny Balance & Sprites**: Shiny odds baseline set to 1/250 with pacing compensation. Battlefield sprites grounded to platform positions.
+- **Save Migration & Safety**: Version 5 migration creates a pre-v5 backup in storage (`STORAGE_KEY + '_pre_v5'`), assigns stable deterministic IVs to existing Pokémon, preserves nicknames, items, currencies, and shinies, and repairs invalid legacy moves into legal unlocked moves with historical move retention.
+
 ## [1.3.1] - 2026-10-07
 
 - Added confirmed stone evolution in Party, with one-stone consumption, compatible-target previews, battle/faint/Everstone guards, preserved identity and shiny status, collection progress, and evolution rewards.

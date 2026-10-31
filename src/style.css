@@ -2926,3 +2926,15 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 @keyframes pkr-shiny-burst { 0% { opacity:0; transform:translateY(12px); } 25% { opacity:1; transform:translateY(-3px); } 55% { transform:translateY(2px); } 100% { transform:translateY(0); } }
 [data-reduced-motion="true"] .pkr-shiny-celebration, [data-reduced-motion="true"] .pkr-shiny-burst { animation:none !important; }
 @media (prefers-reduced-motion:reduce) { .pkr-shiny-celebration,.pkr-shiny-burst { animation:none !important; } }
+
+.pkr-species-badge { display:inline-block;padding:5px 7px;border:2px solid #a6b5d4;font-size:14px; }
+.pkr-species-badge--legendary,[data-classification="legendary"] { outline:2px solid #efd879;outline-offset:2px; }
+.pkr-species-badge--mythical,[data-classification="mythical"] { outline:2px solid #e4a6ff;outline-offset:2px; }
+.pkr-species-badge--ultra-beast,[data-classification="ultra-beast"] { outline:2px double #7ee9dd;outline-offset:2px; }
+.pkr-pending-collection { padding:12px;border:2px solid #f5d77e;background:#151a32;max-width:100%; }
+.pkr-catch-choice { margin:10px 0;padding:8px;border:2px solid #65709a;overflow-wrap:anywhere; }
+.pkr-catch-choice summary { cursor:pointer;min-height:40px;font-size:16px; }
+.pkr-study-reward { padding:5px 10px;font-size:14px;color:#d8e4f6;background:#171d33;border-bottom:1px solid #65709a; }
+.pkr-cash-bonus { display:block;color:#ffdc7b;animation:pkr-shiny-arrival 400ms ease-out both; }
+[data-reduced-motion="true"] .pkr-cash-bonus {animation:none;}
+@media(prefers-reduced-motion:reduce){.pkr-cash-bonus {animation:none;}}

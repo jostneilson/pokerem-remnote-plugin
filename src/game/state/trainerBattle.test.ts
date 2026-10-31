@@ -94,7 +94,7 @@ describe('v4 save normalization', () => {
       studyCardWeight: 1,
     };
     const parsed = parseGameState(v3Raw);
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.currentTrainerBattle ?? null).toBeNull();
     expect(parsed.xpBoosterActive ?? null).toBeNull();
     expect(parsed.xpBoosterQueue ?? []).toEqual([]);
@@ -105,7 +105,7 @@ describe('v4 save normalization', () => {
 
   it('returns a clean v4 initial state when raw is invalid', () => {
     const parsed = parseGameState(null);
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.starterChosen).toBe(false);
   });
 });

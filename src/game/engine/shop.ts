@@ -55,8 +55,8 @@ export function getShopInventory(trainerLevel: number = 1): ShopItem[] {
 }
 
 export const CURRENCY_REWARDS = {
-  review: 10,
-  defeat: 50,
+  review: 25,
+  defeat: 250,
   catch: 100,
   run: 25,
 } as const;

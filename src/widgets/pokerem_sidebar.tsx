@@ -16,6 +16,8 @@ import {
   switchActivePokemon,
   useHealingItem,
   useEvolutionStone,
+  powerUpPokemon,
+  togglePokemonFavorite,
   useLeadUtilityItem,
   activePokemon,
   forgetMoveAction,
@@ -373,6 +375,10 @@ function PokeRemSidebar() {
                   rootURL={plugin.rootURL}
                   party={state.party}
                   bag={state.bag}
+                  currency={state.currency}
+                  powerUpBlocked={!!state.currentEncounter || !!state.currentTrainerBattle || !!state.pendingCaughtMon}
+                  onPowerUp={(id,level)=>void applyReducer(s=>powerUpPokemon(s,id,level))}
+                  onToggleFavorite={(id)=>void applyReducer(s=>togglePokemonFavorite(s,id))}
                   evolutionBlocked={!!state.currentEncounter || !!state.currentTrainerBattle}
                   evolutionMessage={state.lastOutcomeKind === 'evolution' ? state.lastBattleLog : undefined}
                   onEvolve={(pid, item) => void applyReducer(s => useEvolutionStone(s, pid, item))}
@@ -469,7 +475,11 @@ function PokeRemSidebar() {
       style={ambienceStyle}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      {loaded && (state.currentTrainerBattle || state.currentEncounter) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
+      {state.lastStudyReward ? <div className="pkr-study-reward" key={`study-${state.lastStudyReward.seq}`} role="status">
+        Lead +{state.lastStudyReward.leadXp} XP · Party +{state.lastStudyReward.benchXp} XP
+        {state.lastStudyReward.bonus>0?<strong className="pkr-cash-bonus"> ✦ {state.lastStudyReward.tier} +{state.lastStudyReward.bonus} coins</strong>:null}
+      </div>:null}
+      {loaded && (state.currentTrainerBattle || state.currentEncounter || state.pendingCaughtMon) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
       {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
       {/* ── Starter selection ── */}
       {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
@@ -491,7 +501,7 @@ function PokeRemSidebar() {
         onSettings={() => setShowSettings((v) => !v)} />
           {/* Menus use the full panel; Play owns the arena. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            {!showSettings && effectiveTab === 'status' && state.currentTrainerBattle ? (
+            {!showSettings && effectiveTab === 'status' && state.currentTrainerBattle && !state.pendingCaughtMon ? (
               <div className={scrollAreaClass}>
                 <TrainerBattleSurface
                   key={state.currentTrainerBattle.id}

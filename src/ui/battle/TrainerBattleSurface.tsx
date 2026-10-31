@@ -622,10 +622,11 @@ export function TrainerBattleSurface({
 
           {/* Enemy sprite (upper-right) */}
           {enemy && !(enemy.defeated || enemy.currentHp <= 0) ? (
-            <div className={`pointer-events-none absolute right-[8%] top-[20%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
+            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute left-[74%] top-[56%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
               <PokemonSprite
                 src={frontSpriteUrl(rootURL, enemy.dexNum)}
                 alt={enemy.name}
+                grounded
                 size={84}
                 reducedMotion={reducedMotion}
               />
@@ -634,10 +635,11 @@ export function TrainerBattleSurface({
 
           {/* Player sprite (lower-left, back-facing) */}
           {activeMon && activeMon.currentHp > 0 ? (
-            <div className={`pointer-events-none absolute bottom-[18%] left-[8%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
+            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute top-[88%] left-[23%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
               <PokemonSprite
                 src={backSpriteUrl(rootURL, activeMon.dexNum, activeMon.shiny === true)}
                 alt={activeMon.name}
+                grounded
                 size={88}
                 reducedMotion={reducedMotion}
               />

@@ -1,3 +1,4 @@
+import { speciesLabel } from '../components/SpeciesBadge';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { SPECIES_BY_DEX } from '../../game/data/species';
@@ -111,7 +112,7 @@ export function DexDetailPanel({
                   <div className="pkr-dex-stat-grid__rows">
                     <StatRow label="HP" value={species.baseHp} />
                     <StatRow label="Catch" value={species.baseCatchRate} />
-                    <StatRow label="Tier" value={species.tier} />
+                    <StatRow label="Tier" value={speciesLabel(species.dexNum,species.tier)} />
                     <StatRow label="Gen" value={species.generation} />
                   </div>
                 </div>

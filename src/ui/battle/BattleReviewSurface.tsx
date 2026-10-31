@@ -1,3 +1,5 @@
+import { PokemonAppraisal } from '../components/PokemonAppraisal';
+import { SpeciesBadge, speciesLabel } from '../components/SpeciesBadge';
 import {
   useEffect,
   useLayoutEffect,
@@ -896,7 +898,7 @@ export function BattleReviewSurface({
                       boxShadow: '0 0 6px rgba(0,0,0,0.35)',
                     }}
                   >
-                    {fieldWild.tier}
+                    {speciesLabel(fieldWild.dexNum,fieldWild.tier)}
                   </span>
                 ) : null}
                 {fieldWild.shiny ? (
@@ -982,9 +984,9 @@ export function BattleReviewSurface({
         <div
           className="absolute z-10"
           style={{
-            right: '1.1rem',
-            top: '30%',
-            transform: `translate(${spriteOff.wildX - 2}px, ${spriteOff.wildY + 12}px)`,
+            left:'74%',top:'58%',
+            translate:'-50% -100%',
+            transform:`translate(${Math.round(spriteOff.wildX*layoutW/400)}px,${Math.round(spriteOff.wildY*layoutW/400)}px)`,
           }}
         >
           {showFieldWild && fieldWild ? (
@@ -994,6 +996,7 @@ export function BattleReviewSurface({
               <PokemonSprite
                 src={frontSpriteUrl(rootURL, fieldWild.dexNum, fieldWild.shiny === true)}
                 alt={fieldWild.name}
+                grounded
                 size={spriteSize}
                 glow={tierGlow(fieldWild.tier)}
                 shiny={fieldWild.shiny === true}
@@ -1011,9 +1014,9 @@ export function BattleReviewSurface({
         <div
           className="absolute z-10"
           style={{
-            left: '0.5rem',
-            bottom: '3%',
-            transform: `translate(${spriteOff.playerX}px, ${spriteOff.playerY + 4}px)`,
+            left:'23%',top:'89%',
+            translate:'-50% -100%',
+            transform:`translate(${Math.round(spriteOff.playerX*layoutW/400)}px,${Math.round(spriteOff.playerY*layoutW/400)}px)`,
           }}
         >
           <div
@@ -1022,6 +1025,7 @@ export function BattleReviewSurface({
             <PokemonSprite
               src={backSpriteUrl(rootURL, active.dexNum, active.shiny === true)}
               alt={active.name}
+              grounded
               size={spriteSize}
               shiny={active.shiny === true}
               reducedMotion={reducedMotion}
@@ -1476,59 +1480,20 @@ export function BattleReviewSurface({
       </div>
 
       {showPendingCatch && pendingCaughtMon ? (
-        <div
-          className="fixed inset-0 z-[200] flex items-end justify-center p-2 sm:items-center"
-          style={{ background: 'rgba(0,0,0,0.6)' }}
-          role="presentation"
-        >
-          <div
-            ref={pendingCatchPanelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Choose party member to send to storage"
-            tabIndex={-1}
-            onKeyDown={pendingCatchKeyDown}
-            className="pkr-battle-hud w-full max-w-sm overflow-y-visible rounded-lg border p-3 shadow-xl outline-none max-sm:max-h-[min(88svh,560px)] max-sm:overflow-y-auto"
-            style={{ borderColor: 'var(--pkr-panel-border)', background: 'var(--pkr-sidebar-gradient)' }}
-          >
-            <div className="text-[11px] font-black" style={{ color: 'var(--pkr-pill-active-text)' }}>
-              Party is full — make room?
-            </div>
-            <div className="mt-1 text-[9px] font-semibold" style={{ color: 'var(--pkr-accent-muted)' }}>
-              <span className="font-bold text-amber-200">{pendingCaughtMon.nickname || pendingCaughtMon.name}</span> was
-              caught. Pick who goes to storage, or keep the party and send the new catch to the PC.
-            </div>
-            <div className="mt-2 space-y-1">
-              {partyForReplace.map((m) => {
-                const dn = m.nickname || m.name;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left transition-opacity hover:opacity-95"
-                    style={{ borderColor: 'var(--pkr-secondary-btn-border)', background: 'rgba(0,0,0,0.35)' }}
-                    onClick={() => onPendingCatchReplace!(m.id)}
-                  >
-                    <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum, m.shiny === true)} alt={dn} size={36} />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[10px] font-bold" style={{ color: '#f1f5f9' }}>{dn}</div>
-                      <div className="text-[8px] font-semibold" style={{ color: '#94a3b8' }}>Lv{m.level}</div>
-                    </div>
-                    {m.id === activePartyId ? (
-                      <span className="shrink-0 rounded px-1 py-px text-[7px] font-black uppercase" style={{ background: 'var(--pkr-accent)', color: '#0f172a' }}>Lead</span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              className="mt-2 w-full pkr-btn-secondary text-[10px]"
-              onClick={() => onPendingCatchCancel!()}
-            >
-              Send new Pokémon to storage
-            </button>
-          </div>
+        <div ref={pendingCatchPanelRef} tabIndex={-1} className="pkr-pending-collection" role="region" aria-label="Choose party member to send to storage">
+          <h2 className="pkr-pixel-title">Caught! Choose your lineup</h2>
+          <details open className="pkr-catch-choice"><summary>New catch · {pendingCaughtMon.nickname||pendingCaughtMon.name} · Lv{pendingCaughtMon.level}</summary>
+            <PokemonAppraisal pokemon={pendingCaughtMon}/>
+            <p>HP {pendingCaughtMon.currentHp}/{pendingCaughtMon.maxHp} · {(pendingCaughtMon.moves??[]).map(id=>MOVES[id]?.name??id).join(', ')}</p>
+          </details>
+          <p>Choose who moves to storage. Nothing is released.</p>
+          {partyForReplace.map(m=><details key={m.id} className="pkr-catch-choice">
+            <summary>{m.nickname||m.name} · Lv{m.level}{m.id===activePartyId?' · Lead':''}</summary>
+            <SpeciesBadge dexNum={m.dexNum}/><PokemonAppraisal pokemon={m}/>
+            <p>HP {m.currentHp}/{m.maxHp} · {(m.moves??[]).map(id=>MOVES[id]?.name??id).join(', ')}</p>
+            <button type="button" className="pkr-game-btn w-full py-2" onClick={()=>onPendingCatchReplace!(m.id)}>Send {m.nickname||m.name} to storage</button>
+          </details>)}
+          <button type="button" className="pkr-btn-secondary w-full py-2" onClick={()=>onPendingCatchCancel!()}>Send new Pokémon to storage</button>
         </div>
       ) : null}
     </>

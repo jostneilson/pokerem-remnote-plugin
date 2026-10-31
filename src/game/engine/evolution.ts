@@ -1,3 +1,4 @@
+import { battleStats } from './pokemonStats';
 import type { OwnedPokemon } from '../state/model';
 import { EVOLUTION_FROM } from '../data/evolutions';
 import { SPECIES_BY_DEX } from '../data/species';
@@ -73,7 +74,7 @@ export function applyEvolution(mon: OwnedPokemon, result: EvolutionResult): Owne
   const species = SPECIES_BY_DEX.get(result.intoDexNum);
   if (!species) return mon;
 
-  const newMaxHp = maxHpFor(species.baseHp, mon.level);
+  const newMaxHp = battleStats({...mon,dexNum:result.intoDexNum}).hp;
   const hpRatio = mon.maxHp > 0 ? mon.currentHp / mon.maxHp : 1;
 
   return {
@@ -82,6 +83,6 @@ export function applyEvolution(mon: OwnedPokemon, result: EvolutionResult): Owne
     name: (mon as any).nickname || species.name,
     types: species.types,
     maxHp: newMaxHp,
-    currentHp: Math.max(1, Math.round(newMaxHp * hpRatio)),
+    currentHp: mon.currentHp<=0?0:Math.max(1, Math.round(newMaxHp * hpRatio)),
   };
 }

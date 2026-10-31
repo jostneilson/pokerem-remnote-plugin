@@ -115,7 +115,7 @@ export function usePokeRemBattleActions(
               JSON.stringify(current.currentEncounter) !== JSON.stringify(expected.currentEncounter)) return current;
           const fresh = planAutoAttack(current);
           setAutoAttackMessage(fresh.message);
-          return fresh.moveId ? applyCombatTurn(current, fresh.moveId) : current;
+          return fresh.moveId ? applyCombatTurn(current, fresh.moveId, true) : current;
         });
         if (token !== autoToken.current) break;
         if (!next) { setAutoAttackMessage('Auto attack stopped. Check the encounter before continuing.'); break; }

@@ -44,7 +44,20 @@ export interface CombatStrikeSnapshot {
   wildDefeated?: boolean;
 }
 
+export interface PokemonIVs { hp: 1 | 2 | 3; attack: 1 | 2 | 3; defense: 1 | 2 | 3; }
+export interface BattleCondition {
+  key?: string;
+  stages?: Partial<Record<'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed' | 'accuracy' | 'evasion', number>>;
+  ailment?: string;
+  turns?: number;
+  confusion?: number;
+  protected?: boolean;
+}
 export interface OwnedPokemon {
+  ivs?: PokemonIVs;
+  favorite?: boolean;
+  legacyMoves?: string[];
+  condition?: BattleCondition;
   id: string;
   dexNum: number;
   name: string;
@@ -60,6 +73,8 @@ export interface OwnedPokemon {
 }
 
 export interface EncounterPokemon {
+  ivs?: PokemonIVs;
+  condition?: BattleCondition;
   dexNum: number;
   name: string;
   level: number;
@@ -124,6 +139,8 @@ export interface TrainerIdentity {
 
 /** One enemy slot in a trainer battle. Mirrors `EncounterPokemon` shape but adds `defeated`. */
 export interface TrainerEnemyMon {
+  ivs?: PokemonIVs;
+  condition?: BattleCondition;
   dexNum: number;
   name: string;
   level: number;
@@ -190,7 +207,8 @@ export interface TrainerBattleStats {
 
 /** Persisted game state. User-facing product name: PokéRem (`BRAND.wordmark` in `designTokens.ts`). */
 export interface PokeRemGameState {
-  schemaVersion: 4;
+  lastStudyReward?: { seq: number; leadXp: number; benchXp: number; bonus: number; tier?: string };
+  schemaVersion: 4 | 5;
   lastUpdatedAt: number;
   starterChosen: boolean;
   activePokemonId: string | null;

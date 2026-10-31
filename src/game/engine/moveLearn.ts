@@ -1,3 +1,4 @@
+import { isMoveSupported } from './moveMechanics';
 import type { OwnedPokemon } from '../state/model';
 import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
@@ -15,27 +16,8 @@ export function checkLearnMoves(
   const learnset = LEARNSETS[mon.dexNum];
   if (!learnset) return { updated: mon, learnedNames: [] };
 
-  const moves = [...(mon.moves ?? [])];
-  const learnedNames: string[] = [];
-
-  for (const entry of learnset) {
-    if (entry.level > previousLevel && entry.level <= mon.level) {
-      if (moves.includes(entry.moveId)) continue;
-      const moveData = MOVES[entry.moveId];
-      if (!moveData) continue;
-
-      if (moves.length < MAX_MOVES) {
-        moves.push(entry.moveId);
-      } else {
-        moves.shift();
-        moves.push(entry.moveId);
-      }
-      learnedNames.push(moveData.name);
-    }
-  }
-
-  if (learnedNames.length === 0) return { updated: mon, learnedNames: [] };
-  return { updated: { ...mon, moves }, learnedNames };
+  const learnedNames = learnset.filter(e => e.level > previousLevel && e.level <= mon.level).map(e => MOVES[e.moveId]?.name).filter((v):v is string => !!v);
+  return { updated: mon, learnedNames: [...new Set(learnedNames)] };
 }
 
 /**
@@ -45,7 +27,7 @@ export function dedupeMoveIds(ids: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const id of ids) {
-    if (!id || !MOVES[id] || seen.has(id)) continue;
+    if (!id || !MOVES[id] || !isMoveSupported(MOVES[id]) || seen.has(id)) continue;
     seen.add(id);
     out.push(id);
   }
@@ -64,7 +46,7 @@ export function learnsetMilestonesOrdered(dexNum: number): { level: number; move
   const out: { level: number; moveId: string }[] = [];
   for (const entry of learnset) {
     if (entry.level <= 0) continue;
-    if (!MOVES[entry.moveId]) continue;
+    if (!MOVES[entry.moveId] || !isMoveSupported(MOVES[entry.moveId])) continue;
     if (seen.has(entry.moveId)) continue;
     seen.add(entry.moveId);
     out.push({ level: entry.level, moveId: entry.moveId });
@@ -74,7 +56,8 @@ export function learnsetMilestonesOrdered(dexNum: number): { level: number; move
 
 export function getInitialMoves(dexNum: number, level: number): string[] {
   const unlocked = getUnlockedLearnsetMoveIds(dexNum, level);
-  return unlocked.slice(-MAX_MOVES);
+  const attacks=unlocked.filter(id=>(MOVES[id]?.power??0)>0).slice(-2);
+  return [...new Set([...attacks,...unlocked.slice().reverse()])].slice(0,MAX_MOVES);
 }
 
 /**
@@ -117,7 +100,7 @@ export function moveUiDescription(moveId: string): string {
   const m = MOVES[moveId];
   if (!m) return 'Unknown move.';
   if (m.power <= 0 || m.category === 'status') {
-    return `${m.type} status — no direct damage; weakens, protects, or sets up in battle.`;
+    return (m as any).description || `${m.type} status move.`;
   }
   const kind = m.category === 'physical' ? 'Physical' : 'Special';
   return `${kind} ${m.type} attack — power ${m.power}.`;

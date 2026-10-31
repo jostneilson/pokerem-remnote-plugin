@@ -33,9 +33,18 @@ const LEGACY_SYNCED_GAME_ID = b64decode('YW5raW1vbl9nYW1lX3Yx');
  */
 export async function getSyncedGameRaw(plugin: RNPlugin): Promise<unknown> {
   let cur = await plugin.storage.getSynced(STORAGE_KEY);
-  if (cur != null && cur !== '') return cur;
+  if (cur != null && cur !== '') {
+    const parsed = typeof cur === 'string' ? (()=>{try{return JSON.parse(cur)}catch{return null}})() : cur;
+    if (parsed && typeof parsed === 'object' && (parsed as any).schemaVersion < 5) {
+      const key=STORAGE_KEY+'_pre_v5';
+      if (await plugin.storage.getSynced(key) == null) await plugin.storage.setSynced(key, cur);
+    }
+    return cur;
+  }
   const old = await plugin.storage.getSynced(LEGACY_SYNCED_GAME_ID);
   if (old != null && old !== '') {
+    const key = STORAGE_KEY + '_pre_v5';
+    if (await plugin.storage.getSynced(key) == null) await plugin.storage.setSynced(key, old);
     await plugin.storage.setSynced(STORAGE_KEY, old);
     return old;
   }

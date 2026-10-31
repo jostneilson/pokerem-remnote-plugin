@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ACHIEVEMENT_TIER_TRAINER_XP } from '../engine/achievements';
+import { CURRENCY_REWARDS } from '../engine/shop';
 import { damageForMove } from '../engine/combatExchange';
+import { damageCeiling } from '../engine/moveMechanics';
 import { tryCatch } from '../engine/encounters';
 import { isMoveTypeLegalForSpecies } from '../data/learnsetRules';
 import { MOVES } from '../data/moves';
@@ -73,7 +75,7 @@ describe('parseGameState', () => {
       pendingCaughtMon: null,
     };
     const s = parseGameState(raw);
-    expect(s.schemaVersion).toBe(4);
+    expect(s.schemaVersion).toBe(5);
     expect(s.dailyStats?.reviews).toBe(3);
     expect(s.wildReviewAccum).toBe(0.25);
     expect(s.pendingCaughtMon).toBe(null);
@@ -156,7 +158,7 @@ describe('onQueueCardComplete', () => {
     const next = onQueueCardComplete(s, [1], 99, { reviewWeight: 1, encounterReviewMultiplier: 4 });
     expect(next.encounterProgress).toBe(4);
     expect((next.trainerXp ?? 0) - xp0).toBe(TRAINER_XP_SOURCES.cardReview);
-    expect((next.currency ?? 0) - cur0).toBe(10);
+    expect((next.currency ?? 0) - cur0).toBe(CURRENCY_REWARDS.review);
   });
 
   it('passive heal trickles across cards and does not dump a lump-sum after a long healthy streak', () => {
@@ -272,7 +274,7 @@ describe('applyCombatTurn', () => {
     };
     s = { ...s, currentEncounter: enc };
     const pick = pickDefaultBattleMove(movesetForBattle(lead))!;
-    const pDmg = damageForMove(lead.level, pick, lead.types, enc.types);
+    const pDmg = damageCeiling(lead, enc, pick, false);
     const next = applyCombatTurn(s, pick);
     vi.restoreAllMocks();
     expect(next.currentEncounter).not.toBe(null);
@@ -300,7 +302,7 @@ describe('applyCombatTurn', () => {
     };
     s = { ...s, currentEncounter: enc };
     const pick = pickDefaultBattleMove(movesetForBattle(lead))!;
-    const pDmg = damageForMove(lead.level, pick, lead.types, enc.types);
+    const pDmg = damageCeiling(lead, enc, pick, false);
     const next = applyCombatTurn(s, pick);
     vi.restoreAllMocks();
     expect(next.currentEncounter!.currentHp).toBe(30 - pDmg);
@@ -380,6 +382,7 @@ describe('useHealingItem', () => {
     currentHp: 0,
     maxHp,
     types: ['Grass'],
+    ivs: { hp: 2, attack: 2, defense: 2 },
     moves: ['tackle'],
   });
 

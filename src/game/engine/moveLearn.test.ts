@@ -1,76 +1,91 @@
 import { describe, expect, it } from 'vitest';
-import { FULL_POKEDEX } from '../data/pokedex';
-import { LEARNSETS } from '../data/learnsets';
+import { FULL_POKEDEX, POKEDEX_BY_DEX } from '../data/pokedex';
+import { LEARNSETS, LEARNSET_SOURCE_VERSION_GROUP } from '../data/learnsets';
 import { MOVES } from '../data/moves';
-import { allowedTypesForLearnset, validateLearnsetAgainstSpecies } from '../data/learnsetRules';
+import { validateLearnsetAgainstSpecies } from '../data/learnsetRules';
 import { validateEveryLearnset } from '../data/learnsetBuilder';
-import { getInitialMoves, getUnlockedLearnsetMoveIds, learnsetMilestonesOrdered, movesetForBattle } from './moveLearn';
+import {
+  getInitialMoves,
+  getUnlockedLearnsetMoveIds,
+  learnsetMilestonesOrdered,
+  movesetForBattle,
+} from './moveLearn';
 
-describe('getUnlockedLearnsetMoveIds', () => {
-  it('includes every move used by getInitialMoves at the same level', () => {
-    const lv = 30;
-    const u = new Set(getUnlockedLearnsetMoveIds(134, lv));
-    for (const id of getInitialMoves(134, lv)) {
-      expect(u.has(id)).toBe(true);
-    }
+describe('canonical level-up data', () => {
+  it('uses Scarlet/Violet where available and retains canonical levels', () => {
+    expect(LEARNSET_SOURCE_VERSION_GROUP[4]).toBe('scarlet-violet');
+    expect(LEARNSET_SOURCE_VERSION_GROUP[25]).toBe('scarlet-violet');
+    expect(LEARNSETS[4]).toContainEqual({ level: 4, moveId: 'ember' });
+    expect(LEARNSETS[25]).toContainEqual({ level: 36, moveId: 'thunderbolt' });
+  });
+
+  it('keeps level-zero evolution moves available for recall', () => {
+    expect(LEARNSETS[134]).toContainEqual({ level: 0, moveId: 'watergun' });
+    expect(getUnlockedLearnsetMoveIds(134, 1)).toContain('watergun');
+  });
+
+  it('includes legitimate off-type coverage moves', () => {
+    const gyarados = POKEDEX_BY_DEX.get(130)!;
+    expect(gyarados.types).toEqual(['Water', 'Flying']);
+    expect(LEARNSETS[130]).toContainEqual({ level: 24, moveId: 'crunch' });
+    expect(MOVES.crunch.type).toBe('Dark');
+  });
+
+  it('imports battle metadata needed by shared combat mechanics', () => {
+    expect(MOVES.ember).toMatchObject({
+      category: 'special', power: 40, accuracy: 100, ailment: 'burn', ailmentChance: 10,
+    });
+    expect(MOVES.crunch.statChanges).toEqual([{ stat: 'defense', change: -1 }]);
+    expect(MOVES.recover.healing).toBe(50);
   });
 });
 
-describe('movesetForBattle / getInitialMoves', () => {
-  it('Vaporeon exposes water STAB and no duplicate spam slots', () => {
-    const m = getInitialMoves(134, 30);
-    expect(m.length).toBeLessThanOrEqual(4);
-    expect(new Set(m).size).toBe(m.length);
-    expect(m.some((id) => id === 'watergun' || id === 'bubblebeam' || id === 'waterpulse')).toBe(true);
-    expect(m).not.toContain('batonpass');
+describe('move selection compatibility', () => {
+  it('initial moves are unlocked, unique, and capped at four', () => {
+    const level = 30;
+    const unlocked = new Set(getUnlockedLearnsetMoveIds(134, level));
+    const initial = getInitialMoves(134, level);
+    expect(initial.length).toBeLessThanOrEqual(4);
+    expect(new Set(initial).size).toBe(initial.length);
+    for (const id of initial) expect(unlocked.has(id)).toBe(true);
   });
 
-  it('Jolteon and Flareon have distinct damaging specials at mid level', () => {
-    const j = movesetForBattle({ dexNum: 135, level: 25, moves: undefined });
-    const f = movesetForBattle({ dexNum: 136, level: 25, moves: undefined });
-    expect(j.some((id) => id === 'spark' || id === 'thundershock')).toBe(true);
-    expect(f.some((id) => id === 'ember' || id === 'firefang')).toBe(true);
+  it('uses an explicitly equipped four-move set unchanged', () => {
+    expect(movesetForBattle({
+      dexNum: 130,
+      level: 30,
+      moves: ['waterfall', 'crunch', 'icefang', 'dragondance'],
+    })).toEqual(['waterfall', 'crunch', 'icefang', 'dragondance']);
   });
 });
 
-describe('learnset system', () => {
-  it('has a non-empty learnset for every pokedex species', () => {
-    validateEveryLearnset(LEARNSETS, FULL_POKEDEX);
-    for (const s of FULL_POKEDEX) {
-      expect(LEARNSETS[s.dexNum]?.length ?? 0).toBeGreaterThan(0);
+describe('learnset validation', () => {
+  it('has a valid non-empty learnset for every supported species', () => {
+    expect(() => validateEveryLearnset(LEARNSETS, FULL_POKEDEX)).not.toThrow();
+    for (const species of FULL_POKEDEX) {
+      expect(LEARNSETS[species.dexNum]?.length ?? 0, species.name).toBeGreaterThan(0);
+      expect(LEARNSET_SOURCE_VERSION_GROUP[species.dexNum], species.name).toBeTruthy();
     }
   });
 
-  it('only teaches moves matching the species typings or Normal', () => {
-    for (const s of FULL_POKEDEX) {
-      const allow = allowedTypesForLearnset(s.types);
-      for (const e of LEARNSETS[s.dexNum] ?? []) {
-        const m = MOVES[e.moveId];
-        expect(m, `unknown move ${e.moveId}`).toBeTruthy();
-        expect(allow.has(m!.type), `${s.name} (${s.dexNum}): ${e.moveId} is ${m!.type}`).toBe(true);
-      }
-    }
+  it('keeps milestone ordering canonical instead of forcing power monotonicity', () => {
+    const milestones = learnsetMilestonesOrdered(4);
+    expect(milestones.find((entry) => entry.moveId === 'ember')?.level).toBe(4);
+    expect(milestones.find((entry) => entry.moveId === 'smokescreen')?.level).toBe(8);
   });
 
-  it('damaging learn milestones never get weaker (strictly non-decreasing power)', () => {
-    for (const s of FULL_POKEDEX) {
-      const ms = learnsetMilestonesOrdered(s.dexNum);
-      let lastPower = -1;
-      for (const { moveId } of ms) {
-        const p = MOVES[moveId]?.power ?? 0;
-        if (p <= 0) continue;
-        expect(
-          p >= lastPower,
-          `${s.name}: damaging power dropped ${lastPower} -> ${p} at ${moveId}`,
-        ).toBe(true);
-        lastPower = p;
-      }
-    }
-  });
-
-  it('rejects illegal learnsets at validation time', () => {
-    expect(() =>
-      validateLearnsetAgainstSpecies(9, ['Water'], [{ level: 1, moveId: 'ember' }]),
-    ).toThrow(/illegal move/);
+  it('rejects unknown, duplicate, and out-of-range entries but permits coverage', () => {
+    expect(() => validateLearnsetAgainstSpecies(130, ['Water', 'Flying'], [
+      { level: 24, moveId: 'crunch' },
+    ])).not.toThrow();
+    expect(() => validateLearnsetAgainstSpecies(9, ['Water'], [
+      { level: 1, moveId: 'notarealmove' },
+    ])).toThrow(/unknown move/);
+    expect(() => validateLearnsetAgainstSpecies(9, ['Water'], [
+      { level: 1, moveId: 'tackle' }, { level: 2, moveId: 'tackle' },
+    ])).toThrow(/duplicate move/);
+    expect(() => validateLearnsetAgainstSpecies(9, ['Water'], [
+      { level: 101, moveId: 'tackle' },
+    ])).toThrow(/out of range/);
   });
 });

@@ -1,3 +1,4 @@
+import { rollIVs, battleStats } from './pokemonStats';
 import { REVIEWS_PER_ENCOUNTER } from '../constants';
 import { SPECIES_BY_DEX, SPECIES_LIST } from '../data/species';
 import { STARTER_DEX_ALL } from '../data/pokedex';
@@ -43,10 +44,10 @@ const starterSet = new Set(STARTER_DEX_ALL as readonly number[]);
 const MAX_WILD_LEVEL = 100;
 
 /** Shiny odds before the player has caught every wild-eligible species in enabled generations. */
-export const SHINY_ODDS_PRE_DEX_COMPLETE = 1 / 1000;
+export const SHINY_ODDS_PRE_DEX_COMPLETE = 1 / 250;
 
 /** Shiny odds after full species completion for enabled generations (duplicate hunting). */
-export const SHINY_ODDS_POST_DEX_COMPLETE = 1 / 200;
+export const SHINY_ODDS_POST_DEX_COMPLETE = 1 / 250;
 
 /** Rounded mean of party levels; used so wild encounters track your roster. */
 export function averagePartyLevel(party: OwnedPokemon[]): number {
@@ -155,12 +156,14 @@ export function spawnEncounter(
   const avg = averagePartyLevel(party);
   const band = Math.floor(rng() * 3) - 1;
   const level = Math.max(1, Math.min(MAX_WILD_LEVEL, avg + band + tierLevelSkew(tier)));
-  const maxHp = maxHpFor(species.baseHp, level);
+  const ivs=rollIVs(rng);
+  const maxHp = battleStats({dexNum:species.dexNum,level,ivs}).hp;
 
   const shinyOdds = shinyOddsForPacing(dexComplete, opts?.pacing);
   const shiny = rng() < shinyOdds;
 
   return {
+    ivs,
     dexNum: species.dexNum,
     name: species.name,
     level,
