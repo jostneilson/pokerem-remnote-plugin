@@ -76,7 +76,7 @@ export function ShopScreen({
           <div className="text-xs font-black" style={{ color: '#e2e8f0' }}>
             {si.item.name}
           </div>
-          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
             {si.item.description}
           </div>
           {bag ? <div className="pkr-shop-owned">Owned: {bag[si.item.id] ?? 0}</div> : null}
@@ -97,7 +97,7 @@ export function ShopScreen({
               : {
                   borderColor: 'rgba(255,255,255,0.08)',
                   background: 'rgba(255,255,255,0.05)',
-                  color: '#94a3b8',
+                  color: '#c3cde3',
                 }
           }
         >
@@ -115,7 +115,7 @@ export function ShopScreen({
             <div className="pkr-pixel-title text-[7px] font-black tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
               POKE MART
             </div>
-            <p className="mt-0.5 max-w-[18rem] text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+            <p className="mt-0.5 max-w-[18rem] text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
               Buy supplies here, then switch to My items to use them.
             </p>
           </div>

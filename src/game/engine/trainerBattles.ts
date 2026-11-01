@@ -2,7 +2,7 @@ import { SPECIES_BY_DEX, SPECIES_LIST, STARTER_DEX_ALL } from '../data/species';
 import type { PokemonType } from '../data/species';
 import { getEffectiveness } from '../data/typeChart';
 import { computeCatchChance } from './encounters';
-import { maxHpFor } from './progression';
+import { battleStats, rollIVs } from './pokemonStats';
 import { movesetForBattle, getInitialMoves } from './moveLearn';
 import { MOVES } from '../data/moves';
 import type {
@@ -224,18 +224,17 @@ function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): Train
   const species = SPECIES_BY_DEX.get(dexNum);
   if (!species) return null;
   const lv = Math.max(1, Math.min(MAX_ENEMY_LEVEL, Math.floor(level)));
-  const maxHp = maxHpFor(species.baseHp, lv);
-  const learnsetMoves = getInitialMoves(dexNum, lv);
-  const moves = movesetForBattle({ dexNum, level: lv, moves: learnsetMoves });
+  const ivs = rollIVs(rng);
+  const maxHp = battleStats({ dexNum, level: lv, ivs }).hp;
+  const moves = getInitialMoves(dexNum, lv);
   // Prefer at least one damaging move so trainer fights actually progress.
   const hasDamaging = moves.some((m) => (MOVES[m]?.power ?? 0) > 0);
   let finalMoves = moves;
   if (!hasDamaging) {
     finalMoves = ['tackle', ...moves].filter((m, i, a) => a.indexOf(m) === i).slice(0, 4);
   }
-  // Touch rng so rolls stay deterministic in tests when more enemies are generated.
-  void rng;
   return {
+    ivs,
     dexNum,
     name: species.name,
     level: lv,

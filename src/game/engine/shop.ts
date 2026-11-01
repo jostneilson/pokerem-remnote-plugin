@@ -1,7 +1,7 @@
 import { ITEMS, type ItemId, type ItemData } from '../data/items';
 
 /** Revive is always in stock at a fixed PokéCoin price (not daily rotation). */
-const REVIVE_SHOP_PRICE = 200;
+export const REVIVE_SHOP_PRICE = 200;
 
 const ALWAYS_TAIL: ItemId[] = ['revive', 'potion', 'exp-candy-s', 'catch-scope'];
 

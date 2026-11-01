@@ -51,7 +51,7 @@ export function TrainerIdentityCard({
             {rankTitle}
           </h2>
           {subtitle ? (
-            <div className="mt-0.5 text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
+            <div className="mt-0.5 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
               {subtitle}
             </div>
           ) : null}

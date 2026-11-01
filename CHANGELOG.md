@@ -5,6 +5,32 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [1.4.1] - 2026-10-31
+
+### Fixed
+
+- **Saving works again.** 1.4.0 serialized game writes with the Web Locks API. RemNote runs plugin iframes without `allow-same-origin`, so `navigator.locks.request` always rejected with SecurityError and every write failed: starter choice, reviews, battles, and purchases. Writes now use a promise chain inside the iframe. Failed 1.4.0 writes never overwrote saves, so existing progress is intact.
+- **Fair fights.** HP now follows a level-based formula, and wild and trainer foes deal scaled damage (`WILD_FOE_DAMAGE_SCALE` 0.45, `TRAINER_FOE_DAMAGE_SCALE` 0.7). A starter can win a same-level fight.
+- **Move mechanics.** Struggle recoil hurts the user instead of healing it, "damage+raise" moves raise the user's stats, and unsupported moves are no longer equipped. Species with no attack get Struggle. Species whose learnset starts above level 1 (for example Crabrawler) receive their first moves.
+- **Trainer battles.** Enemy teams use the shared stats and IVs. When your Pokémon faints, the next selected one comes out.
+- **Migration.** Repair refills only slots vacated by invalid moves, and level never drops when a save is repaired.
+
+### Added
+
+- **Quick Care panel on Play.** One tap for Revive (buys one if needed), send out the next healthy Pokémon, use the best potion, heal the whole team, or restock Poké Balls.
+- **Battle presentation.** Letterbox wipe into wild battles, slide-in sprites, ball throw on catches, and idle breathing. All respect reduced motion.
+- **Transparent battle power.** The appraisal panel shows the stats behind the Power number.
+
+### Changed
+
+- **Clearer pixel fonts.** Keeps Press Start 2P and Pixelify Sans, with larger minimum sizes and better contrast.
+- **Battlefield layout.** Removed the dark band across the field, seated sprites on their platforms, and moved the trainer battle HUD so it no longer covers your Pokémon.
+- **Narrow panels.** Party cards and Bag items no longer hide names or overlap counts at 280px.
+
+### Tooling
+
+- `tools/hostsim` runs the real widgets under RemNote's exact iframe sandbox flags.
+
 ## [1.4.0] - 2026-10-31
 
 ### Collection, Combat & Appraisal Revamp

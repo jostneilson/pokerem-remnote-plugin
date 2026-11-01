@@ -90,7 +90,7 @@ export function CollectionScreen({
           <div className="pkr-pixel-title text-[7px] font-black uppercase leading-tight tracking-wide" style={{ color: '#a5b4fc' }}>
             National dex
           </div>
-          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
             Tap a species to open its entry. Unknown silhouettes clear when you catch one.
           </div>
         </div>
@@ -101,7 +101,7 @@ export function CollectionScreen({
           <div className="pkr-pixel-title text-[8px] font-black tabular-nums" style={{ color: '#6ee7b7' }}>
             {totalCaught}
           </div>
-          <div className="text-[6px] font-bold uppercase tracking-wider" style={{ color: '#94a3b8' }}>
+          <div className="text-[6px] font-bold uppercase tracking-wider" style={{ color: '#c3cde3' }}>
             / {SPECIES_LIST.length}
           </div>
         </div>
@@ -153,10 +153,10 @@ export function CollectionScreen({
           </span>{' '}
           caught
         </span>
-        <span className="mx-1.5 opacity-40" style={{ color: '#94a3b8' }}>
+        <span className="mx-1.5 opacity-40" style={{ color: '#c3cde3' }}>
           ·
         </span>
-        <span className="text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
+        <span className="text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
           {filtered.length} shown
         </span>
       </div>
@@ -177,7 +177,7 @@ export function CollectionScreen({
             );
           })}
           {filtered.length === 0 && (
-            <div className="py-8 text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8', gridColumn: '1 / -1' }}>
+            <div className="py-8 text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3', gridColumn: '1 / -1' }}>
               No species match these filters.
               <br />
               <span className="text-[9px] opacity-90">Try another generation or clear type / caught filters.</span>

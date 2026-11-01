@@ -9,7 +9,7 @@ export function planAutoAttack(state: PokeRemGameState): { moveId?: string; mess
   if (state.currentTrainerBattle || !wild || wild.currentHp <= 0) return { message: 'Encounter ended.' };
   if (!lead || lead.currentHp <= 0) return { message: 'Your lead fainted. Auto attack stopped.' };
   if (wild.condition?.ailment || (wild.condition?.confusion??0)>0) return {message:'Status damage could knock out this Pokémon. Catch manually.'};
-  const moves = movesetForBattle(lead).map(moveId => ({ moveId, ceiling: damageCeiling(lead, wild, moveId, true) }));
+  const moves = movesetForBattle(lead).filter(moveId => moveId !== 'struggle').map(moveId => ({ moveId, ceiling: damageCeiling(lead, wild, moveId, true) }));
   moves.sort((a, b) => b.ceiling - a.ceiling);
   const best = moves[0];
   if (!best || best.ceiling <= 0) return { message: 'No effective attack. Try catching or change your lead.' };

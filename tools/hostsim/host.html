@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PokéRem host simulator</title>
+<style>
+  body { margin: 0; font: 13px system-ui; background: #e8eeed; color: #123; display: flex; gap: 16px; padding: 12px; }
+  aside { width: 240px; flex: none; display: grid; gap: 6px; align-content: start; }
+  button { padding: 6px; }
+  #stage { height: calc(100vh - 24px); background: #fff; }
+  #stage iframe { border: 0; width: 100%; height: 100%; display: block; }
+  #log { font: 11px ui-monospace, monospace; white-space: pre-wrap; max-height: 45vh; overflow: auto; background: #fff; padding: 6px; }
+</style>
+</head>
+<body>
+<aside>
+  <strong>RemNote host simulator</strong>
+  <small>Widgets run with RemNote's real sandbox flags. Isolated save, no RemNote connection.</small>
+  <button onclick="hostsim.review()">Complete a flashcard</button>
+  <button onclick="hostsim.seed('fresh')">Fresh save</button>
+  <button onclick="hostsim.seed('legacy')">1.3.1 save (schema 4)</button>
+  <span><button onclick="hostsim.width(280)">280</button> <button onclick="hostsim.width(320)">320</button> <button onclick="hostsim.width(400)">400</button> <button onclick="hostsim.width(520)">520</button></span>
+  <div id="log"></div>
+</aside>
+<div id="stage" style="width:400px"></div>
+<script>
+// Copied verbatim from RemNote's desktop bundle (PLUGIN_IFRAME_SANDBOX).
+const SANDBOX = 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads';
+const ROOT = location.origin;
+const logEl = document.getElementById('log');
+const stage = document.getElementById('stage');
+const LEGACY = {
+  schemaVersion: 4, lastUpdatedAt: 1, starterChosen: true, studyDifficultyConfigured: true, studyDifficultyPreset: 'medium',
+  studyReviewsPerEncounter: 3, studyCardWeight: 1, activePokemonId: 'a', currency: 777, totalCurrencyEarned: 900, cardsReviewed: 120,
+  encounterProgress: 2, whatsNewSeenVersion: '1.3.1', collectionDex: { 25: 1, 129: 1 }, bag: { 'poke-ball': 5, potion: 2 }, achievements: {},
+  party: [
+    { id: 'a', dexNum: 25, name: 'Pikachu', nickname: 'Sparky', level: 20, totalXp: 8000, maxHp: 80, currentHp: 40, types: ['Electric'], moves: ['thundershock', 'quickattack', 'thunderbolt', 'tackle'], shiny: true },
+    { id: 'b', dexNum: 129, name: 'Magikarp', level: 12, totalXp: 1728, maxHp: 45, currentHp: 45, types: ['Water'], moves: ['splash'] },
+  ],
+  storagePokemon: [{ id: 'c', dexNum: 1, name: 'Bulbasaur', level: 8, totalXp: 512, maxHp: 40, currentHp: 40, types: ['Grass', 'Poison'], moves: ['vinewhip', 'tackle'] }],
+};
+const db = { synced: {}, session: {}, settings: {} };
+const frames = new Map();
+const domWait = new Map();
+let domId = 0;
+function log(kind, text) { logEl.textContent = `[${kind}] ${text}\n` + logEl.textContent; (window.hostsimLog ||= []).push({ kind, text }); }
+function send(msg) { for (const f of frames.values()) f.contentWindow?.postMessage(msg, '*'); }
+async function mount(name, visible) {
+  const f = document.createElement('iframe');
+  f.setAttribute('sandbox', SANDBOX);
+  if (!visible) f.style.display = 'none';
+  frames.set(name, f);
+  // Browsers refuse opaque-origin frames loading from loopback, so the bundle is inlined.
+  const code = (await (await fetch(`/${name}.js`)).text()).replace(/<\/script/gi, '<\\/script');
+  if (frames.get(name) !== f) return; // Reseeded while fetching.
+  f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%}</style><script>window.HOSTSIM_ROOT=${JSON.stringify(ROOT)}<\/script></head><body><script>${code}<\/script></body></html>`;
+  stage.appendChild(f);
+}
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.log) return log(d.log, d.text);
+  if (d.domReply != null) { domWait.get(d.domReply)?.(d.value); domWait.delete(d.domReply); return; }
+  if (d.rpc == null) return;
+  const reply = (value, error) => e.source.postMessage({ rpcReply: d.rpc, value, error }, '*');
+  const [a, b] = d.args;
+  switch (d.method) {
+    case 'getSynced': return reply(db.synced[a]);
+    case 'setSynced': db.synced[a] = b; reply(); return send({ evt: 'storage', key: a });
+    case 'getSession': return reply(db.session[a]);
+    case 'setSession': db.session[a] = b; return reply();
+    case 'getSetting': return reply(db.settings[a]);
+    case 'registerSetting': if (!(a in db.settings)) db.settings[a] = b; return reply();
+    case 'broadcast': reply(); return send({ evt: 'broadcast', message: a });
+    case 'toast': log('toast', a); return reply();
+    default: return reply();
+  }
+});
+window.hostsim = {
+  db,
+  sandbox: SANDBOX,
+  review(n = 1) { for (let i = 0; i < n; i++) send({ evt: 'queue', payload: { cardId: 'sim-' + Date.now() + '-' + i + '-' + Math.random() } }); },
+  state: () => db.synced.pokerem_game_v1,
+  backup: () => db.synced.pokerem_game_v1_pre_v5,
+  width(w) { stage.style.width = w + 'px'; },
+  dom(cmd, extra = {}, widget = 'pokerem_sidebar') {
+    const id = ++domId;
+    return new Promise((res) => { domWait.set(id, res); frames.get(widget).contentWindow.postMessage({ dom: cmd, id, ...extra }, '*'); setTimeout(() => res('__timeout'), 2000); });
+  },
+  text: () => hostsim.dom('text'),
+  buttons: () => hostsim.dom('buttons'),
+  click: (text) => hostsim.dom('click', { text }),
+  overflow: () => hostsim.dom('overflow'),
+  images: () => hostsim.dom('images'),
+  errors: () => (window.hostsimLog || []).filter((l) => l.kind !== 'info' && l.kind !== 'toast'),
+  seed(kind, custom) {
+    for (const f of frames.values()) f.remove();
+    frames.clear();
+    window.hostsimLog = [];
+    db.synced = {}; db.session = {};
+    if (kind === 'legacy') db.synced.pokerem_game_v1 = JSON.parse(JSON.stringify(LEGACY));
+    if (kind === 'custom') db.synced.pokerem_game_v1 = JSON.parse(JSON.stringify(custom));
+    mount('index', false);
+    mount('pokerem_sidebar', true);
+  },
+};
+hostsim.seed(new URLSearchParams(location.search).get('seed') || 'fresh');
+</script>
+</body>
+</html>

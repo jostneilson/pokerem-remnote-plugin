@@ -102,3 +102,7 @@ Assume a KB that already had PokéRem installed or a save blob present.
 - [ ] No hardcoded secrets or personal paths in repo
 - [ ] `dist/` and `*.zip` not committed (see [`.gitignore`](../.gitignore))
 - [ ] No unlicensed commercial assets in `public/assets/`
+
+## Sandbox gate (added in 1.4.1)
+
+Run the widgets in `tools/hostsim` and confirm that a starter choice and a review both save. Unit tests do not run under RemNote's iframe sandbox. See `HANDOVER_1.4.1.md`.

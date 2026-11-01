@@ -106,7 +106,7 @@ function BoostersPanel({
           >
             <span
               className="text-[13px] font-black tabular-nums"
-              style={{ color: active ? '#fde68a' : '#94a3b8' }}
+              style={{ color: active ? '#fde68a' : '#c3cde3' }}
             >
               2×
             </span>
@@ -115,7 +115,7 @@ function BoostersPanel({
             <div className="flex items-baseline justify-between gap-2">
               <span
                 className="truncate text-[11px] font-black"
-                style={{ color: active ? '#fde68a' : '#94a3b8' }}
+                style={{ color: active ? '#fde68a' : '#c3cde3' }}
               >
                 {active ? `${TIER_STYLE[active.tier].label} Doubler` : 'XP Doubler'}
               </span>
@@ -138,7 +138,7 @@ function BoostersPanel({
                 {active ? `${active.cardsRemaining}/${activeTotal}` : 'Off'}
               </span>
             </div>
-            <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+            <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
               {active ? '2× XP for all Pokémon — ticks down each card' : 'No booster active · use one below to start 2× XP'}
             </div>
             {active ? (
@@ -155,7 +155,7 @@ function BoostersPanel({
             ) : null}
             {queue.length > 0 ? (
               <div className="mt-1 flex flex-wrap items-center gap-1">
-                <span className="text-[7px] font-black uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+                <span className="text-[7px] font-black uppercase tracking-widest" style={{ color: '#c3cde3' }}>
                   Next
                 </span>
                 {queue.map((q, i) => (
@@ -209,16 +209,16 @@ function BoostersPanel({
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="flex min-w-0 items-baseline gap-1.5">
-                    <span className="truncate text-[11px] font-black" style={{ color: owned ? '#e2e8f0' : '#94a3b8' }}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="flex min-w-0 flex-wrap items-baseline gap-1.5">
+                    <span className="text-[11px] font-black" style={{ color: owned ? '#e2e8f0' : '#c3cde3' }}>
                       {style.name}
                     </span>
                     <span
                       className="shrink-0 rounded px-1 py-[1px] text-[7px] font-black uppercase leading-none tracking-[0.1em]"
                       style={{
                         background: owned ? style.chipBg : 'rgba(15,23,42,0.6)',
-                        color: owned ? style.chipText : '#94a3b8',
+                        color: owned ? style.chipText : '#c3cde3',
                         border: owned ? 'none' : '1px solid rgba(100,116,139,0.4)',
                       }}
                     >
@@ -236,11 +236,11 @@ function BoostersPanel({
                     ×{count}
                   </span>
                 </div>
-                <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+                <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
                   2× XP for all Pokémon · next {XP_DOUBLER_CARDS[tier]} cards
                 </div>
                 {!owned ? (
-                  <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+                  <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
                     Earn from trainer battles &amp; achievements
                   </div>
                 ) : null}
@@ -316,7 +316,7 @@ function ItemRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-[11px] font-black" style={{ color: isEmpty ? '#94a3b8' : '#e2e8f0' }}>
+          <span className="truncate text-[11px] font-black" style={{ color: isEmpty ? '#c3cde3' : '#e2e8f0' }}>
             {item.name}
           </span>
           <span
@@ -331,12 +331,12 @@ function ItemRow({
           </span>
         </div>
         {item.description ? (
-          <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
             {item.description}
           </div>
         ) : null}
         {!isEmpty && !canUse ? (
-          <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+          <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
             {item.kind === 'evolution' ? 'Party → select Pokémon → Stone evolution' : 'Equip for encounters'}
           </div>
         ) : null}
@@ -393,7 +393,7 @@ export function BagScreen({
               <div className="pkr-pixel-title text-[7px] font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
                 Your bag
               </div>
-              <div className="text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
+              <div className="text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
                 Medicine treats your <span className="font-bold text-slate-300">lead</span>.{' '}
                 <span className="font-bold text-slate-300">Revive</span> only works on fainted Pokémon; other heals need them conscious first.
               </div>
@@ -431,7 +431,7 @@ export function BagScreen({
 
       {isEmpty ? (
         <Panel title="Bag is empty" icon={<GameIcon name="box" size={14} />}>
-          <p className="text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
+          <p className="text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
             No items yet. Open the <span className="font-bold text-amber-200">Shop</span> tab to buy balls and medicine.
           </p>
         </Panel>

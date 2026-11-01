@@ -26,6 +26,7 @@ interface PokemonSpriteProps {
 export function PokemonSprite({ src, alt, size, className = '', style, glow, lazy, shiny, reducedMotion, grounded = false }: PokemonSpriteProps) {
   const [imageState, setImageState] = useState({ src, loaded: false, errored: false, frontFallback: false });
   const [ground,setGround]=useState({src:'',x:0,y:0});
+  const [corsBlocked,setCorsBlocked]=useState(false);
   const loaded = imageState.src === src && imageState.loaded;
   const errored = imageState.src === src && imageState.errored;
   const frontFallback = imageState.src === src && imageState.frontFallback;
@@ -41,7 +42,7 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
   const isShiny = shiny || src.includes('/shiny/');
 
   return (
-    <div data-classification={classificationFor(Number(src.match(/\/(\d+)\.png/)?.[1]??0))} style={wrapStyle} className={`inline-flex items-center justify-center ${isShiny ? 'pkr-shiny-sprite-ring' : ''} ${className}`}>
+    <div data-classification={classificationFor(Number(src.match(/\/(\d+)\.png/)?.[1]??0))} style={wrapStyle} className={`inline-flex items-center justify-center ${grounded ? `pkr-grounded ${reducedMotion ? '' : 'pkr-grounded--idle'}` : ''} ${isShiny ? 'pkr-shiny-sprite-ring' : ''} ${className}`}>
       {!loaded && !errored && (
         <div
           className="animate-pkr-shimmer pkr-shimmer-bg absolute inset-0 rounded"
@@ -50,8 +51,8 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
       )}
       {isShiny ? <span className="pkr-shiny-stars" aria-label="Shiny Pokémon" data-still={reducedMotion || undefined}>✦</span> : null}
       <img
-        key={effectiveSrc}
-        crossOrigin="anonymous"
+        key={`${effectiveSrc}:${corsBlocked}`}
+        crossOrigin={grounded && !corsBlocked ? 'anonymous' : undefined}
         src={effectiveSrc}
         alt={alt}
         width={size}
@@ -66,7 +67,7 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
           setImageState({src,loaded:true,errored,frontFallback});
           if(grounded){try{const img=event.currentTarget,canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;const ctx=canvas.getContext('2d');if(ctx){ctx.drawImage(img,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let left=canvas.width,right=0,bottom=0;for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>20){left=Math.min(left,x);right=Math.max(right,x);bottom=Math.max(bottom,y);}setGround({src:effectiveSrc,x:Math.round((canvas.width/2-(left+right)/2)*size/canvas.width),y:Math.round((canvas.height-1-bottom)*size/canvas.height)});}}catch{/* Sprite remains visible if a host blocks canvas reads. */}}
         }}
-        onError={() => setImageState(src.includes('/pokemon/back/') && !frontFallback ? { src, loaded: false, errored: false, frontFallback: true } : { src, loaded: true, errored: true, frontFallback })}
+        onError={() => grounded && !corsBlocked ? setCorsBlocked(true) : setImageState(src.includes('/pokemon/back/') && !frontFallback ? { src, loaded: false, errored: false, frontFallback: true } : { src, loaded: true, errored: true, frontFallback })}
         loading={lazy ? 'lazy' : undefined}
       />
     </div>

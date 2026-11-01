@@ -24,6 +24,9 @@ export function PokemonAppraisal({ pokemon, compact = false }: { pokemon: OwnedP
         <span className="pkr-appraisal__power">Power {stats.power}</span>
       </div>
       {!compact ? (
+        <p className="pkr-appraisal__stats">HP {stats.hp} · ATK {stats.attack} · DEF {stats.defense} · SPA {stats.specialAttack} · SPD {stats.specialDefense} · SPE {stats.speed}</p>
+      ) : null}
+      {!compact ? (
         <div className="pkr-appraisal__bars">
           {([['HP', ivs.hp], ['ATK', ivs.attack], ['DEF', ivs.defense]] as const).map(([name, value]) => (
             <div className="pkr-iv-row" key={name}>

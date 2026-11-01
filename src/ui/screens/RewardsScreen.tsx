@@ -74,7 +74,7 @@ function RewardNode({
             Lv {reward.level} — {reward.title}
           </span>
         </div>
-        <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           {reward.description}
         </div>
         {canClaim ? (
@@ -163,13 +163,13 @@ export function RewardsScreen({
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-white/10 px-3 py-2 text-center text-[10px] font-semibold" style={{ color: '#94a3b8', background: 'rgba(0,0,0,0.15)' }}>
+        <div className="rounded-lg border border-white/10 px-3 py-2 text-center text-[10px] font-semibold" style={{ color: '#c3cde3', background: 'rgba(0,0,0,0.15)' }}>
           No unclaimed rewards right now. Earn trainer XP to level up and unlock the next tier.
         </div>
       )}
 
       <Panel collapsible title="How you earn trainer XP" icon={<GameIcon name="chart" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           Milestone achievements grant a one-time trainer XP burst by difficulty (common → epic). The rarest goals also add bonus items to your bag.
         </p>
         <div className="pkr-rewards-xp-grid space-y-0">
@@ -194,7 +194,7 @@ export function RewardsScreen({
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
               }}
             >
-              <span style={{ color: '#94a3b8' }}>{row.label}</span>
+              <span style={{ color: '#c3cde3' }}>{row.label}</span>
               <span className="shrink-0 font-black tabular-nums" style={{ color: row.color }}>
                 {row.xp} XP
               </span>
@@ -204,7 +204,7 @@ export function RewardsScreen({
       </Panel>
 
       <Panel title="Trainer milestones" icon={<GameIcon name="starFilled" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           Level rewards grant items, shop unlocks, and new rank titles. Claim each tier once you reach that trainer level.
         </p>
         <div className="space-y-2">

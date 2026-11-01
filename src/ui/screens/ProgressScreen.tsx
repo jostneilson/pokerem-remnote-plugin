@@ -68,10 +68,10 @@ function AchievementRow({
         <div className="text-[11px] font-black" style={{ color: '#e2e8f0' }}>
           {def.name}
         </div>
-        <div className="text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <div className="text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           {def.description}
         </div>
-        <div className="mt-0.5 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <div className="mt-0.5 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           <span className="mr-1 rounded px-1 py-px" style={{ background: 'rgba(251,191,36,0.12)', color: '#fcd34d' }}>
             {ACHIEVEMENT_TIER_LABEL[def.tier]}
           </span>
@@ -82,7 +82,7 @@ function AchievementRow({
             <div className="pkr-meter-track h-[5px] min-w-0 flex-1 overflow-hidden">
               <div className="pkr-meter-fill h-full transition-[width] duration-300" style={{ width: `${pct}%`, background: '#f59e0b' }} />
             </div>
-            <span className="text-[8px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
+            <span className="text-[8px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
               {progress.current}/{progress.target}
             </span>
           </div>
@@ -273,7 +273,7 @@ export function ProgressScreen({
             {totalPct}%
           </span>
         </div>
-        <div className="text-center text-[10px] font-bold" style={{ color: '#94a3b8' }}>
+        <div className="text-center text-[10px] font-bold" style={{ color: '#c3cde3' }}>
           <span className="tabular-nums text-slate-200">{unlocked}</span> / {ACHIEVEMENT_DEFS.length} achievements earned
         </div>
       </div>

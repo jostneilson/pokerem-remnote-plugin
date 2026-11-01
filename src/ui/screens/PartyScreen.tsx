@@ -41,7 +41,7 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
   const list = dedupeMoveIds(moves);
   if (list.length === 0) {
     return (
-      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
+      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
         No moves in this moveset yet — use “Teachable moves” to pull from moves unlocked at this level.
       </div>
     );
@@ -104,7 +104,7 @@ function TeachableMovesBrowser({
 
   if (candidates.length === 0) {
     return (
-      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
         {unlocked.length === 0
           ? 'No learnset moves unlocked at this level yet — level up to grow this path.'
           : 'Every move unlocked at this level is already in the moveset. Level up to unlock more, or drop a move to swap one back in.'}
@@ -132,12 +132,12 @@ function TeachableMovesBrowser({
                     {m.name}
                   </span>
                   {m.power > 0 ? (
-                    <span className="text-[7px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
+                    <span className="text-[7px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
                       Pow {m.power}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+                <p className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
                   {moveUiDescription(mid)}
                 </p>
               </div>
@@ -329,7 +329,7 @@ export function PartyScreen({
           })}
           {!ITEMS.some(item => item.kind === 'evolution' && checkItemEvolution(p, item.id)) ? <p>No compatible stone evolution for this Pokémon.</p> : <p className="mt-2">Find stones while studying or in Bag → Shop’s daily deals.</p>}
         </Panel> : null}
-        <div className="pkr-pixel-title mb-1 mt-1 text-[6px] font-black uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+        <div className="pkr-pixel-title mb-1 mt-1 text-[6px] font-black uppercase tracking-wide" style={{ color: '#c3cde3' }}>
           Moves ({dedupeMoveIds(p.moves ?? []).length}/4)
         </div>
         <MoveList moves={p.moves ?? []} onForget={onForgetMove ? (mid) => onForgetMove(p.id, mid) : undefined} />
@@ -524,7 +524,7 @@ export function PartyScreen({
                     Replace a move?
                   </div>
                 </div>
-                <p className="text-[7px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
+                <p className="text-[7px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
                   Teach <span style={{ color: '#fde68a' }}>{replaceNewMove.name}</span> — tap a slot to overwrite (moveset is full).
                 </p>
                 <div
@@ -556,7 +556,7 @@ export function PartyScreen({
                           }}
                         >
                           <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#94a3b8' }}>
+                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#c3cde3' }}>
                               Slot {idx + 1}
                             </span>
                             {m ? (
@@ -571,17 +571,17 @@ export function PartyScreen({
                               {label}
                             </span>
                             {m && m.power > 0 ? (
-                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#94a3b8' }}>
+                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
                                 Pow {m.power}
                               </span>
                             ) : m ? (
-                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#94a3b8' }}>
+                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#c3cde3' }}>
                                 Status
                               </span>
                             ) : null}
                           </div>
                           {m ? (
-                            <p className="text-[6px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+                            <p className="text-[6px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
                               {moveUiDescription(mid)}
                             </p>
                           ) : null}
@@ -706,7 +706,7 @@ export function PartyScreen({
                       <div className="truncate text-[10px] font-bold" style={{ color: '#f1f5f9' }}>
                         {dn}
                       </div>
-                      <div className="text-[8px] font-semibold" style={{ color: '#94a3b8' }}>
+                      <div className="text-[8px] font-semibold" style={{ color: '#c3cde3' }}>
                         Lv{m.level}
                       </div>
                     </div>
@@ -727,7 +727,7 @@ export function PartyScreen({
       ) : null}
 
       <Panel title={`Party · ${party.length}/6`} icon={<GameIcon name="party" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           Select a Pokémon to manage it. Your{' '}
           <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
         </p>
@@ -738,16 +738,16 @@ export function PartyScreen({
         <section className="space-y-2">
           <button type="button" className="pkr-storage-toggle" onClick={() => setShowStorage(!showStorage)} aria-expanded={showStorage}>
             <span className="flex items-center gap-2">
-              <GameIcon name="box" size={14} style={{ color: '#94a3b8' }} />
+              <GameIcon name="box" size={14} style={{ color: '#c3cde3' }} />
               <span style={{ color: '#e2e8f0' }}>PC storage</span>
             </span>
-            <span className="tabular-nums text-[10px] font-black" style={{ color: '#94a3b8' }}>
+            <span className="tabular-nums text-[10px] font-black" style={{ color: '#c3cde3' }}>
               {storage.length} · {showStorage ? 'hide' : 'show'}
             </span>
           </button>
           {showStorage ? (
             <div className="pkr-bag-shelf space-y-2">
-              <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+              <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
                 Not in your party — use “To party” to swap or add.
               </p>
               {visibleStorage.length ? visibleStorage.map((p) => renderPokemon(p, false)) : <div className="pkr-empty-filter">No stored Pokémon match these filters.</div>}

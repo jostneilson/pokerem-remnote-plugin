@@ -96,11 +96,11 @@ export function StatusScreen({
                 ) : null}
               </div>
               {active.nickname && active.nickname !== active.name ? (
-                <div className="truncate text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
+                <div className="truncate text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
                   Species · {active.name}
                 </div>
               ) : null}
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
                 <span>Lv {active.level}</span>
                 <span style={{ color: '#8296a5' }}>·</span>
                 <span>#{String(active.dexNum).padStart(3, '0')}</span>
@@ -138,7 +138,7 @@ export function StatusScreen({
               ) : null}
             </div>
             <div>
-              <div className="mb-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+              <div className="mb-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
                 Moves
               </div>
               <div className="flex flex-wrap gap-1">
@@ -189,18 +189,18 @@ export function StatusScreen({
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{ds.reviews}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Cards</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Cards</div>
             </div>
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#fde68a' }}>{ds.encounters}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Wilds</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Wilds</div>
             </div>
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#6ee7b7' }}>{ds.catches}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Catches</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Catches</div>
             </div>
           </div>
-          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
             Completed flashcards and battle outcomes for the current UTC calendar day ({ds.date}). Resets at UTC midnight.
           </p>
         </Panel>
@@ -224,7 +224,7 @@ export function StatusScreen({
                 borderBottom: '1px solid rgba(255,255,255,0.04)',
               }}
             >
-              <span className="flex items-center gap-1.5" style={{ color: '#94a3b8' }}>
+              <span className="flex items-center gap-1.5" style={{ color: '#c3cde3' }}>
                 <GameIcon name={row.icon} size={13} className="" style={{ color: row.iconColor }} />{row.label}
               </span>
               <span className="font-black" style={{ color: '#e2e8f0' }}>{row.value}</span>
@@ -241,11 +241,11 @@ export function StatusScreen({
           <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: '#fb923c', background: 'rgba(251,146,60,0.08)' }}>
             Current · {streak} day{streak === 1 ? '' : 's'}
           </span>
-          <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: '#94a3b8', background: 'rgba(0,0,0,0.2)' }}>
+          <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: '#c3cde3', background: 'rgba(0,0,0,0.2)' }}>
             Best · {longest} day{longest === 1 ? '' : 's'}
           </span>
         </div>
-        <p className="mt-2 text-[9px] font-semibold" style={{ color: '#94a3b8' }}>
+        <p className="mt-2 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
           Streak uses UTC calendar days with at least one completed flashcard while {BRAND.wordmark} is active.
         </p>
       </Panel>
@@ -260,7 +260,7 @@ export function StatusScreen({
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-black" style={{ color: '#e2e8f0' }}>{state.trainerRank || 'Novice Trainer'}</span>
               </div>
-              <div className="text-[10px] font-semibold" style={{ color: '#94a3b8' }}>{state.cardsReviewed} cards reviewed</div>
+              <div className="text-[10px] font-semibold" style={{ color: '#c3cde3' }}>{state.cardsReviewed} cards reviewed</div>
             </div>
             <div className="space-y-0.5 text-right">
               {(state.currentStreak ?? 0) > 0 && (
