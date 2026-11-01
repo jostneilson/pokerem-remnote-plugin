@@ -2,7 +2,7 @@
 
 **Date:** October 31, 2026
 **Version:** 1.4.1 (schema 5, save key `pokerem_game_v1`, backup `pokerem_game_v1_pre_v5`)
-**Status:** Built. 160 tests pass. Verified in the sandbox simulator, **not in native RemNote**. Git changes are uncommitted until the owner asks for a commit.
+**Status:** Released. Uploaded to RemNote by the owner, who confirmed it works there. 160 tests pass. Merged to `main` and tagged `v1.4.1`.
 
 Read this first, then `HANDOVER_1.4.0.md` for the feature architecture. Where they disagree, this file wins.
 
@@ -66,7 +66,7 @@ The owner wants the original pixel look, only clearer. Keep Press Start 2P for t
 
 ## Known and open
 
-- **Not tested in native RemNote.** This is the first thing to do next.
+- The owner confirmed 1.4.1 works in RemNote after uploading it. That check was theirs and has no itemized list of flows.
 - The queue strip and encounter popup widgets are built but were not exercised in the simulator.
 - A dev-only React warning about mixing `background` and `backgroundPosition` remains. It has no effect in the production build.
 - Legacy moves that are not legal for a species are replaced on migration and kept in `legacyMoves`.
