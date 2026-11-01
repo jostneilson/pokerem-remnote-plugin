@@ -28,8 +28,7 @@ body {
   min-height: 100%;
   min-width: 0;
   line-height: inherit;
-  font-family: 'Pixelify Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--pkr-font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -48,8 +47,7 @@ body {
   height: 100%;
   box-sizing: border-box;
   line-height: inherit;
-  font-family: 'Pixelify Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--pkr-font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color-scheme: light dark;
@@ -152,7 +150,7 @@ body {
  * Does not include sidebar-only text-size overrides; add `text-[7px]` etc. in markup as needed.
  */
 .pkr-pixel-surface {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-family: var(--pkr-font-display);
   -webkit-font-smoothing: auto;
   letter-spacing: 0.04em;
   color: #ede9fe;
@@ -173,8 +171,8 @@ body {
 
 /* Stat / HUD tooltips (portaled) — matches battle nameplate language */
 .pkr-stat-tooltip {
-  font-family: 'Pixelify Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 10px;
+  font-family: var(--pkr-font-body);
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.03em;
@@ -501,7 +499,7 @@ body {
 }
 
 .pkr-pixel-title {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-family: var(--pkr-font-display);
   letter-spacing: 0.02em;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55), 0 0 12px rgba(255, 255, 255, 0.12);
 }
@@ -534,8 +532,8 @@ body {
 }
 
 .pkr-battle-move-cat {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 4px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.1;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.28rem 0.18rem;
@@ -615,7 +613,7 @@ body {
 }
 
 .pkr-pixel-dialog {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-family: var(--pkr-font-display);
   -webkit-font-smoothing: auto;
   text-shadow:
     1px 1px 0 rgba(0, 0, 0, 0.55),
@@ -920,7 +918,7 @@ body {
 }
 
 .pkr-dmg-float {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-shadow:
@@ -938,8 +936,8 @@ body {
 }
 
 .pkr-eff-chip {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.3;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.45rem;
@@ -978,7 +976,7 @@ body {
 .pkr-eff-chip--narr {
   text-transform: none;
   letter-spacing: 0.02em;
-  font-size: 5.5px;
+  font-size: 13px;
   line-height: 1.5;
   padding: 0.28rem 0.5rem;
   display: inline-block;
@@ -1040,16 +1038,16 @@ body {
 }
 
 .pkr-combat-exchange-log__side {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 4.5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(226, 232, 240, 0.72);
 }
 
 .pkr-combat-exchange-log__action {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 7.5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   font-weight: 900;
   line-height: 1.45;
   color: #e0f2fe;
@@ -1121,8 +1119,8 @@ body {
 }
 
 .pkr-battle-finish-stamp {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 11px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.2;
   letter-spacing: 0.14em;
   padding: 0.35rem 0.65rem;
@@ -1150,7 +1148,7 @@ body {
   animation: none;
   opacity: 1;
   transform: none;
-  font-size: 6px;
+  font-size: 13px;
   padding: 0.25rem 0.45rem;
 }
 
@@ -1172,8 +1170,8 @@ body {
 /* Corner HUD role label (YOU / WILD) */
 /* Uppercases label text; use `BRAND.wordmarkCaps` for the product name here (no é on an all-caps E). */
 .pkr-battle-hud-role {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.2;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1182,7 +1180,7 @@ body {
 
 @media (min-width: 380px) {
   .pkr-battle-hud-role {
-    font-size: 6px;
+    font-size: 13px;
   }
 }
 
@@ -1200,8 +1198,8 @@ body {
 }
 
 .pkr-battle-busy-overlay__label {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 7px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.35;
   text-align: center;
   padding: 0.35rem 0.65rem;
@@ -1222,8 +1220,8 @@ body {
 
 /* Exo 2 — long copy / secondary lines outside pixel-only surfaces (see DESIGN_CONTRACT.md) */
 .pkr-text-sans-body {
-  font-family: 'Pixelify Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 10px;
+  font-family: var(--pkr-font-body);
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.45;
   letter-spacing: 0.02em;
@@ -1232,8 +1230,8 @@ body {
 }
 
 .pkr-text-sans-muted {
-  font-family: 'Pixelify Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 9px;
+  font-family: var(--pkr-font-body);
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.02em;
@@ -1260,7 +1258,7 @@ body {
 
 /* PokéRem wordmark + pixel font across the whole sidebar game UI */
 .pokerem-sidebar.pkr-pixel-ui {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-family: var(--pkr-font-display);
   -webkit-font-smoothing: auto;
   letter-spacing: 0.04em;
 }
@@ -1273,8 +1271,8 @@ body {
 }
 
 .pokerem-sidebar.pkr-pixel-ui .pkr-panel-header {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 7px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1.75;
   letter-spacing: 0.12em;
   text-shadow:
@@ -1287,18 +1285,18 @@ body {
 }
 
 .pokerem-sidebar.pkr-pixel-ui .pkr-tab-bar button {
-  font-size: 7px !important;
+  font-size: 13px !important;
   line-height: 1.4;
   letter-spacing: 0.06em;
 }
 
 /* Tailwind text sizes → pixel scale (sidebar subtree) */
 .pokerem-sidebar.pkr-pixel-ui .text-sm {
-  font-size: 8px !important;
+  font-size: 13px !important;
   line-height: 1.55 !important;
 }
 .pokerem-sidebar.pkr-pixel-ui .text-xs {
-  font-size: 7px !important;
+  font-size: 13px !important;
   line-height: 1.5 !important;
 }
 
@@ -1478,7 +1476,7 @@ body {
   z-index: 3;
   pointer-events: none;
   white-space: nowrap;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 900;
   color: #fde68a;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
@@ -1519,7 +1517,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.6875rem;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1734,7 +1732,7 @@ body {
   min-height: 2.25rem;
   min-width: 3.25rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.5625rem;
+  font-size: 13px;
 }
 
 /* Destructive confirm — release, etc. */
@@ -1743,7 +1741,7 @@ body {
   border: 2px solid #7f1d1d;
   background: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
   padding: 0.375rem 0.625rem;
-  font-size: 0.625rem;
+  font-size: 13px;
   font-weight: 800;
   color: #fecaca;
   box-shadow:
@@ -1779,7 +1777,7 @@ body {
   border: 2px solid rgba(100, 116, 139, 0.35);
   background: linear-gradient(180deg, rgba(51, 65, 85, 0.35) 0%, rgba(30, 41, 59, 0.5) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  font-size: 0.6875rem;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1820,8 +1818,8 @@ body {
 }
 
 .pkr-dex-toolbar-label {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--pkr-ui-muted, #64748b);
@@ -1896,8 +1894,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 11px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   line-height: 1;
   color: rgba(148, 163, 184, 0.42);
   text-shadow:
@@ -1908,7 +1906,7 @@ body {
 
 .pkr-dex-tile__dexno {
   margin-top: 0.25rem;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: #94a3b8;
@@ -1921,7 +1919,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 8px;
+  font-size: 13px;
   font-weight: 700;
   color: #e2e8f0;
 }
@@ -1933,7 +1931,7 @@ body {
 
 /* Dex detail bottom sheet — same cel language as .pkr-panel + Press Start 2P (portaled; self-contained tokens) */
 .pkr-dex-detail-surface {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-family: var(--pkr-font-display);
   -webkit-font-smoothing: auto;
   letter-spacing: 0.04em;
   color: #e2e8f0;
@@ -2007,7 +2005,7 @@ body {
 }
 
 .pkr-dex-detail-no {
-  font-size: 8px;
+  font-size: 13px;
   padding: 0.4rem 0.5rem;
   border-radius: 4px;
   border: 2px solid rgba(251, 191, 36, 0.5);
@@ -2063,7 +2061,7 @@ body {
 }
 
 .pkr-dex-detail-registry__line {
-  font-size: 8px;
+  font-size: 13px;
   line-height: 1.55;
   letter-spacing: 0.04em;
   color: #e2e8f0;
@@ -2084,7 +2082,7 @@ body {
 
 .pkr-dex-stat-grid__title {
   margin-bottom: 0.45rem;
-  font-size: 7px;
+  font-size: 13px;
   line-height: 1.55;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -2112,7 +2110,7 @@ body {
 }
 
 .pkr-dex-stat-row__label {
-  font-size: 7px;
+  font-size: 13px;
   line-height: 1.5;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -2121,7 +2119,7 @@ body {
 }
 
 .pkr-dex-stat-row__value {
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.45;
   font-weight: 700;
   color: #fffbeb;
@@ -2131,7 +2129,7 @@ body {
 
 .pkr-dex-detail-footnote {
   margin: 0;
-  font-size: 8px;
+  font-size: 13px;
   line-height: 1.7;
   letter-spacing: 0.04em;
   color: #cbd5e1;
@@ -2144,20 +2142,20 @@ body {
 
 /* Type row: slightly larger copy, no double shadow (see .pkr-dex-detail-surface .pkr-pixel-title) */
 .pkr-dex-detail-type-row .pkr-battle-type {
-  font-size: 8px;
+  font-size: 13px;
   line-height: 1.35;
   padding: 0.35rem 0.5rem;
 }
 
 .pkr-dex-detail-unregistered {
-  font-size: 8px;
+  font-size: 13px;
   line-height: 1.35;
   color: #94a3b8;
   border-color: rgba(148, 163, 184, 0.5);
 }
 
 .pkr-dex-detail-close {
-  font-size: 8px !important;
+  font-size: 13px !important;
   line-height: 1.4;
   letter-spacing: 0.08em;
   padding: 0.45rem 0.65rem !important;
@@ -2182,8 +2180,8 @@ body {
 }
 
 .pkr-typechart-section-title {
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 6px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--pkr-accent, #fbbf24);
@@ -2202,7 +2200,7 @@ body {
 .pkr-typechart-matrix {
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 7px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -2221,8 +2219,8 @@ body {
   padding: 0.25rem 0.35rem;
   background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
   color: #94a3b8;
-  font-size: 5px;
-  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 10px;
+  font-family: var(--pkr-font-display);
   line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2235,7 +2233,7 @@ body {
   top: 0;
   z-index: 15;
   padding: 0.2rem 0.15rem;
-  font-size: 5px;
+  font-size: 13px;
   line-height: 1.2;
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -2251,7 +2249,7 @@ body {
   z-index: 12;
   padding: 0.15rem 0.35rem;
   white-space: nowrap;
-  font-size: 6px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   border-right: 2px solid rgba(51, 65, 85, 0.8);
@@ -2264,7 +2262,7 @@ body {
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
-  font-size: 8px;
+  font-size: 13px;
   font-weight: 700;
   color: #94a3b8;
 }
@@ -2372,7 +2370,7 @@ body {
 }
 
 .pkr-trainer-identity__level-label {
-  font-size: 0.5rem;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -2408,7 +2406,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.5625rem;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2418,7 +2416,7 @@ body {
 
 .pkr-progress-northstar__text {
   margin: 0;
-  font-size: 0.625rem;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.45;
   color: #cbd5e1;
@@ -2565,8 +2563,8 @@ body {
 
 .pkr-settings-path-hint__label {
   display: block;
-  font-family: 'Press Start 2P', ui-monospace, monospace;
-  font-size: 5px;
+  font-family: var(--pkr-font-display);
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #64748b;
@@ -2576,7 +2574,7 @@ body {
 .pkr-settings-path-hint__code {
   display: block;
   font-family: ui-monospace, monospace;
-  font-size: 0.625rem;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   word-break: break-word;
@@ -2678,7 +2676,7 @@ body {
   border: 2px solid #b91c1c;
   background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
   padding: 0.25rem 0.625rem;
-  font-size: 0.625rem;
+  font-size: 13px;
   font-weight: 700;
   color: white;
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
@@ -2692,7 +2690,7 @@ body {
   border: 1px solid var(--pkr-secondary-btn-border, rgba(6,95,70,0.4));
   background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
   padding: 0.25rem 0.625rem;
-  font-size: 0.625rem;
+  font-size: 13px;
   font-weight: 700;
   color: #cbd5e1;
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
@@ -2720,7 +2718,7 @@ body {
 .pkr-pill {
   border-radius: 9999px;
   padding: 0.125rem 0.625rem;
-  font-size: 0.5625rem;
+  font-size: 13px;
   font-weight: 700;
   transition: color 0.15s, background 0.15s;
 }
@@ -2758,16 +2756,16 @@ body {
 
 /* 1.3 arcade shell: ink, cream, violet; scene/type colors stay semantic. */
 :root { --pkr-radius-panel:2px; --pkr-radius-md:2px; --pkr-radius-sm:1px; --pkr-ease-out:cubic-bezier(.16,1,.3,1); --pkr-arcade-ink:#101326; --pkr-arcade-border:#65709a; --pkr-arcade-paper:#f8edcf; }
-body,:host { font-family:'Pixelify Sans',monospace; }
+body,:host { font-family:var(--pkr-font-body); }
 .pokerem-sidebar { container-type:inline-size; background:var(--pkr-arcade-ink); color:var(--pkr-arcade-paper); }
 .pokerem-sidebar::before { display:none; }
-.pokerem-sidebar.pkr-pixel-ui { font-family:'Pixelify Sans',monospace; letter-spacing:0; font-size:16px; line-height:1.35; -webkit-font-smoothing:auto; }
-.pokerem-sidebar.pkr-pixel-ui :is(button,input,select,textarea),.pkr-text-sans-body,.pkr-text-sans-muted { font-family:'Pixelify Sans',monospace; }
+.pokerem-sidebar.pkr-pixel-ui { font-family:var(--pkr-font-body); letter-spacing:0; font-size:16px; line-height:1.35; -webkit-font-smoothing:auto; }
+.pokerem-sidebar.pkr-pixel-ui :is(button,input,select,textarea),.pkr-text-sans-body,.pkr-text-sans-muted { font-family:var(--pkr-font-body); }
 .pokerem-sidebar.pkr-pixel-ui .text-xs { font-size:15px!important; line-height:1.35!important; }
 .pokerem-sidebar.pkr-pixel-ui .text-sm { font-size:17px!important; line-height:1.35!important; }
 .pokerem-sidebar.pkr-pixel-ui :is(.text-\[6px\],.text-\[7px\],.text-\[8px\],.text-\[9px\],.text-\[10px\],.text-\[11px\]) { font-size:14px!important; line-height:1.35!important; letter-spacing:0; }
-.pokerem-sidebar.pkr-pixel-ui .pkr-pixel-title,.pokerem-sidebar.pkr-pixel-ui .pkr-panel-header { font-family:'Press Start 2P',monospace; font-size:8px!important; font-weight:400; line-height:1.75!important; letter-spacing:0; text-shadow:1px 1px #060714; }
-.pokerem-sidebar .pkr-battle-hud-role { font-family:'Pixelify Sans',monospace; font-size:12px; }
+.pokerem-sidebar.pkr-pixel-ui .pkr-pixel-title,.pokerem-sidebar.pkr-pixel-ui .pkr-panel-header { font-family:var(--pkr-font-display); font-size:10px!important; font-weight:400; line-height:1.6!important; letter-spacing:0; text-shadow:1px 1px #060714; }
+.pokerem-sidebar .pkr-battle-hud-role { font-family:var(--pkr-font-body); font-size:12px; }
 .pokerem-sidebar .pkr-panel { border:2px solid var(--pkr-arcade-border); border-radius:2px; background:#1a2039; padding:12px; box-shadow:inset 2px 2px #ffffff08,inset -2px -2px #080b1e,2px 2px #07091a; }
 .pokerem-sidebar .pkr-panel-header { display:flex; align-items:center; gap:8px; margin:-12px -12px 12px; padding:10px 12px; border-bottom:2px solid #65709a; background:#242c4b; border-radius:0; color:#f8edcf; }
 .pokerem-sidebar .pkr-content-vignette { background:transparent; padding:12px; }
@@ -2775,7 +2773,7 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pokerem-sidebar .pkr-seam { height:2px; background:#384366; }
 .pkr-navigation-shell { flex-shrink:0; position:relative; z-index:35; background:#101326; }
 .pokerem-sidebar .pkr-navigation { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; padding:6px; background:#101326; border:0; border-bottom:2px solid #65709a; box-shadow:none; }
-.pokerem-sidebar.pkr-pixel-ui .pkr-tab-tap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-width:0; min-height:44px; border:2px solid transparent; border-radius:2px; padding:4px 2px; font-family:'Pixelify Sans',monospace; font-size:14px!important; font-weight:600; line-height:1.2; text-shadow:none; transition:background 100ms,color 100ms; }
+.pokerem-sidebar.pkr-pixel-ui .pkr-tab-tap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-width:0; min-height:44px; border:2px solid transparent; border-radius:2px; padding:4px 2px; font-family:var(--pkr-font-body); font-size:14px!important; font-weight:600; line-height:1.2; text-shadow:none; transition:background 100ms,color 100ms; }
 .pokerem-sidebar .pkr-tab-active { background:#f8edcf; color:#171a31; border-color:#f8edcf; box-shadow:inset -2px -2px #c8b893; }
 .pokerem-sidebar .pkr-tab-inactive { background:transparent; color:#b8c0dd; }
 .pokerem-sidebar .pkr-tab-inactive:hover { background:#303a61; color:#fff5db; }
@@ -2789,7 +2787,7 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pkr-focus-mode .pkr-wild-field { display:none; }
 .pokerem-sidebar button { touch-action:manipulation; }
 .pokerem-sidebar :is(button,input,select,summary):focus-visible { outline:2px solid #ffc857; outline-offset:2px; }
-.pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-btn-destructive,.pkr-btn-gold,.pkr-game-btn) { min-height:36px; border-radius:2px; font-family:'Pixelify Sans',monospace; font-size:15px!important; border:2px solid #65709a; box-shadow:inset 2px 2px #ffffff16,inset -2px -2px #0006,2px 2px #07091a; transition:filter 100ms,transform 100ms; }
+.pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-btn-destructive,.pkr-btn-gold,.pkr-game-btn) { min-height:36px; border-radius:2px; font-family:var(--pkr-font-body); font-size:15px!important; border:2px solid #65709a; box-shadow:inset 2px 2px #ffffff16,inset -2px -2px #0006,2px 2px #07091a; transition:filter 100ms,transform 100ms; }
 .pokerem-sidebar :is(.pkr-btn-primary,.pkr-btn-secondary,.pkr-game-btn) { background:#303a61; color:#fff5db; }
 .pokerem-sidebar .pkr-btn-primary { background:#f8edcf; color:#171a31; border-color:#e6d5ae; }
 .pokerem-sidebar .pkr-btn-destructive { background:#4b2030; color:#ffd1c8; }
@@ -2803,7 +2801,7 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pkr-sprite-image { image-rendering:pixelated; }
 .pkr-disclosure summary { cursor:pointer; list-style:none; margin-bottom:0!important; }
 .pkr-disclosure summary::-webkit-details-marker { display:none; }
-.pkr-disclosure-marker { margin-left:auto; font-family:'Pixelify Sans',monospace; font-size:18px; }
+.pkr-disclosure-marker { margin-left:auto; font-family:var(--pkr-font-body); font-size:18px; }
 .pkr-disclosure[open] summary { margin-bottom:12px!important; }
 .pkr-disclosure[open] .pkr-disclosure-marker { transform:rotate(45deg); }
 .pkr-return-battle { padding:8px; background:#f7c65e; color:#251f27; font-size:14px; border-bottom:2px solid #8e6930; }
@@ -2816,11 +2814,11 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pokerem-sidebar .pkr-pill-active { background:#f8edcf; color:#171a31; border-color:#e6d5ae; box-shadow:none; }
 .pokerem-sidebar .pkr-pill-inactive { color:#bcc6e5; background:#101326; border-color:#65709a; }
 .pokerem-sidebar .pkr-adventure-summary { border:2px solid #65709a; border-radius:2px; background:#242c4b; box-shadow:2px 2px #07091a; }
-.pokerem-sidebar .pkr-adventure-summary strong { color:#fff0bc; font-family:'Press Start 2P',monospace; font-size:18px; }
+.pokerem-sidebar .pkr-adventure-summary strong { color:#fff0bc; font-family:var(--pkr-font-display); font-size:18px; }
 .pokerem-sidebar .pkr-adventure-summary p { font-size:14px; color:#c3cbe3; }
-.pokerem-sidebar .pkr-adventure-label { font-family:'Pixelify Sans',monospace; font-size:13px; letter-spacing:0; }
-.pokerem-sidebar .pkr-body-heading { font-family:'Pixelify Sans',monospace; font-size:20px; }
-.pkr-trek-summary { font-family:'Pixelify Sans',monospace; font-size:14px; }
+.pokerem-sidebar .pkr-adventure-label { font-family:var(--pkr-font-body); font-size:13px; letter-spacing:0; }
+.pokerem-sidebar .pkr-body-heading { font-family:var(--pkr-font-body); font-size:20px; }
+.pkr-trek-summary { font-family:var(--pkr-font-body); font-size:14px; }
 .pkr-trainer-player-strike { animation:pkr-trainer-lunge 220ms ease-out; }
 @keyframes pkr-trainer-lunge { 0%,100% { transform:translate(0,0); } 40% { transform:translate(16px,-8px); } }
 .pkr-save-feedback { position:relative; flex-shrink:0; padding:8px 12px; background:#43241d; border-bottom:1px solid #f9a58a40; color:#ffd9c9; font-size:12px; }
@@ -2845,9 +2843,9 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 @keyframes pkr-trainer-counter { 0%,100% { transform:translate(0,0); } 40% { transform:translate(-16px,8px) ; } }
 .pokerem-sidebar .pkr-trainer-moves .pkr-game-btn { background:#303a61; border:2px solid #65709a; padding:10px; }
 .pokerem-sidebar .pkr-shimmer-bg { animation:none; }
-.pokerem-sidebar .pkr-battle-hud-name { font-family:'Pixelify Sans',monospace; font-size:16px; }
+.pokerem-sidebar .pkr-battle-hud-name { font-family:var(--pkr-font-body); font-size:16px; }
 .pokerem-sidebar .pkr-trainer-log { font-size:15px; }
-.pkr-modal-backdrop,.pkr-stat-tooltip { font-family:'Pixelify Sans',monospace; }
+.pkr-modal-backdrop,.pkr-stat-tooltip { font-family:var(--pkr-font-body); }
 .pkr-stat-tooltip { font-size:14px; border-radius:2px; }
 @container (max-width:310px) { .pokerem-sidebar .pkr-content-vignette { padding:8px; } .pokerem-sidebar .pkr-tab-tap { font-size:13px!important; } .pokerem-sidebar .pkr-adventure-summary { flex-wrap:wrap; } }
 
@@ -2856,19 +2854,19 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pokerem-sidebar .pkr-adventure-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; margin-bottom:12px; }
 .pokerem-sidebar .pkr-adventure-summary p { line-height:1.35; }
 .pokerem-sidebar .pkr-tab-active { text-shadow:none!important; }
-.pokerem-sidebar .pkr-pill { font-family:'Pixelify Sans',monospace; font-size:14px; padding:5px 8px; }
+.pokerem-sidebar .pkr-pill { font-family:var(--pkr-font-body); font-size:14px; padding:5px 8px; }
 .pokerem-sidebar :is(.pkr-dex-tile__name,.pkr-dex-tile__dexno,.pkr-progress-northstar__text) { font-size:14px; line-height:1.35; }
-.pokerem-sidebar .pkr-dex-toolbar-label { font-family:'Pixelify Sans',monospace; font-size:14px; }
+.pokerem-sidebar .pkr-dex-toolbar-label { font-family:var(--pkr-font-body); font-size:14px; }
 .pokerem-sidebar .pkr-trainer-identity { border-radius:2px; background:#242c4b; border:2px solid #65709a; box-shadow:2px 2px #07091a; }
 .pokerem-sidebar .pkr-trainer-identity__badge { border-radius:2px; }
 .pokerem-sidebar .pkr-trainer-identity__glow { display:none; }
 .pokerem-sidebar .pkr-typechart-matrix { font-size:13px; }
 .pokerem-sidebar .pkr-typechart-matrix :is(th,td) { min-width:26px; height:26px; }
-.pokerem-sidebar .pkr-typechart-matrix :is(.pkr-typechart-corner,.pkr-typechart-colhead,.pkr-typechart-rowhead) { font-family:'Pixelify Sans',monospace; font-size:12px; }
-.pokerem-sidebar .pkr-typechart-section-title { font-family:'Pixelify Sans',monospace; font-size:14px; }
-.pkr-pixel-surface,.pkr-dex-detail-surface { font-family:'Pixelify Sans',monospace; font-size:16px; }
+.pokerem-sidebar .pkr-typechart-matrix :is(.pkr-typechart-corner,.pkr-typechart-colhead,.pkr-typechart-rowhead) { font-family:var(--pkr-font-body); font-size:12px; }
+.pokerem-sidebar .pkr-typechart-section-title { font-family:var(--pkr-font-body); font-size:14px; }
+.pkr-pixel-surface,.pkr-dex-detail-surface { font-family:var(--pkr-font-body); font-size:16px; }
 :is(.pkr-pixel-surface,.pkr-dex-detail-surface) :is(.text-\[5px\],.text-\[6px\],.text-\[7px\],.text-\[8px\],.text-\[9px\],.text-\[10px\]) { font-size:14px!important; line-height:1.35; }
-:is(.pkr-pixel-surface,.pkr-dex-detail-surface) .pkr-pixel-title { font-family:'Press Start 2P',monospace; font-size:8px!important; line-height:1.7; }
+:is(.pkr-pixel-surface,.pkr-dex-detail-surface) .pkr-pixel-title { font-family:var(--pkr-font-display); font-size:10px!important; line-height:1.7; }
 :is(.pkr-pixel-surface,.pkr-dex-detail-surface) :is(.pkr-panel,.pkr-dex-detail-sheet) { border-radius:2px!important; background:#1a2039!important; border-color:#65709a!important; }
 .pokerem-sidebar :is(.pkr-settings-hero,.pkr-settings-path-hint,.pkr-storage-toggle,.pkr-dex-tile,.pkr-typechart-matrix-wrap) { border-radius:2px; }
 .pokerem-sidebar .pkr-bag-item__icon-slot,.pokerem-sidebar .pkr-shop-row__icon-slot { border-radius:2px; background:#101326; }
@@ -2876,7 +2874,7 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 /* Compact release notice keeps management screens immediately usable. */
 .pokerem-sidebar .pkr-whats-new { padding:10px 12px; border:2px solid #65709a; background:#242c4b; color:#f8edcf; box-shadow:2px 2px #07091a; }
 .pkr-release-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.pkr-release-heading strong { font-family:'Press Start 2P',monospace; font-size:8px; line-height:1.75; font-weight:400; }
+.pkr-release-heading strong { font-family:var(--pkr-font-display); font-size:10px; line-height:1.75; font-weight:400; }
 .pkr-release-heading button { padding:4px 10px; }
 .pkr-release-details summary { cursor:pointer; padding:6px 0 0; color:#d2d8ed; font-size:14px; }
 .pkr-release-entries { display:grid; gap:10px; padding-top:10px; font-size:15px; line-height:1.4; }
@@ -2919,7 +2917,7 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 /* Celebrate the discovery, keeping the true shiny palette untouched. */
 .pkr-shiny-stars { position:absolute; right:0; top:0; z-index:2; color:#ffe48c; font-size:24px; text-shadow:0 2px #302045; pointer-events:none; }
 .pkr-shiny-celebration { position:relative; overflow:hidden; display:grid; gap:6px; text-align:center; padding:14px; color:#fff1a4; background:#292044; border:2px solid #ffda73; animation:pkr-shiny-arrival 700ms ease-out both; }
-.pkr-shiny-celebration strong { font-family:'Press Start 2P',monospace; font-size:10px; line-height:1.7; }
+.pkr-shiny-celebration strong { font-family:var(--pkr-font-display); font-size:10px; line-height:1.7; }
 .pkr-shiny-burst { font-size:26px; letter-spacing:12px; animation:pkr-shiny-burst 1800ms ease-out both; }
 .pkr-evolution-message { color:#ffe48c; padding:10px 0; }
 @keyframes pkr-shiny-arrival { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
@@ -2928,9 +2926,13 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 @media (prefers-reduced-motion:reduce) { .pkr-shiny-celebration,.pkr-shiny-burst { animation:none !important; } }
 
 .pkr-species-badge { display:inline-block;padding:5px 7px;border:2px solid #a6b5d4;font-size:14px; }
-.pkr-species-badge--legendary,[data-classification="legendary"] { outline:2px solid #efd879;outline-offset:2px; }
-.pkr-species-badge--mythical,[data-classification="mythical"] { outline:2px solid #e4a6ff;outline-offset:2px; }
-.pkr-species-badge--ultra-beast,[data-classification="ultra-beast"] { outline:2px double #7ee9dd;outline-offset:2px; }
+.pkr-species-badge--legendary,[data-classification="legendary"]:not(.pkr-grounded) { outline:2px solid #efd879;outline-offset:2px; }
+.pkr-species-badge--mythical,[data-classification="mythical"]:not(.pkr-grounded) { outline:2px solid #e4a6ff;outline-offset:2px; }
+.pkr-species-badge--ultra-beast,[data-classification="ultra-beast"]:not(.pkr-grounded) { outline:2px double #7ee9dd;outline-offset:2px; }
+/* On the battlefield, rarity reads as an aura rather than a box around the sprite. */
+.pkr-grounded[data-classification="legendary"] img { filter:drop-shadow(0 0 5px rgba(239,216,121,.75)); }
+.pkr-grounded[data-classification="mythical"] img { filter:drop-shadow(0 0 5px rgba(228,166,255,.75)); }
+.pkr-grounded[data-classification="ultra-beast"] img { filter:drop-shadow(0 0 5px rgba(126,233,221,.75)); }
 .pkr-pending-collection { padding:12px;border:2px solid #f5d77e;background:#151a32;max-width:100%; }
 .pkr-catch-choice { margin:10px 0;padding:8px;border:2px solid #65709a;overflow-wrap:anywhere; }
 .pkr-catch-choice summary { cursor:pointer;min-height:40px;font-size:16px; }
@@ -2938,3 +2940,72 @@ body,:host { font-family:'Pixelify Sans',monospace; }
 .pkr-cash-bonus { display:block;color:#ffdc7b;animation:pkr-shiny-arrival 400ms ease-out both; }
 [data-reduced-motion="true"] .pkr-cash-bonus {animation:none;}
 @media(prefers-reduced-motion:reduce){.pkr-cash-bonus {animation:none;}}
+
+
+/* ── 1.4.1 readability + game feel ──────────────────────────────────────── */
+:root {
+  --pkr-font-body: 'Pixelify Sans', ui-monospace, monospace;
+  --pkr-font-display: 'Press Start 2P', 'Pixelify Sans', monospace;
+}
+/* Same arcade faces as before, made clearer: larger, heavier, more open, brighter secondary text. */
+.pokerem-sidebar.pkr-pixel-ui { font-size:16px; font-weight:500; line-height:1.4; letter-spacing:.02em; -webkit-font-smoothing:auto; }
+.pokerem-sidebar.pkr-pixel-ui :is(.text-\[4px\],.text-\[5px\],.text-\[6px\],.text-\[7px\],.text-\[8px\],.text-\[9px\],.text-\[10px\],.text-\[11px\]) { font-size:15px!important; line-height:1.3!important; letter-spacing:.02em; font-weight:500; }
+.pokerem-sidebar.pkr-pixel-ui :is(.font-bold,.font-black,.font-semibold,strong) { font-weight:600; }
+.pokerem-sidebar .pkr-game-btn, .pokerem-sidebar .pkr-btn-primary { font-family:var(--pkr-font-body); font-weight:600; }
+.pokerem-sidebar :is(button,.pkr-game-btn):not(:disabled):active { transform:translateY(2px); filter:brightness(.92); }
+.pkr-appraisal__stats { margin:6px 0 0; font-size:14px; font-weight:600; color:#c9d3ee; overflow-wrap:anywhere; }
+
+/* Quick care: fix a hurt or fainted team without leaving Play. */
+.pkr-care { display:grid; gap:8px; margin:8px; padding:10px; border:2px solid #65709a; background:linear-gradient(180deg,#1b2342,#10152c); box-shadow:2px 2px #07091a; animation:pkr-care-in 240ms var(--pkr-ease-out) both; }
+.pkr-care--fainted { border-color:#f87171; background:linear-gradient(180deg,#3f1620,#150f22); }
+.pkr-care__title { margin:0; font-family:var(--pkr-font-display); font-size:11px; line-height:1.5; color:#fff0bc; }
+.pkr-care__note { margin:0; font-size:15px; color:#c6cfe8; }
+.pkr-care__actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:6px; }
+.pkr-care__actions button { min-height:40px; padding:6px 8px; line-height:1.2; }
+@keyframes pkr-care-in { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
+/* Sprites stand on the field: contact shadow plus a slow idle breath. */
+.pkr-grounded { position:relative; transform-origin:50% 100%; }
+.pkr-grounded::after { content:''; position:absolute; left:30%; right:30%; bottom:-1%; height:7%; border-radius:50%; background:rgba(5,10,20,.32); filter:blur(2px); z-index:-1; }
+.pkr-grounded--idle { animation:pkr-idle-breathe 2.8s ease-in-out infinite; }
+@keyframes pkr-idle-breathe { 0%,100% { transform:scale(1,1); } 50% { transform:scale(1.015,.975); } }
+
+/* Battle opening: letterbox wipe, then both Pokémon slide onto their platforms. */
+.pkr-battle-wipe { position:absolute; inset:0; z-index:40; pointer-events:none; overflow:hidden; }
+.pkr-battle-wipe::before, .pkr-battle-wipe::after { content:''; position:absolute; left:0; right:0; height:50.5%; background:#05060f; animation:pkr-wipe-top 620ms cubic-bezier(.7,0,.3,1) 120ms both; }
+.pkr-battle-wipe::before { top:0; }
+.pkr-battle-wipe::after { bottom:0; animation-name:pkr-wipe-bottom; }
+@keyframes pkr-wipe-top { to { transform:translateY(-101%); } }
+@keyframes pkr-wipe-bottom { to { transform:translateY(101%); } }
+.pkr-intro-foe { animation:pkr-intro-foe 760ms cubic-bezier(.16,1,.3,1) 120ms both; }
+.pkr-intro-ally { animation:pkr-intro-ally 760ms cubic-bezier(.16,1,.3,1) 120ms both; }
+@keyframes pkr-intro-foe { from { transform:translateX(-170%); filter:brightness(.15); } 70% { filter:brightness(.15); } to { transform:none; filter:none; } }
+@keyframes pkr-intro-ally { from { transform:translateX(170%); } to { transform:none; } }
+
+/* Poké Ball throw: arc to the foe, three wobbles, then click or burst. */
+.pkr-ball-throw { position:absolute; left:74%; top:50%; z-index:30; width:28px; height:28px; margin:-14px 0 0 -14px; image-rendering:pixelated; pointer-events:none; }
+.pkr-ball-throw--caught { animation:pkr-ball-arc 460ms cubic-bezier(.3,.6,.5,1) both, pkr-ball-wobble 1.35s ease-in-out 480ms both, pkr-ball-settle 500ms ease-out 1.85s forwards; }
+.pkr-ball-throw--missed { animation:pkr-ball-arc 460ms cubic-bezier(.3,.6,.5,1) both, pkr-ball-wobble 900ms ease-in-out 480ms both, pkr-ball-burst 260ms ease-out 1.38s forwards; }
+@keyframes pkr-ball-arc { 0% { transform:translate(-190px,130px) scale(1.5) rotate(-540deg); } 55% { transform:translate(-70px,-40px) scale(1.1) rotate(-200deg); } 100% { transform:none; } }
+@keyframes pkr-ball-wobble { 0%,30%,60%,100% { transform:rotate(0); } 15%,75% { transform:rotate(-22deg); } 45%,90% { transform:rotate(22deg); } }
+@keyframes pkr-ball-settle { 0% { filter:brightness(.7); opacity:1; } 25% { filter:brightness(2); } 100% { opacity:0; transform:translateY(-6px); } }
+@keyframes pkr-ball-burst { to { opacity:0; transform:scale(2.2); filter:brightness(3); } }
+.pkr-battle-reduced .pkr-ball-throw, .pkr-battle-reduced .pkr-battle-wipe { display:none; }
+@media (prefers-reduced-motion:reduce) {
+  .pkr-care,.pkr-grounded--idle,.pkr-intro-foe,.pkr-intro-ally { animation:none; }
+  .pkr-ball-throw,.pkr-battle-wipe { display:none; }
+}
+
+/* Narrow panels: give the name and stats the room, not the sprite. */
+@container (max-width:340px) {
+  .pkr-party-card__toggle { gap:6px!important; padding-right:40px!important; }
+  .pkr-party-card__sprite-well { width:52px!important; min-width:52px!important; height:52px!important; flex:none!important; }
+  .pkr-party-card__sprite-well > div, .pkr-party-card__sprite-well img { width:52px!important; height:52px!important; }
+  .pkr-appraisal--compact .pkr-appraisal__power { margin-left:0; }
+  .pkr-party-card__titlerow { flex-wrap:wrap; padding-right:0; }
+  .pkr-party-card__titlerow > span:first-child { flex:1 0 100%; }
+  .pkr-party-card__titlerow > span:last-child { justify-content:flex-start; }
+}
+
+/* Press Start titles stay small and crisp; only body text takes the larger size. */
+.pokerem-sidebar.pkr-pixel-ui .pkr-pixel-title.pkr-pixel-title { font-size:10px!important; line-height:1.6!important; letter-spacing:0; font-weight:400; }

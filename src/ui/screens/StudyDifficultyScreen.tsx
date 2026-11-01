@@ -58,7 +58,7 @@ export function StudyDifficultyScreen({
 
           return (
             <Panel key={preset} title={label} accent={preset === 'hard' ? '#f87171' : preset === 'easy' ? '#4ade80' : '#fbbf24'}>
-              <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+              <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
                 {blurb}
               </p>
               <div className="mb-2 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 text-[8px] font-bold" style={{ color: '#cbd5e1' }}>
@@ -82,7 +82,7 @@ export function StudyDifficultyScreen({
         })}
 
         <Panel title="Custom" accent="#a78bfa">
-          <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+          <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
             Tune reviews per wild (2–15) and study intensity (50–150%). Same knobs as in Settings.
           </p>
           <CustomDifficultyForm
@@ -108,7 +108,7 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
         onApply(reviews, weight);
       }}
     >
-      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#94a3b8' }}>
+      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
         Reviews per wild
         <input
           name="reviews"
@@ -119,7 +119,7 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
           className="rounded border border-white/15 bg-black/30 px-2 py-1 text-[11px] font-bold text-slate-100"
         />
       </label>
-      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#94a3b8' }}>
+      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
         Card XP intensity (0.5–1.5)
         <input
           name="weight"

@@ -6,6 +6,9 @@ interface Props {
 }
 
 const RELEASE_ENTRIES = [
+  { title: '1.4.1 fix', body: 'Your game saves again. Starters, reviews, battles and purchases were failing to save in 1.4.0. Your progress was kept safe.' },
+  { title: 'Fairer battles', body: 'Fights are shorter and winnable at the same level. Pokémon with no attacks now use Struggle.' },
+  { title: 'Appraise and power up', body: 'Open a Pokémon in Party to see its IV stars and spend coins to level it up. Defeating Pokémon now pays far more than catching.' },
   { title: 'Stone evolution', body: 'Select a Pokémon in Party, choose a compatible stone, and confirm. Nine stone types are available.' },
   { title: 'Keep your team going', body: 'Revives stay stocked at 200 coins and appear more often in route finds.' },
   { title: 'True shinies', body: 'Rare wild Pokémon now use their actual shiny sprites, with a gold star celebration. Slower encounters get higher shiny odds.' },
@@ -24,7 +27,7 @@ export function WhatsNewCard({ seenVersion, onDismiss }: Props) {
         <button type="button" className="pkr-btn-secondary" onClick={onDismiss} aria-label="Dismiss release highlights">Got it</button>
       </div>
       <details className="pkr-release-details">
-        <summary>Arcade revival · see what’s new</summary>
+        <summary>Saving is fixed · see what’s new</summary>
         <div className="pkr-release-entries">
           {RELEASE_ENTRIES.map((entry) => (
             <p key={entry.title}><strong>{entry.title}</strong><br />{entry.body}</p>

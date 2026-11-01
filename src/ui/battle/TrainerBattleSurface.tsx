@@ -243,7 +243,7 @@ function TrainerHudPlate({
   const ratio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute right-1.5 top-1.5 z-[25] max-w-[62%] px-2 py-1.5 text-right"
+      className="pkr-battle-hud pkr-battle-hud--compact absolute right-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-right"
       style={{
         borderColor: `${accent}55`,
         boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px ${glow}`,
@@ -280,7 +280,7 @@ function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
   const ratio = mon.maxHp > 0 ? mon.currentHp / mon.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute bottom-1.5 left-1.5 z-[25] max-w-[62%] px-2 py-1.5 text-left"
+      className="pkr-battle-hud pkr-battle-hud--compact absolute left-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
       style={{
         borderColor: 'rgba(96,165,250,0.45)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px rgba(96,165,250,0.25)',
@@ -414,7 +414,7 @@ function PartyPickRow({
           </span>
         </div>
         <HpMeter hp={mon.currentHp} max={mon.maxHp} />
-        <div className="text-[9px]" style={{ color: fainted ? '#fca5a5' : '#94a3b8' }}>
+        <div className="text-[9px]" style={{ color: fainted ? '#fca5a5' : '#c3cde3' }}>
           {fainted ? 'Fainted — heal in Bag before selecting' : `${mon.currentHp} / ${mon.maxHp} HP`}
         </div>
       </div>
@@ -423,7 +423,7 @@ function PartyPickRow({
         className="grid h-6 w-6 place-items-center rounded-full text-[10px] font-black"
         style={{
           background: selected ? '#fde68a' : 'rgba(148,163,184,0.25)',
-          color: selected ? '#1e1b4b' : '#94a3b8',
+          color: selected ? '#1e1b4b' : '#c3cde3',
         }}
       >
         {selected ? '✓' : ''}
@@ -547,7 +547,7 @@ export function TrainerBattleSurface({
             <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#e2e8f0' }}>
               Pick {Math.min(3, battleReadyParty.length) || 3} Pokémon
             </span>
-            <span className="text-[10px]" style={{ color: '#94a3b8' }}>
+            <span className="text-[10px]" style={{ color: '#c3cde3' }}>
               {picked.length}/{Math.min(3, battleReadyParty.length) || 3} selected
             </span>
           </div>
@@ -610,19 +610,9 @@ export function TrainerBattleSurface({
           <div className="pointer-events-none absolute inset-0 z-0" style={sceneBg} />
           {!reducedMotion ? <div className="pkr-crt-lines" aria-hidden /> : null}
 
-          {/* Arena shadow beneath sprites */}
-          <div
-            className="pointer-events-none absolute bottom-[6%] left-1/2 z-[2] h-[26%] w-[78%] -translate-x-1/2"
-            style={{
-              background:
-                'radial-gradient(ellipse 85% 55% at 50% 60%, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 45%, transparent 72%)',
-            }}
-            aria-hidden
-          />
-
           {/* Enemy sprite (upper-right) */}
           {enemy && !(enemy.defeated || enemy.currentHp <= 0) ? (
-            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute left-[74%] top-[56%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
+            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute left-[74%] top-[64%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
               <PokemonSprite
                 src={frontSpriteUrl(rootURL, enemy.dexNum)}
                 alt={enemy.name}
@@ -635,12 +625,12 @@ export function TrainerBattleSurface({
 
           {/* Player sprite (lower-left, back-facing) */}
           {activeMon && activeMon.currentHp > 0 ? (
-            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute top-[88%] left-[23%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
+            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute top-[93%] left-[24%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
               <PokemonSprite
                 src={backSpriteUrl(rootURL, activeMon.dexNum, activeMon.shiny === true)}
                 alt={activeMon.name}
                 grounded
-                size={88}
+                size={108}
                 reducedMotion={reducedMotion}
               />
             </div>
@@ -683,7 +673,7 @@ export function TrainerBattleSurface({
                   <div className="text-[10px] font-black" style={{ color: '#f1f5f9' }}>
                     {m?.name ?? mid}
                   </div>
-                  <div className="text-[9px]" style={{ color: '#94a3b8' }}>
+                  <div className="text-[9px]" style={{ color: '#c3cde3' }}>
                     {m ? `${m.type} · ${m.power > 0 ? `${m.power} PWR` : 'Status'}` : ''}
                   </div>
                 </button>
@@ -693,7 +683,7 @@ export function TrainerBattleSurface({
         </div>
 
         <div className="pkr-trainer-log" role="status" aria-live="polite"><span key={battle.feedbackSeq}>{animating ? 'Exchanging attacks…' : battle.lastLog || 'Choose a move. Your team is ready.'}</span></div>
-        <p className="text-center text-[9px] italic" style={{ color: '#94a3b8' }}>
+        <p className="text-center text-[9px] italic" style={{ color: '#c3cde3' }}>
           No switching, healing, or items during a trainer battle.
         </p>
       </div>
@@ -771,7 +761,7 @@ export function TrainerBattleSurface({
                 Coins: {currency}¢
               </span>
             </div>
-            <p className="text-[10px]" style={{ color: '#94a3b8' }}>
+            <p className="text-[10px]" style={{ color: '#c3cde3' }}>
               Keep throwing balls until you catch one, run out of balls, or walk away.
             </p>
 
@@ -851,7 +841,7 @@ export function TrainerBattleSurface({
             >
               <span
                 className="text-[8px] font-black uppercase tracking-widest"
-                style={{ color: '#94a3b8' }}
+                style={{ color: '#c3cde3' }}
               >
                 Buy
               </span>
@@ -954,7 +944,7 @@ export function TrainerBattleSurface({
         <p className="text-[10px]" style={{ color: '#cbd5e1' }}>
           “{battle.trainer.victoryLine}”
         </p>
-        <p className="text-[10px]" style={{ color: '#94a3b8' }}>
+        <p className="text-[10px]" style={{ color: '#c3cde3' }}>
           Heal up your party in Bag and try again next time. Your collection and progress are safe.
         </p>
       </div>

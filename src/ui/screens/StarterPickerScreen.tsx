@@ -13,7 +13,7 @@ const GEN_STARTERS: { gen: number; label: string; starters: number[]; accent: st
   { gen: 5, label: 'Gen 5 — Unova', starters: [495, 498, 501], accent: '#fbbf24' },
   { gen: 6, label: 'Gen 6 — Kalos', starters: [650, 653, 656], accent: '#22d3ee' },
   { gen: 7, label: 'Gen 7 — Alola', starters: [722, 725, 728], accent: '#fb923c' },
-  { gen: 8, label: 'Gen 8 — Galar', starters: [810, 813, 816], accent: '#94a3b8' },
+  { gen: 8, label: 'Gen 8 — Galar', starters: [810, 813, 816], accent: '#c3cde3' },
 ];
 
 export function StarterPickerScreen({

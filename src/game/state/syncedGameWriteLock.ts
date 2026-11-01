@@ -1,15 +1,14 @@
 /**
- * Serialize mutating writes to synced game storage.
+ * Serialize mutating writes to synced game storage within one widget iframe.
  * Concurrent read-modify-write paths (queue review vs battle / sidebar) must not overwrite each other.
- * Uses Web Locks API when available for cross-window / cross-tab mutual exclusion.
+ *
+ * Do not use the Web Locks API here. RemNote runs plugins in iframes without `allow-same-origin`,
+ * so `navigator.locks.request` always rejects with SecurityError at that opaque origin.
  */
 let writeChain: Promise<unknown> = Promise.resolve();
 
 export function withSyncedGameWrite<T>(fn: () => Promise<T>): Promise<T> {
-  const run = writeChain.then(() => {
-    const locks = typeof navigator !== 'undefined' ? (navigator as any).locks : undefined;
-    return locks ? (locks.request('pokerem-game-write', fn) as Promise<T>) : fn();
-  });
+  const run = writeChain.then(fn);
   writeChain = run.then(
     () => undefined,
     () => undefined,

@@ -1,5 +1,7 @@
 # PokéRem 1.4.0 — Agent Handover & Architecture Document
 
+> **Superseded in part by [`HANDOVER_1.4.1.md`](HANDOVER_1.4.1.md).** 1.4.0 could not save inside RemNote because of Web Locks, despite the "Complete, Tested" status below. Read the 1.4.1 hand-off first.
+
 **Date:** October 31, 2026  
 **Version:** 1.4.0 (Schema Version: 5)  
 **Status:** Complete, Tested (141 tests passing), Built (`PluginZip.zip` and `Release 1.4.0.zip` ready)

@@ -49,7 +49,7 @@ export function MeterBar({
   return (
     <div className={compact ? 'space-y-0.5' : 'space-y-0.5'}>
       {showText && (
-        <div className={`flex justify-between font-bold ${textRow}`} style={{ color: '#94a3b8' }}>
+        <div className={`flex justify-between font-bold ${textRow}`} style={{ color: '#c3cde3' }}>
           <span>{label}</span>
           <span className="tabular-nums">
             {valueText ?? `${Math.floor(value)}/${Math.floor(max)}`}

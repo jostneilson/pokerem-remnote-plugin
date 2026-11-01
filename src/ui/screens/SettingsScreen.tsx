@@ -105,7 +105,7 @@ export function SettingsScreen({
   if (!loaded) {
     return (
       <Panel title="Settings" icon={<GameIcon name="gear" size={14} />}>
-        <p className="text-xs font-semibold" style={{ color: '#94a3b8' }}>
+        <p className="text-xs font-semibold" style={{ color: '#c3cde3' }}>
           Loading…
         </p>
       </Panel>
@@ -154,7 +154,7 @@ export function SettingsScreen({
         <h1 className="mt-1 text-sm font-black tracking-tight" style={{ color: '#f8fafc' }}>
           Settings
         </h1>
-        <p className="mt-1 max-w-xl text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
+        <p className="mt-1 max-w-xl text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
           Control how {BRAND.wordmark} reacts while you review. Most options are edited in RemNote&apos;s plugin settings; this screen shows
           current values and explains how things fit together.
         </p>
@@ -188,7 +188,7 @@ export function SettingsScreen({
       </Panel>
 
       <Panel collapsible title="Battle controls" icon={<GameIcon name="gear" size={14} />}>
-        <p className="mb-3 text-[10px] font-semibold leading-relaxed" style={{ color: '#94a3b8' }}>
+        <p className="mb-3 text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
           Wild encounters are meant to be handled with <strong style={{ color: '#e2e8f0' }}>on-screen buttons</strong> in the sidebar (and the
           queue strip when RemNote shows it), plus <strong style={{ color: '#e2e8f0' }}>RemNote commands</strong> and the review{' '}
           <strong style={{ color: '#e2e8f0' }}>queue menu</strong> when you want the same actions without clicking the plugin.
@@ -204,7 +204,7 @@ export function SettingsScreen({
                 <div className="text-[11px] font-black" style={{ color: '#f1f5f9' }}>
                   {row.action}
                 </div>
-                <div className="text-[8px] font-semibold leading-tight" style={{ color: '#94a3b8' }}>
+                <div className="text-[8px] font-semibold leading-tight" style={{ color: '#c3cde3' }}>
                   {row.line}
                 </div>
                 <div className="mt-1.5 text-[8px] font-bold" style={{ color: '#a5b4fc' }}>
@@ -215,27 +215,27 @@ export function SettingsScreen({
           ))}
         </div>
 
-        <p className="mt-3 text-[9px] leading-relaxed" style={{ color: '#94a3b8' }}>
-          Feature toggles and study pacing live in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-3 text-[9px] leading-relaxed" style={{ color: '#c3cde3' }}>
+          Feature toggles and study pacing live in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
       <Panel collapsible title="Behavior" icon={<GameIcon name="shield" size={14} />}>
         <div className="space-y-2">
           <StatChip label="Auto-clear battle log" value={settings.autoClearLog ? 'On' : 'Off'} on={settings.autoClearLog} />
-          <p className="text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
+          <p className="text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
             Clears the battle log after each completed card when no encounter is active (matches plugin setting).
           </p>
           <StatChip label="Wild encounter pacing" value={pacingLabel} variant="info" />
           <StatChip label="Review rewards intensity" value={rewardLabel} variant="info" />
-          <p className="text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
+          <p className="text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
             Scales Pokécoins, trainer XP, and (on pacing ticks) progress toward wild Pokémon. RemNote does not expose per-card grades to
             plugins yet — this knob stands in for study intensity.
           </p>
           <StatChip label="Reduced motion" value={settings.reducedMotion ? 'On' : 'Off'} on={settings.reducedMotion} />
         </div>
-        <p className="mt-2 text-[9px]" style={{ color: '#94a3b8' }}>
-          Change in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-2 text-[9px]" style={{ color: '#c3cde3' }}>
+          Change in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
@@ -246,7 +246,7 @@ export function SettingsScreen({
             <strong style={{ color: '#e2e8f0' }}>card XP intensity</strong> instead of RemNote&apos;s encounter rate / review intensity
             plugin settings. This matches the first-run picker and stays synced with your KB.
           </p>
-          <div className="mb-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-[9px] font-bold" style={{ color: '#94a3b8' }}>
+          <div className="mb-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
             Current:{' '}
             <span className="text-amber-200">
               {studyProfile.configured
@@ -280,7 +280,7 @@ export function SettingsScreen({
               </button>
             ))}
           </div>
-          <p className="mb-1 mt-3 text-[9px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+          <p className="mb-1 mt-3 text-[9px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
             Custom
           </p>
           <form
@@ -295,7 +295,7 @@ export function SettingsScreen({
               onConfigureStudy('custom', { reviews, weight });
             }}
           >
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#94a3b8' }}>
+            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#c3cde3' }}>
               Reviews / wild
               <input
                 name="reviews"
@@ -306,7 +306,7 @@ export function SettingsScreen({
                 className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 text-[11px] font-bold text-slate-100"
               />
             </label>
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#94a3b8' }}>
+            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#c3cde3' }}>
               Card XP (0.5–1.5)
               <input
                 name="weight"
@@ -334,28 +334,28 @@ export function SettingsScreen({
       ) : null}
 
       <Panel collapsible title="Customize" icon={<GameIcon name="diamond" size={14} />}>
-        <p className="mb-2 text-[9px] leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-2 text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
           Feature toggles are read from RemNote. Some changes may need a plugin reload depending on your app version.
         </p>
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
           Queue
         </p>
         <BoolRow label="Queue toolbar strip" on={settings.featureQueueStrip} />
-        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
           Popups
         </p>
         <BoolRow label="Floating encounter popup" on={settings.featureEncounterFloatingPopup} />
-        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
           Appearance
         </p>
         <BoolRow label="Daily stats in battle header" on={settings.showDailyHeaderStats} />
-        <p className="mt-2 text-[9px]" style={{ color: '#94a3b8' }}>
-          Edit in <strong style={{ color: '#94a3b8' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-2 text-[9px]" style={{ color: '#c3cde3' }}>
+          Edit in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
       <details className="pkr-settings-troubleshoot group rounded-lg border-2 border-white/10 bg-black/20">
-        <summary className="cursor-pointer list-none px-3 py-2.5 text-[10px] font-black uppercase tracking-wide outline-none transition-colors group-open:border-b group-open:border-white/10" style={{ color: '#94a3b8' }}>
+        <summary className="cursor-pointer list-none px-3 py-2.5 text-[10px] font-black uppercase tracking-wide outline-none transition-colors group-open:border-b group-open:border-white/10" style={{ color: '#c3cde3' }}>
           <span className="inline-flex items-center gap-2">
             <GameIcon name="gear" size={12} />
             Troubleshooting & help
@@ -367,7 +367,7 @@ export function SettingsScreen({
             <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
               Battle actions from the palette
             </h3>
-            <ul className="list-disc space-y-1 pl-4" style={{ color: '#94a3b8' }}>
+            <ul className="list-disc space-y-1 pl-4" style={{ color: '#c3cde3' }}>
               <li>
                 Open the command palette and run <strong style={{ color: '#e2e8f0' }}>{brandCommandCaps('Catch')}</strong>,{' '}
                 <strong style={{ color: '#e2e8f0' }}>{brandCommandCaps('Fight')}</strong>, or{' '}
@@ -381,7 +381,7 @@ export function SettingsScreen({
             <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
               Save, sync, and odd states
             </h3>
-            <ul className="list-disc space-y-1 pl-4" style={{ color: '#94a3b8' }}>
+            <ul className="list-disc space-y-1 pl-4" style={{ color: '#c3cde3' }}>
               <li>
                 Party Pokémon art loads from the network when online. Offline or blocked CDNs may show placeholders — gameplay still runs;
                 see credits in <strong style={{ color: '#e2e8f0' }}>ATTRIBUTION.md</strong> in the repo.
@@ -400,7 +400,7 @@ export function SettingsScreen({
             <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
               Platform notes
             </h3>
-            <p style={{ color: '#94a3b8' }}>
+            <p style={{ color: '#c3cde3' }}>
               Browser embedding and RemNote updates can change layout, focus, and which widgets mount (e.g. queue strip). The sidebar tab is
               the most reliable surface; we don&apos;t guarantee identical behavior on every OS and app version.
             </p>
@@ -415,7 +415,7 @@ export function SettingsScreen({
           knowledge base syncs to RemNote Cloud, that data is included in your usual backup story — check your RemNote account / export habits
           for the full picture.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           The button below downloads a JSON snapshot you can keep on disk. It does not replace RemNote sync; it&apos;s an extra safety copy and
           a way to inspect or archive your save.
         </p>
@@ -445,9 +445,9 @@ export function SettingsScreen({
           Start completely over in <strong style={{ color: '#e2e8f0' }}>this knowledge base</strong>: your party, bag, Pokédex counts,
           Pokécoins, trainer XP, claimed rewards, achievements, streaks, and any active wild encounter are cleared from synced storage.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           Export a JSON backup above first if you might want this data later. Plugin preferences (pacing, toggles) are{' '}
-          <strong style={{ color: '#94a3b8' }}>not</strong> reset.
+          <strong style={{ color: '#c3cde3' }}>not</strong> reset.
         </p>
         <button
           type="button"
@@ -499,7 +499,7 @@ export function SettingsScreen({
               This removes your save from RemNote&apos;s synced plugin storage for this KB. You will pick a starter again.{' '}
               <strong style={{ color: '#fde68a' }}>This cannot be undone</strong> unless you kept a backup.
             </p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
               <li>Party, storage, and nicknames</li>
               <li>Bag, shop purchases history counters, coins</li>
               <li>Dex, trainer rank / XP, daily recap stats</li>
@@ -568,7 +568,7 @@ export function SettingsScreen({
 
       <Panel collapsible title="Support PokéRem" icon={<GameIcon name="coin" size={14} />}><DonateSupportCard /></Panel>
       <Panel collapsible title="About" icon={<GameIcon name="pokeball" size={14} />}>
-        <div className="space-y-1.5 text-[10px] font-semibold" style={{ color: '#94a3b8' }}>
+        <div className="space-y-1.5 text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
           <p>
             <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong> v{POKEREM_VERSION}
           </p>
@@ -607,7 +607,7 @@ function StatChip({
             ? { background: 'rgba(30,58,138,0.35)', color: '#93c5fd' }
             : on
               ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' }
-              : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }
+              : { background: 'rgba(255,255,255,0.05)', color: '#c3cde3' }
         }
       >
         {value}
@@ -784,7 +784,7 @@ function BoolRow({ label, on }: { label: string; on: boolean }) {
       <span
         className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums"
         style={
-          on ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }
+          on ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' } : { background: 'rgba(255,255,255,0.05)', color: '#c3cde3' }
         }
       >
         {on ? 'On' : 'Off'}

@@ -33,7 +33,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
 
   return (
     <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
-      <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-wide" style={{ color: '#94a3b8' }}>
+      <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-wide" style={{ color: '#c3cde3' }}>
         Growth &amp; moves
       </div>
 
@@ -97,7 +97,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
                 className="shrink-0 rounded px-1 py-px text-[8px] font-black tabular-nums"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
-                  color: '#94a3b8',
+                  color: '#c3cde3',
                 }}
               >
                 L{row.level}
@@ -113,7 +113,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
                 style={
                   st === 'known'
                     ? { background: 'rgba(6,78,59,0.45)', color: '#6ee7b7' }
-                    : { background: 'rgba(255,255,255,0.06)', color: '#94a3b8' }
+                    : { background: 'rgba(255,255,255,0.06)', color: '#c3cde3' }
                 }
               >
                 {st === 'known' ? 'Known' : 'Passed'}

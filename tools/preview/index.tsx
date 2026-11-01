@@ -17,6 +17,7 @@ import {ProgressScreen} from '../../src/ui/screens/ProgressScreen';
 import {RewardsScreen} from '../../src/ui/screens/RewardsScreen';
 import {SettingsScreen} from '../../src/ui/screens/SettingsScreen';
 import {WhatsNewCard} from '../../src/ui/components/WhatsNewCard';
+import {QuickCarePanel} from '../../src/ui/components/QuickCarePanel';
 function fixture(){
  let s=game.configureStudyDifficulty(game.chooseStarter(game.createInitialStateV4(),656),'medium');
  const others=[1,4,7].map(dex=>game.chooseStarter(game.createInitialStateV4(),dex).party[0]);
@@ -46,6 +47,7 @@ function captureFixture(){
  if(captureScenario==='ultra-beast') s={...s,party:[owned('qa-ultra',793,'Nihilego',{types:['Rock','Poison'],level:36,totalXp:22000,ivs:{hp:3,attack:2,defense:3}})],activePokemonId:'qa-ultra'};
  if(captureScenario==='shiny') s={...s,party:[owned('qa-shiny',4,'Charmander',{types:['Fire'],shiny:true,level:18,totalXp:6000,ivs:{hp:3,attack:3,defense:2}})],activePokemonId:'qa-shiny'};
  if(captureScenario==='fainted') s={...s,party:s.party.map((p,i)=>i===0?{...p,currentHp:0,ivs:{hp:1,attack:2,defense:3}}:p)};
+ if(captureScenario==='hurt') s={...s,party:s.party.map((p,i)=>i===0?{...p,currentHp:20}:p)};
  if(captureScenario==='cash-bonus') s={...s,lastStudyReward:{seq:s.cardsReviewed,leadXp:14,benchXp:4,bonus:2500,tier:'Jackpot'}};
  if(captureScenario==='full-party-catch') {
   const six=[...s.party,owned('qa-4',25,'Pikachu',{types:['Electric']}),owned('qa-5',133,'Eevee',{types:['Normal']})].slice(0,6);
@@ -60,7 +62,7 @@ function Preview(){
  const [width,setWidth]=useState(captureMode?captureWidth:400),[compact,setCompact]=useState(false),[rm,setRm]=useState(captureMode?requestedReducedMotion:false),[news,setNews]=useState(false); const demoPlugin={settings:{getSetting:async(key:string)=>key.includes('reducedMotion')?rm:true},storage:{getSynced:async()=>s,setSynced:async()=>{}},app:{toast:async()=>{}}} as any;
  const act=(f:(s:PokeRemGameState)=>PokeRemGameState)=>set(f);
  const active=game.activePokemon(s)!;
- const tail=<><div className="pkr-content-vignette"><div className="pkr-panel-mount" key={tab}>
+ const tail=<>{tab==='status'&&!settings?<QuickCarePanel state={s} onApply={act}/>:null}<div className="pkr-content-vignette"><div className="pkr-panel-mount" key={tab}>
  {news?<WhatsNewCard seenVersion="" onDismiss={()=>setNews(false)}/>:null}
  {settings?<SettingsScreen compact={compact} onToggleCompact={()=>setCompact(v=>!v)} plugin={demoPlugin} studyProfile={{configured:true,preset:s.studyDifficultyPreset,reviews:s.studyReviewsPerEncounter,weight:s.studyCardWeight}} onConfigureStudy={(p,c)=>act(s=>game.configureStudyDifficulty(s,p,c))}/>:null}
  {!settings && tab==='status'?<StatusScreen rootURL="/" state={s} active={active}/>:null}

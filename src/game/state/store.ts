@@ -1,4 +1,5 @@
-import { resolveExchange } from '../engine/moveMechanics';
+import { REVIVE_SHOP_PRICE } from '../engine/shop';
+import { damageCeiling, resolveExchange, TRAINER_FOE_DAMAGE_SCALE, WILD_FOE_DAMAGE_SCALE, type Fighter } from '../engine/moveMechanics';
 import { ivsFor, rollIVs, battleStats, powerUpCost } from '../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../data/evolutions';
 import { ITEM_BY_ID, STARTING_BAG, type ItemId } from '../data/items';
@@ -253,10 +254,12 @@ function normalizeOwned(mon: OwnedPokemon): OwnedPokemon {
   const addAncestors=(dex:number)=>{if(visited.has(dex))return;visited.add(dex);for(const evo of EVOLUTION_TABLE.filter(e=>e.toDex===dex)){for(const id of getUnlockedLearnsetMoveIds(evo.fromDex,level))eligible.add(id);addAncestors(evo.fromDex);}};
   addAncestors(mon.dexNum);
   const valid=dedupeMoveIds(old).filter(id=>eligible.has(id));
-  const repaired=valid.length ? valid.slice(0,4) : getInitialMoves(mon.dexNum,level);
+  const hadInvalid=old.some(id=>!eligible.has(id));
+  // Refill only slots an invalid legacy move vacated, so a deliberately dropped move stays dropped.
+  const repaired=!hadInvalid&&valid.length ? valid.slice(0,4) : [...new Set([...valid,...getInitialMoves(mon.dexNum,level)])].slice(0,Math.max(valid.length,Math.min(4,old.length||4)));
   return {...mon,ivs,name:mon.name||species?.name||`#${mon.dexNum}`,types:species?.types??mon.types??['Normal'],level,maxHp,
     currentHp:mon.currentHp<=0?0:Math.min(maxHp,Math.max(1,Math.round(maxHp*ratio))),moves:repaired,
-    legacyMoves:old.some(id=>!eligible.has(id)) ? [...new Set([...(mon.legacyMoves??[]),...old])] : mon.legacyMoves,
+    legacyMoves:hadInvalid ? [...new Set([...(mon.legacyMoves??[]),...old])] : mon.legacyMoves,
     shiny:mon.shiny===true?true:undefined};
 }
 
@@ -1382,7 +1385,8 @@ function growPokemonWithXp(mon: OwnedPokemon, xpDelta: number): {
     return { pokemon: mon, leveledUp: false, evolvedMon: null, evolvedFromName: '' };
   }
   const totalXp = mon.totalXp + xpDelta;
-  const level = levelFromXp(totalXp);
+  // Older saves can hold more levels than their XP implies; XP must never lower a level.
+  const level = Math.max(mon.level, levelFromXp(totalXp));
   const maxHp = battleStats({...mon,level}).hp;
   const prevLevel = mon.level;
   let updated: OwnedPokemon = {
@@ -1477,6 +1481,17 @@ function computeDefeatXp(state: PokeRemGameState): number {
  * One combat exchange: player move (damage wild), then wild counter (damage player, min 1 HP).
  * If wild HP hits 0, delegates to {@link defeatEncounter} for XP / evolution.
  */
+/** Highest-damage legal move against this foe, so a plain Fight is never a wasted turn. */
+function bestMoveAgainst(attacker: Fighter, foe: Fighter, legalMoves: string[]): string | undefined {
+  let best = pickDefaultBattleMove(legalMoves);
+  let bestDamage = best ? damageCeiling(attacker, foe, best, false) : 0;
+  for (const id of legalMoves) {
+    const damage = damageCeiling(attacker, foe, id, false);
+    if (damage > bestDamage) { best = id; bestDamage = damage; }
+  }
+  return best;
+}
+
 export function applyCombatTurn(state: PokeRemGameState, moveId?: string, protectWild = false): PokeRemGameState {
   const enc0 = state.currentEncounter;
   if (!enc0) return state;
@@ -1501,14 +1516,14 @@ export function applyCombatTurn(state: PokeRemGameState, moveId?: string, protec
     if (!legalMoves.includes(moveId)) return state;
     chosen = moveId;
   } else {
-    const pick = pickDefaultBattleMove(legalMoves);
+    const pick = bestMoveAgainst(active, enc, legalMoves);
     if (!pick) return state;
     chosen = pick;
   }
 
   const wildMove=pickWildCounterMove(enc.dexNum,enc.level);
   const key=`wild:${enc.dexNum}:${enc.level}:${state.battleSceneIndex}:${state.totalCaught}:${state.totalDefeated}:${state.totalRuns}`;
-  const exchange=resolveExchange(active,enc,chosen,wildMove,key,Math.random,protectWild);
+  const exchange=resolveExchange(active,enc,chosen,wildMove,key,Math.random,protectWild,WILD_FOE_DAMAGE_SCALE);
   const xp=applyXpDoublerMultiplier(state,xpFromPlayerAttack({damage:exchange.pDamage,moveId:chosen,defenderTypes:enc.types})+xpFromTakingHit({damage:exchange.wDamage,wildMoveId:wildMove,playerTypes:active.types}));
   const grown=growPokemonWithXp(active,xp).pokemon;
   const updated={...grown,currentHp:Math.max(0,Math.min(grown.maxHp,exchange.player.currentHp)),condition:exchange.player.condition};
@@ -1811,21 +1826,25 @@ export function applyTrainerCombatTurn(
     if (!legalMoves.includes(moveId)) return state;
     chosen = moveId;
   } else {
-    const pick = pickDefaultBattleMove(legalMoves);
+    const pick = bestMoveAgainst(active, enemy, legalMoves);
     if (!pick) return state;
     chosen = pick;
   }
 
-  const enemyMoves=enemy.moves?.length?enemy.moves:getInitialMoves(enemy.dexNum,enemy.level);
-  const wMoveId=pickDefaultBattleMove(enemyMoves)??'tackle';
-  const exchange=resolveExchange(active,enemy,chosen,wMoveId,`trainer:${battle.id}`);
+  const enemyMoves=dedupeMoveIds(enemy.moves?.length?enemy.moves:getInitialMoves(enemy.dexNum,enemy.level));
+  const wMoveId=enemyMoves.find((id)=>(MOVES[id]?.power??0)>0)??'tackle';
+  const exchange=resolveExchange(active,enemy,chosen,wMoveId,`trainer:${battle.id}`,Math.random,false,TRAINER_FOE_DAMAGE_SCALE);
   const xp=applyXpDoublerMultiplier(state,xpFromPlayerAttack({damage:exchange.pDamage,moveId:chosen,defenderTypes:enemy.types})+xpFromTakingHit({damage:exchange.wDamage,wildMoveId:wMoveId,playerTypes:active.types}));
   const grown=growPokemonWithXp(active,xp+(exchange.wild.currentHp<=0?XP_ON_DEFEAT:0)).pokemon;
   const party=state.party.map((p,i)=>i===activeIdx?{...grown,currentHp:exchange.player.currentHp,condition:exchange.player.condition}:p);
   const enemies=battle.enemies.map((e,i)=>i===battle.activeEnemyIndex?{...e,currentHp:exchange.wild.currentHp,condition:exchange.wild.condition,defeated:exchange.wild.currentHp<=0}:e);
   const updated={...battle,enemies,lastLog:exchange.log,feedbackSeq:battle.feedbackSeq+1};
   let next={...state,party,currentTrainerBattle:updated};
-  if(exchange.player.currentHp<=0)return continueAfterPartyFaint(next,updated,aid!);
+  if(exchange.player.currentHp<=0){
+    const faintedSelectedIds=[...new Set([...battle.faintedSelectedIds,aid!])];
+    const afterFaint={...updated,faintedSelectedIds,lastLog:`${exchange.log} ${active.nickname||active.name} fainted!`};
+    return continueAfterPartyFaint({...next,currentTrainerBattle:afterFaint},afterFaint,aid!);
+  }
   if(exchange.wild.currentHp<=0){
     const boost=applyTypeShareXpBoost(next.party,next.storagePokemon,enemy.types,active.id,enemy.level);
     next={...next,party:boost.party,storagePokemon:boost.storagePokemon};
@@ -2494,4 +2513,81 @@ export function powerUpPokemon(state:PokeRemGameState,id:string,expectedLevel:nu
 export function togglePokemonFavorite(state:PokeRemGameState,id:string):PokeRemGameState {
  const update=(p:OwnedPokemon)=>p.id===id?{...p,favorite:!p.favorite}:p;
  return withTouch({...state,party:state.party.map(update),storagePokemon:state.storagePokemon.map(update)});
+}
+
+// ── Quick care (1.4.1): fix the team from Play without visiting Shop, Bag, and Party. ─────
+
+const CENTER_COST_PER_FAINTED = 100;
+
+/** Next conscious party member after the lead, for one-tap switching. */
+export function nextHealthyPartyMember(state: PokeRemGameState): OwnedPokemon | null {
+  return state.party.find((p) => p.id !== state.activePokemonId && p.currentHp > 0) ?? null;
+}
+
+/** Revive the fainted lead with one from the Bag, buying one first if the Bag has none. */
+export function quickReviveLead(state: PokeRemGameState): PokeRemGameState {
+  const lead = activePokemon(state);
+  if (!lead || lead.currentHp > 0 || isTrainerBattleActive(state)) return state;
+  const owned = (state.bag.revive ?? 0) > 0;
+  if (!owned && (state.currency ?? 0) < REVIVE_SHOP_PRICE) return state;
+  const stocked = owned ? state : buyItem(state, 'revive', REVIVE_SHOP_PRICE);
+  const revived = useHealingItem(stocked, 'revive');
+  return withTouch({ ...revived, ...bumpBattleOutcome(revived, 'none', `${lead.nickname || lead.name} is back on its feet!`) });
+}
+
+/** Which potion {@link quickHealLead} would use: the smallest that covers the damage, else the strongest. */
+export function bestPotionForLead(state: PokeRemGameState): { id: ItemId; owned: boolean; price: number } | null {
+  const lead = activePokemon(state);
+  if (!lead || lead.currentHp <= 0 || lead.currentHp >= lead.maxHp) return null;
+  const missing = lead.maxHp - lead.currentHp;
+  const potions = (['potion', 'super-potion', 'max-potion'] as const)
+    .filter((id) => (state.bag[id] ?? 0) > 0)
+    .map((id) => ITEM_BY_ID.get(id)!);
+  const pick = potions.find((i) => (i.power ?? 0) >= missing) ?? potions[potions.length - 1];
+  if (pick) return { id: pick.id, owned: true, price: 0 };
+  const potion = ITEM_BY_ID.get('potion')!;
+  return { id: potion.id, owned: false, price: potion.price };
+}
+
+export function quickHealLead(state: PokeRemGameState): PokeRemGameState {
+  const pick = bestPotionForLead(state);
+  if (!pick || isTrainerBattleActive(state)) return state;
+  if (!pick.owned && (state.currency ?? 0) < pick.price) return state;
+  const stocked = pick.owned ? state : buyItem(state, pick.id, pick.price);
+  return useHealingItem(stocked, pick.id);
+}
+
+/** Coins to fully restore the party: 1 per missing HP plus a flat fee per fainted Pokémon. */
+export function pokemonCenterCost(state: PokeRemGameState): number {
+  return state.party.reduce(
+    (sum, p) => sum + Math.max(0, p.maxHp - p.currentHp) + (p.currentHp <= 0 ? CENTER_COST_PER_FAINTED : 0),
+    0,
+  );
+}
+
+export function pokemonCenterHeal(state: PokeRemGameState): PokeRemGameState {
+  if (state.currentEncounter || isTrainerBattleActive(state)) return state;
+  const cost = pokemonCenterCost(state);
+  if (cost <= 0 || (state.currency ?? 0) < cost) return state;
+  return withTouch({
+    ...state,
+    currency: state.currency - cost,
+    party: state.party.map((p) => ({ ...p, currentHp: p.maxHp })),
+    ...bumpBattleOutcome(state, 'none', 'Your team is fully healed. We hope to see you again!'),
+  });
+}
+
+const QUICK_BALL_COUNT = 5;
+
+/** Restock Poké Balls mid-encounter (as many of five as coins allow). */
+export function quickBuyBalls(state: PokeRemGameState): PokeRemGameState {
+  const price = ITEM_BY_ID.get('poke-ball')!.price;
+  const count = Math.min(QUICK_BALL_COUNT, Math.floor((state.currency ?? 0) / price));
+  if (count <= 0) return state;
+  return withTouch({
+    ...state,
+    currency: state.currency - count * price,
+    bag: { ...state.bag, 'poke-ball': (state.bag['poke-ball'] ?? 0) + count },
+    totalShopPurchases: (state.totalShopPurchases ?? 0) + count,
+  });
 }

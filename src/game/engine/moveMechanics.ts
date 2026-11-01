@@ -19,7 +19,7 @@ const supportedAilments = new Set(['none', 'sleep', 'poison', 'burn', 'freeze', 
 
 export function isMoveSupported(m: any): boolean {
   if (!m) return false;
-  if (m.id === 'splash') return true;
+  if (m.id === 'splash' || m.id === 'struggle') return true;
   if (m.metaCategory === 'heal' && m.healing > 0 && !/wish|swallow|weather|sunlight/i.test(m.description ?? '')) return true;
   if (!m.metaCategory) return m.power > 0;
   if (!supportedAilments.has(m.ailment ?? 'none')) return false;
@@ -39,6 +39,11 @@ export function isMoveSupported(m: any): boolean {
   );
 }
 
+const statLabel = (s: string): string =>
+  (({ specialAttack: 'Sp. Atk', specialDefense: 'Sp. Def', attack: 'Attack', defense: 'Defense', speed: 'Speed', accuracy: 'accuracy', evasion: 'evasion' } as Record<string, string>)[s] ?? s);
+/** Wild and trainer Pokémon hit softer than the lead so a same-level fight is winnable. */
+export const WILD_FOE_DAMAGE_SCALE = 0.45;
+export const TRAINER_FOE_DAMAGE_SCALE = 0.7;
 const clampStage = (v: number) => Math.max(-6, Math.min(6, v));
 const stage = (v = 0) => (v >= 0 ? (2 + v) / 2 : 2 / (2 - v));
 const statName = (s: string): string =>
@@ -112,6 +117,7 @@ export function resolveExchange(
   key: string,
   rng: () => number = Math.random,
   protectWild = false,
+  foeDamageScale = 1,
 ) {
   const clone = (f: Fighter): Fighter => ({
     ...f,
@@ -150,7 +156,13 @@ export function resolveExchange(
     const maxHits = Math.max(1, m.maxHits ?? 1),
       minHits = Math.max(1, m.minHits ?? maxHits);
     const hits = minHits + Math.floor(rng() * (maxHits - minHits + 1));
-    const damage = m.power > 0 ? Math.max(0, Math.floor((damageCeiling(a, d, id, crit) / maxHits) * hits)) : 0;
+    const rawDamage = m.power > 0 ? Math.max(0, Math.floor((damageCeiling(a, d, id, crit) / maxHits) * hits)) : 0;
+    const damage = !isPlayer && rawDamage > 0 ? Math.max(1, Math.floor(rawDamage * foeDamageScale)) : rawDamage;
+    if (damage > 0 && crit) log.push('A critical hit!');
+    const eff = m.power > 0 ? getEffectiveness(m.type, d.types) : 1;
+    if (m.power > 0 && eff === 0) log.push(`It doesn't affect ${d.name ?? 'the target'}...`);
+    else if (eff > 1) log.push("It's super effective!");
+    else if (eff > 0 && eff < 1) log.push("It's not very effective...");
     const taken = Math.min(d.currentHp, damage);
     d.currentHp -= taken;
     if (isPlayer) pDamage = taken;
@@ -159,19 +171,22 @@ export function resolveExchange(
       const delta = Math.round((taken * m.drain) / 100);
       a.currentHp = Math.max(0, Math.min(a.maxHp, a.currentHp + delta));
     }
-    if (m.healing) a.currentHp = Math.min(a.maxHp, a.currentHp + Math.max(1, Math.floor((a.maxHp * m.healing) / 100)));
+    if (m.healing > 0) a.currentHp = Math.min(a.maxHp, a.currentHp + Math.max(1, Math.floor((a.maxHp * m.healing) / 100)));
+    if (m.healing < 0) a.currentHp = Math.max(0, a.currentHp - Math.max(1, Math.floor((a.maxHp * -m.healing) / 100)));
     if (m.flinchChance && rng() * 100 < m.flinchChance) {
       (d.condition as any).flinch = true;
     }
-    const self = ['user', 'users-field', 'user-and-allies', 'all-allies'].includes(m.target);
-    const chance = m.category === 'status' ? 100 : (m.effectChance ?? m.statChance ?? 100);
+    // "damage+raise" moves change the user's stats even though they target the foe
+    // (Power-Up Punch raises, Close Combat lowers). A stored chance of 0 means "always".
+    const self = m.metaCategory === 'damage+raise' || ['user', 'users-field', 'user-and-allies', 'all-allies'].includes(m.target);
+    const chance = m.category === 'status' ? 100 : m.effectChance || m.statChance || 100;
     if (rng() * 100 < chance) {
       for (const change of m.statChanges ?? []) {
         const target = self ? a : d,
           stat = statName(change.stat);
         const stages = target.condition!.stages as any;
         stages[stat] = clampStage((stages[stat] ?? 0) + change.change);
-        log.push(`${target.name ?? 'Pokémon'} ${stat} ${change.change > 0 ? 'rose' : 'fell'}.`);
+        log.push(`${target.name ?? 'Pokémon'}'s ${statLabel(stat)} ${change.change > 0 ? 'rose' : 'fell'}.`);
       }
     }
     if (m.ailment && m.ailment !== 'none' && rng() * 100 < (m.ailmentChance || 100)) {

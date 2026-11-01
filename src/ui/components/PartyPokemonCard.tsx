@@ -45,7 +45,7 @@ export function PartyPokemonCard({
           <PokemonSprite src={frontSpriteUrl(rootURL, p.dexNum, p.shiny === true)} alt={displayName} size={76} />
         </div>
         <div className="min-w-0 flex-1 py-0.5">
-          <div className="flex items-baseline justify-between gap-1">
+          <div className="pkr-party-card__titlerow flex items-baseline justify-between gap-1">
             <span className="truncate text-xs font-black" style={{ color: '#e2e8f0' }}>
               {displayName}
             </span>
@@ -115,7 +115,7 @@ export function PartyPokemonCard({
             {!isParty ? (
               <span
                 className="ml-auto rounded px-1.5 py-px text-[6px] font-black uppercase tracking-wide"
-                style={{ color: '#94a3b8', border: '1px solid rgba(148,163,184,0.25)' }}
+                style={{ color: '#c3cde3', border: '1px solid rgba(148,163,184,0.25)' }}
               >
                 Storage
               </span>

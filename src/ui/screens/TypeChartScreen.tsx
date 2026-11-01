@@ -86,7 +86,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
           ) : null}
           {immune.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#94a3b8' }}>
+              <span className="font-black" style={{ color: '#c3cde3' }}>
                 Immune (0×)
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -128,7 +128,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
           ) : null}
           {noEffect.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#94a3b8' }}>
+              <span className="font-black" style={{ color: '#c3cde3' }}>
                 No effect on
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -166,7 +166,7 @@ function cellStyle(eff: number): CSSProperties {
   if (eff === 0) {
     return {
       background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)',
-      color: '#94a3b8',
+      color: '#c3cde3',
       fontWeight: 900,
     };
   }
@@ -260,7 +260,7 @@ export function TypeChartScreen({ rootURL }: { rootURL?: string }) {
         <div className="pkr-pixel-title text-[6px] font-black uppercase leading-snug tracking-wide" style={{ color: '#a5b4fc' }}>
           Battle reference
         </div>
-        <p className="mt-1 text-[9px] font-semibold leading-snug" style={{ color: '#94a3b8' }}>
+        <p className="mt-1 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
           <span className="font-bold text-slate-300">Simple</span> highlights one type.{' '}
           <span className="font-bold text-slate-300">Full chart</span> is the classic attack-vs-defend matrix.
         </p>

@@ -408,6 +408,14 @@ export function BattleReviewSurface({
     }
   }, [hasEncounter]);
 
+  const [battleIntro, setBattleIntro] = useState(false);
+  useEffect(() => {
+    if (!hasEncounter || reducedMotion) return;
+    setBattleIntro(true);
+    const t = window.setTimeout(() => setBattleIntro(false), 950);
+    return () => clearTimeout(t);
+  }, [hasEncounter, reducedMotion]);
+
   useEffect(() => {
     if (!hasEncounter || reducedMotion || feedbackSeq <= 0) return;
     const strikeOut =
@@ -725,21 +733,7 @@ export function BattleReviewSurface({
         ) : null}
       </div>
 
-      {leadFaintedNoEncounter ? (
-        <div
-          role="status"
-          className="border-b px-2.5 py-1.5 text-center text-[9px] font-bold leading-snug"
-          style={{
-            background: 'linear-gradient(90deg, rgba(127,29,29,0.5) 0%, rgba(30,27,46,0.95) 50%, rgba(127,29,29,0.5) 100%)',
-            borderColor: 'rgba(248,113,113,0.35)',
-            color: '#fecaca',
-          }}
-        >
-          Lead has fainted — wild encounters are paused. Use a <strong style={{ color: '#fde68a' }}>Revive</strong> in{' '}
-          <strong style={{ color: '#fde68a' }}>Bag</strong>, then potions if needed, or <strong style={{ color: '#fde68a' }}>Party</strong> to switch your active Pokémon.
-        </div>
-      ) : null}
-
+      
       {outcomeKind === 'evolution' && feedbackSeq > 0 ? (
         <div
           className="flex items-center justify-center gap-1 px-2 py-1 text-[9px] font-black uppercase tracking-widest"
@@ -796,14 +790,6 @@ export function BattleReviewSurface({
           )}
         </div>
         {!reducedMotion ? <div className="pkr-crt-lines" aria-hidden /> : null}
-        {/* Centered arena shadow — grounds sprites on scene art */}
-        <div
-          className="pointer-events-none absolute bottom-[6%] left-1/2 z-[2] h-[26%] w-[78%] -translate-x-1/2"
-          style={{
-            background: 'radial-gradient(ellipse 85% 55% at 50% 60%, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 45%, transparent 72%)',
-          }}
-          aria-hidden
-        />
         <img
           src={battleSceneImageUrl(rootURL, sceneIdx)}
           alt=""
@@ -980,6 +966,17 @@ export function BattleReviewSurface({
           </div>
         ) : null}
 
+        {battleIntro ? <div className="pkr-battle-wipe" aria-hidden="true" /> : null}
+        {(isCatchOutcome || outcomeKind === 'catch_fail') && !reducedMotion ? (
+          <img
+            key={`ball-${feedbackSeq}`}
+            src={itemIconUrl(rootURL, 'poke-ball.png')}
+            alt=""
+            aria-hidden="true"
+            className={`pkr-ball-throw ${outcomeKind === 'catch_success' ? 'pkr-ball-throw--caught' : 'pkr-ball-throw--missed'}`}
+          />
+        ) : null}
+
         {/* ── Wild sprite (upper platform — nudged toward pad) ── */}
         <div
           className="absolute z-10"
@@ -991,7 +988,7 @@ export function BattleReviewSurface({
         >
           {showFieldWild && fieldWild ? (
             <div
-              className={`${wildAnimate ? 'animate-pkr-shake' : ''} ${wildFinishMotionClass} ${isCatchOutcome ? 'animate-pkr-catch-bounce' : ''} ${lungePhase === 'wild' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-wild' : ''} ${wildHitFlash ? 'pkr-battle-target-hit' : ''}`}
+              className={`${battleIntro ? 'pkr-intro-foe' : ''} ${wildAnimate ? 'animate-pkr-shake' : ''} ${wildFinishMotionClass} ${isCatchOutcome ? 'animate-pkr-catch-bounce' : ''} ${lungePhase === 'wild' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-wild' : ''} ${wildHitFlash ? 'pkr-battle-target-hit' : ''}`}
             >
               <PokemonSprite
                 src={frontSpriteUrl(rootURL, fieldWild.dexNum, fieldWild.shiny === true)}
@@ -1014,19 +1011,19 @@ export function BattleReviewSurface({
         <div
           className="absolute z-10"
           style={{
-            left:'23%',top:'89%',
+            left:'24%',top:hasEncounter?'93%':'89%',
             translate:'-50% -100%',
             transform:`translate(${Math.round(spriteOff.playerX*layoutW/400)}px,${Math.round(spriteOff.playerY*layoutW/400)}px)`,
           }}
         >
           <div
-            className={`${lungePhase === 'player' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-player' : ''} ${playerHitFlash ? 'pkr-battle-target-hit' : ''} ${isFaintLinger ? 'animate-pkr-fade-out' : ''}`}
+            className={`${battleIntro ? 'pkr-intro-ally' : ''} ${lungePhase === 'player' && !reducedMotion && !battleLinger ? 'animate-pkr-lunge-player' : ''} ${playerHitFlash ? 'pkr-battle-target-hit' : ''} ${isFaintLinger ? 'animate-pkr-fade-out' : ''}`}
           >
             <PokemonSprite
               src={backSpriteUrl(rootURL, active.dexNum, active.shiny === true)}
               alt={active.name}
               grounded
-              size={spriteSize}
+              size={Math.round(spriteSize * 1.3)}
               shiny={active.shiny === true}
               reducedMotion={reducedMotion}
             />
@@ -1157,7 +1154,7 @@ export function BattleReviewSurface({
         </div>
 
         {/* ── Trek / encounter progress (bottom center) ── */}
-        <div className="absolute bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5">
+        {!hasEncounter ? <div className="absolute bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-0.5">
           <span className="pkr-battle-hud-role" style={{ color: amb.accentMuted }}>
             Next wild
           </span>
@@ -1176,7 +1173,7 @@ export function BattleReviewSurface({
                   } until the next wild Pokémon (${progress} of ${effectiveRate} toward encounter)`
             }
           />
-        </div>
+        </div> : null}
 
         {hasEncounter && battleBusy ? (
           <div className="pkr-battle-busy-overlay" aria-live="polite" aria-busy="true">

@@ -74,6 +74,7 @@ import {
 } from '../game/engine/achievements';
 import { getUnclaimedRewards } from '../game/engine/trainerLevel';
 import { OnboardingTipsBar } from '../ui/components/OnboardingTipsBar';
+import { QuickCarePanel } from '../ui/components/QuickCarePanel';
 const ALL_TABS: SectionTab[] = ['status', 'party', 'bag', 'shop', 'dex', 'types', 'progress', 'rewards'];
 
 function PokeRemSidebar() {
@@ -451,10 +452,6 @@ function PokeRemSidebar() {
                 <strong className="font-black" style={{ color: '#fde68a' }}>Fight</strong> (first damaging move), or{' '}
                 <strong className="font-black" style={{ color: '#fde68a' }}>Run</strong> above, or the RemNote command palette / queue menu.
               </p>
-            ) : active && active.currentHp <= 0 ? (
-              <p className="text-center text-[10px] font-semibold" style={{ color: '#fca5a5' }}>
-                Lead fainted — use a <strong style={{ color: '#fde68a' }}>Revive</strong> in <strong style={{ color: '#fde68a' }}>Bag</strong> (or switch in <strong style={{ color: '#fde68a' }}>Party</strong>) to continue wild encounters.
-              </p>
             ) : (
               <p className="text-center text-[10px] font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
                 Developed by {POKEREM_AUTHOR}
@@ -476,7 +473,7 @@ function PokeRemSidebar() {
       onMouseDown={(e) => e.stopPropagation()}
     >
       {state.lastStudyReward ? <div className="pkr-study-reward" key={`study-${state.lastStudyReward.seq}`} role="status">
-        Lead +{state.lastStudyReward.leadXp} XP · Party +{state.lastStudyReward.benchXp} XP
+        Lead +{state.lastStudyReward.leadXp} XP{state.lastStudyReward.benchXp>0?` · Party +${state.lastStudyReward.benchXp} XP`:''}
         {state.lastStudyReward.bonus>0?<strong className="pkr-cash-bonus"> ✦ {state.lastStudyReward.tier} +{state.lastStudyReward.bonus} coins</strong>:null}
       </div>:null}
       {loaded && (state.currentTrainerBattle || state.currentEncounter || state.pendingCaughtMon) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
@@ -501,6 +498,7 @@ function PokeRemSidebar() {
         onSettings={() => setShowSettings((v) => !v)} />
           {/* Menus use the full panel; Play owns the arena. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            {!showSettings && effectiveTab === 'status' ? <QuickCarePanel state={state} busy={saving || battle.battleBusy} onApply={(fn) => void applyReducer(fn)} /> : null}
             {!showSettings && effectiveTab === 'status' && state.currentTrainerBattle && !state.pendingCaughtMon ? (
               <div className={scrollAreaClass}>
                 <TrainerBattleSurface

@@ -4,6 +4,7 @@ import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
 
 const MAX_MOVES = 4;
+const STRUGGLE_MOVE = 'struggle';
 
 /**
  * Check if a Pokemon should learn new moves at its current level.
@@ -55,7 +56,9 @@ export function learnsetMilestonesOrdered(dexNum: number): { level: number; move
 }
 
 export function getInitialMoves(dexNum: number, level: number): string[] {
-  const unlocked = getUnlockedLearnsetMoveIds(dexNum, level);
+  let unlocked = getUnlockedLearnsetMoveIds(dexNum, level);
+  // Some species learn nothing until past Lv1 (Crabrawler); start them on their first move.
+  if (unlocked.length === 0) unlocked = learnsetMilestonesOrdered(dexNum).slice(0, 1).map((e) => e.moveId);
   const attacks=unlocked.filter(id=>(MOVES[id]?.power??0)>0).slice(-2);
   return [...new Set([...attacks,...unlocked.slice().reverse()])].slice(0,MAX_MOVES);
 }
@@ -72,7 +75,7 @@ export function getUnlockedLearnsetMoveIds(dexNum: number, level: number): strin
   const seen = new Set<string>();
   const order: string[] = [];
   for (const entry of learnset) {
-    if (entry.level > level || !MOVES[entry.moveId]) continue;
+    if (entry.level > level || !isMoveSupported(MOVES[entry.moveId])) continue;
     if (seen.has(entry.moveId)) continue;
     seen.add(entry.moveId);
     order.push(entry.moveId);
@@ -84,21 +87,29 @@ export function getUnlockedLearnsetMoveIds(dexNum: number, level: number): strin
 export function movesetForBattle(mon: { dexNum: number; level: number; moves?: string[] }): string[] {
   const raw = mon.moves?.filter(Boolean) ?? [];
   const deduped = dedupeMoveIds(raw);
-  if (deduped.length > 0) return deduped.slice(0, MAX_MOVES);
-  return getInitialMoves(mon.dexNum, mon.level);
+  const moves = deduped.length > 0 ? deduped.slice(0, MAX_MOVES) : getInitialMoves(mon.dexNum, mon.level);
+  // Species like Magikarp and Metapod can have no attack at all. As in the main games, they
+  // Struggle instead of being unable to finish a fight.
+  if (moves.some((id) => (MOVES[id]?.power ?? 0) > 0)) return moves;
+  return [...moves.slice(0, MAX_MOVES - 1), STRUGGLE_MOVE];
 }
 
-/** Prefer a damaging move for “fight first” (palette / queue menu); fall back to first slot if none. */
+/** Strongest damaging move for “fight first” (palette / queue menu); fall back to first slot if none. */
 export function pickDefaultBattleMove(legalMoves: string[]): string | undefined {
   if (legalMoves.length === 0) return undefined;
-  const damaging = legalMoves.find((id) => (MOVES[id]?.power ?? 0) > 0);
-  return damaging ?? legalMoves[0];
+  let best: string | undefined;
+  for (const id of legalMoves) {
+    if ((MOVES[id]?.power ?? 0) > (best ? MOVES[best]!.power : 0)) best = id;
+  }
+  return best ?? legalMoves[0];
 }
 
 /** One-line summary for Party move lists and the teachable-move browser. */
 export function moveUiDescription(moveId: string): string {
   const m = MOVES[moveId];
   if (!m) return 'Unknown move.';
+  if (moveId === 'splash') return 'Does nothing at all, exactly as in the main games.';
+  if (moveId === STRUGGLE_MOVE) return 'Used when a Pokémon has no attacks. Hurts the user by a quarter of its max HP.';
   if (m.power <= 0 || m.category === 'status') {
     return (m as any).description || `${m.type} status move.`;
   }

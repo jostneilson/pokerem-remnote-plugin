@@ -19,7 +19,8 @@ export const ivAverage=(mon:Parameters<typeof ivsFor>[0])=>{const i=ivsFor(mon);
 export function battleStats(mon:{id?:string;dexNum:number;level:number;ivs?:PokemonIVs}) {
   const s=SPECIES_BY_DEX.get(mon.dexNum) as any; const iv=ivsFor(mon), l=Math.max(1,Math.min(100,mon.level));
   const stat=(base:number|undefined,v:number)=>Math.max(1,Math.floor(((2*(base??50)*l)/100+5)*ivMultiplier(v)));
-  const hp=Math.max(10,Math.floor(((s?.baseHp??40)+l*3)*ivMultiplier(iv.hp)));
+  // Sized for the canonical damage formula: about 3-6 same-level hits at any level.
+  const hp=Math.max(10,Math.floor((Math.floor(2*(s?.baseHp??40)*l/100)+2*l+14)*ivMultiplier(iv.hp)));
   const attack=stat(s?.baseAttack,iv.attack),defense=stat(s?.baseDefense,iv.defense),specialAttack=stat(s?.baseSpecialAttack,iv.attack),specialDefense=stat(s?.baseSpecialDefense,iv.defense),speed=stat(s?.baseSpeed,2);
   const power=Math.floor((attack+specialAttack)*Math.sqrt(defense+specialDefense)*Math.sqrt(hp)/10);
   return {hp,attack,defense,specialAttack,specialDefense,speed,power};

@@ -4,6 +4,10 @@
 
 Choose a starter, grow your team as you study, and meet wild Pokémon along the way. Catch, battle, collect, and build your trainer's progress inside the RemNote flashcard queue.
 
+## New in 1.4.1
+
+Fixes 1.4.0, which could not save inside RemNote; existing progress is intact. Adds one-tap care actions on Play (revive, send out, heal, restock), clearer pixel fonts, and fairer battles.
+
 ## New in 1.3.1
 
 - **Stone evolution:** select a Pokémon in Party, open Stone evolution, and confirm a compatible stone. The stone is spent only when evolution succeeds. Nicknames, XP, and shiny status carry forward. Nine stone types are available through daily Shop deals and route finds.
