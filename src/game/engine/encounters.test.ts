@@ -12,6 +12,7 @@ import {
   wildEncounterSpeciesDexSet,
 } from './encounters';
 import type { OwnedPokemon } from '../state/model';
+import { minWildLevel } from './speciesPool';
 
 function mon(level: number): OwnedPokemon {
   return {
@@ -39,8 +40,8 @@ describe('computeCatchChance', () => {
 });
 
 describe('averagePartyLevel', () => {
-  it('returns 1 for empty party', () => {
-    expect(averagePartyLevel([])).toBe(1);
+  it('returns 5 for empty party (same as trainer battles)', () => {
+    expect(averagePartyLevel([])).toBe(5);
   });
 
   it('rounds mean and clamps to 1', () => {
@@ -76,7 +77,7 @@ describe('wild dex completion + encounter pool', () => {
   it('before completion, spawn only picks uncaught Common gen1 species when that is the only uncaught in pool', () => {
     const starterSet = new Set(STARTER_DEX_ALL as readonly number[]);
     const wildCommonG1 = SPECIES_LIST.filter(
-      (s) => s.tier === 'Common' && s.generation === 1 && !starterSet.has(s.dexNum),
+      (s) => s.tier === 'Common' && s.generation === 1 && !starterSet.has(s.dexNum) && minWildLevel(s.dexNum) === 1,
     );
     expect(wildCommonG1.length).toBeGreaterThan(0);
     const target = wildCommonG1[0]!;
@@ -86,7 +87,8 @@ describe('wild dex completion + encounter pool', () => {
     collection[target.dexNum] = 0;
 
     let i = 0;
-    const seq = [0, 0, 0, 0.999];
+    // shiny roll, level band, uncaught-bias roll, species pick
+    const seq = [0.999, 0.5, 0, 0];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;
@@ -105,7 +107,7 @@ describe('wild dex completion + encounter pool', () => {
     expect(SHINY_ODDS_PRE_DEX_COMPLETE).toBe(1 / 250);
 
     let i = 0;
-    const seq = [0, 0, 0, 0.001];
+    const seq = [0.001, 0.5, 0, 0];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;
@@ -123,7 +125,7 @@ describe('wild dex completion + encounter pool', () => {
     collection[one] = 0;
 
     let i = 0;
-    const seq = [0, 0, 0, 0.001];
+    const seq = [0.001, 0.5, 0, 0];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;
@@ -141,7 +143,7 @@ describe('wild dex completion + encounter pool', () => {
     collection[one] = 0;
 
     let i = 0;
-    const seq = [0, 0, 0, 0.005];
+    const seq = [0.005, 0.5, 0, 0];
     const rng = () => {
       const v = seq[Math.min(i, seq.length - 1)]!;
       i += 1;

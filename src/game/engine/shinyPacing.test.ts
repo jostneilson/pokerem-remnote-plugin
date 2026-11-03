@@ -37,7 +37,7 @@ describe('shiny pacing compensation', () => {
     const party = chooseStarter(createInitialStateV4(), 4).party;
     const roll = () => {
       let i = 0;
-      const values = [0, 0, 0, 0.006];
+      const values = [0.006, 0.5, 0, 0];
       return () => values[Math.min(i++, 3)];
     };
     expect(spawnEncounter(party, 0, [1], 0, { rng: roll() }).shiny).toBe(false);

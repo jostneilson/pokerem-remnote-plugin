@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { PokeRemGameState } from '../../game/state/model';
 import {
   ACHIEVEMENT_DEFS,
@@ -12,6 +12,8 @@ import { trainerXpProgress, getNextTrainerRewardGate, MAX_TRAINER_LEVEL } from '
 import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { TrainerIdentityCard } from '../components/TrainerIdentityCard';
+import { QuestsPanel } from '../components/QuestsPanel';
+import { TrainerStatsPanels } from './StatusScreen';
 
 const CATEGORY_LABELS: Record<string, { label: string; iconName: 'book' | 'swords' | 'pokeball' | 'coin' | 'flame' | 'calendar' | 'trophy' | 'star' }> = {
   review: { label: 'Review milestones', iconName: 'book' },
@@ -59,19 +61,19 @@ function AchievementRow({
                 color: '#451a03',
                 boxShadow: '0 0 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }
-            : { background: 'rgba(255,255,255,0.05)', color: '#8296a5', border: '1px solid rgba(255,255,255,0.06)' }
+            : { background: 'rgba(255,255,255,0.05)', color: 'var(--pkr-ink-faint)', border: '1px solid rgba(255,255,255,0.06)' }
         }
       >
         <GameIcon name={unlocked ? 'starFilled' : 'star'} size={17} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-black" style={{ color: '#e2e8f0' }}>
+        <div className="pkr-fine font-black" style={{ color: 'var(--pkr-ink-text)' }}>
           {def.name}
         </div>
-        <div className="text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <div className="pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           {def.description}
         </div>
-        <div className="mt-0.5 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <div className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           <span className="mr-1 rounded px-1 py-px" style={{ background: 'rgba(251,191,36,0.12)', color: '#fcd34d' }}>
             {ACHIEVEMENT_TIER_LABEL[def.tier]}
           </span>
@@ -82,7 +84,7 @@ function AchievementRow({
             <div className="pkr-meter-track h-[5px] min-w-0 flex-1 overflow-hidden">
               <div className="pkr-meter-fill h-full transition-[width] duration-300" style={{ width: `${pct}%`, background: '#f59e0b' }} />
             </div>
-            <span className="text-[8px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
+            <span className="pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-muted)' }}>
               {progress.current}/{progress.target}
             </span>
           </div>
@@ -91,7 +93,7 @@ function AchievementRow({
           <button
             type="button"
             onClick={() => onClaim?.(def.id)}
-            className="mt-2 w-full rounded-lg border-2 px-2 py-1.5 text-[9px] font-black uppercase tracking-wide"
+            className="mt-2 w-full rounded-lg border-2 px-2 py-1.5 pkr-fine font-black uppercase tracking-wide"
             style={{
               borderColor: 'rgba(251,191,36,0.55)',
               background: 'linear-gradient(180deg, rgba(251,191,36,0.25) 0%, rgba(217,119,6,0.2) 100%)',
@@ -101,7 +103,7 @@ function AchievementRow({
             Claim reward
           </button>
         ) : unlocked && claimed ? (
-          <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#6ee7b7' }}>
+          <div className="mt-1 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-success)' }}>
             Claimed
           </div>
         ) : null}
@@ -115,11 +117,18 @@ export function ProgressScreen({
   reducedMotion,
   onClaimAchievement,
   onClaimAllAchievements,
+  onClaimQuest,
+  onClaimAllQuests,
+  rewards,
 }: {
   state: PokeRemGameState;
   reducedMotion?: boolean;
   onClaimAchievement?: (id: string) => void;
   onClaimAllAchievements?: () => void;
+  onClaimQuest?: (id: string) => void;
+  onClaimAllQuests?: () => void;
+  /** Trainer level rewards, shown under the identity card (Trainer screen). */
+  rewards?: ReactNode;
 }) {
   const claimedSet = new Set(state.claimedAchievementIds ?? []);
   const unlocked = ACHIEVEMENT_DEFS.filter((d) => state.achievements[d.id]).length;
@@ -149,7 +158,14 @@ export function ProgressScreen({
         xpProg={xpProg}
         subtitle={subtitle}
         reducedMotion={reducedMotion}
+        cardStyle={state.trainerCardStyle}
       />
+
+      {rewards}
+
+      {onClaimQuest && onClaimAllQuests && state.starterChosen ? (
+        <QuestsPanel state={state} onClaim={onClaimQuest} onClaimAll={onClaimAllQuests} />
+      ) : null}
 
       {battleId.id !== 'unranked' || prestigeBadges.length > 0 ? (
         <div
@@ -158,30 +174,30 @@ export function ProgressScreen({
         >
           {battleId.id !== 'unranked' ? (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#fde68a' }}>
+              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: 'var(--pkr-ink-gold)' }}>
                 Battle identity
               </span>
-              <span className="text-[11px] font-black" style={{ color: '#f8fafc' }}>
+              <span className="pkr-fine font-black" style={{ color: 'var(--pkr-ink-bright)' }}>
                 {battleId.name}
               </span>
             </div>
           ) : null}
           {prestigeBadges.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#a78bfa' }}>
+              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: '#a78bfa' }}>
                 Prestige
               </span>
               {prestigeBadges.map((b) => (
                 <span
                   key={b}
-                  className="rounded-full border px-2 py-0.5 text-[9px] font-black"
+                  className="rounded-full border px-2 py-0.5 pkr-fine font-black"
                   style={{
                     borderColor: 'rgba(167,139,250,0.45)',
                     background: 'linear-gradient(180deg, rgba(167,139,250,0.2) 0%, rgba(76,29,149,0.3) 100%)',
                     color: '#ede9fe',
                   }}
                 >
-                  {b.replace(/_/g, ' ')}
+                  {ACHIEVEMENT_DEFS.find((d) => d.prestigeBadgeId === b)?.name ?? b.replace(/_/g, ' ')}
                 </span>
               ))}
             </div>
@@ -193,7 +209,7 @@ export function ProgressScreen({
         <button
           type="button"
           onClick={onClaimAllAchievements}
-          className="sticky top-1 z-10 w-full rounded-lg border-2 px-3 py-2 text-[10px] font-black uppercase tracking-wider"
+          className="sticky top-1 z-10 w-full rounded-lg border-2 px-3 py-2 pkr-fine font-black uppercase tracking-wider"
           style={{
             borderColor: 'rgba(251,191,36,0.6)',
             background: 'linear-gradient(180deg, rgba(251,191,36,0.3) 0%, rgba(217,119,6,0.25) 100%)',
@@ -206,13 +222,13 @@ export function ProgressScreen({
       ) : null}
 
       <div className="pkr-progress-northstar">
-        <div className="pkr-pixel-title mb-2 text-[6px] font-black uppercase tracking-widest" style={{ color: '#a5b4fc' }}>
+        <div className="pkr-pixel-title mb-2 pkr-fine font-black uppercase tracking-widest" style={{ color: '#a5b4fc' }}>
           What you&apos;re working toward
         </div>
         <div className="space-y-2">
           <div className="pkr-progress-northstar__row">
             <span className="pkr-progress-northstar__label">
-              <GameIcon name="trophy" size={12} style={{ color: '#fbbf24' }} /> Trainer path
+              <GameIcon name="trophy" size={12} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Trainer path
             </span>
             {trainerLevel >= MAX_TRAINER_LEVEL && xpProg.needed <= 0 ? (
               <p className="pkr-progress-northstar__text">You&apos;ve reached the top trainer level. Finish achievements and rewards for long-term goals.</p>
@@ -237,7 +253,7 @@ export function ProgressScreen({
               <p className="pkr-progress-northstar__text">
                 <span className="font-black text-violet-200">{closest.def.name}</span> — {closest.current}/{closest.target}{' '}
                 <span className="opacity-80">({Math.round(closest.ratio * 100)}%)</span>
-                <span className="block text-[9px] font-semibold text-slate-500">
+                <span className="block pkr-fine font-semibold text-slate-500">
                   Reward (claim in list below): {achievementRewardSummary(closest.def)}
                 </span>
               </p>
@@ -245,7 +261,7 @@ export function ProgressScreen({
           ) : (
             <div className="pkr-progress-northstar__row">
               <span className="pkr-progress-northstar__label">
-                <GameIcon name="starFilled" size={12} style={{ color: '#6ee7b7' }} /> Achievements
+                <GameIcon name="starFilled" size={12} style={{ color: 'var(--pkr-ink-success)' }} /> Achievements
               </span>
               <p className="pkr-progress-northstar__text">Progress milestones are complete or binary — browse categories below.</p>
             </div>
@@ -269,11 +285,11 @@ export function ProgressScreen({
               style={{ filter: 'drop-shadow(0 0 6px rgba(245,158,11,0.35))' }}
             />
           </svg>
-          <span className="text-lg font-black tabular-nums" style={{ color: '#fbbf24' }}>
+          <span className="text-lg font-black tabular-nums" style={{ color: 'var(--pkr-ink-gold-strong)' }}>
             {totalPct}%
           </span>
         </div>
-        <div className="text-center text-[10px] font-bold" style={{ color: '#c3cde3' }}>
+        <div className="text-center pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
           <span className="tabular-nums text-slate-200">{unlocked}</span> / {ACHIEVEMENT_DEFS.length} achievements earned
         </div>
       </div>
@@ -300,6 +316,8 @@ export function ProgressScreen({
           </Panel>
         );
       })}
+
+      <TrainerStatsPanels state={state} />
     </div>
   );
 }

@@ -15,7 +15,8 @@ export function ShopScreen({
   rootURL: string | undefined;
   currency: number;
   trainerLevel: number;
-  onBuy: (itemId: string, price: number) => void;
+  /** Buy `quantity` (price comes from the shop inventory). */
+  onBuy: (itemId: string, quantity: number) => void;
   reducedMotion?: boolean;
   bag?: Record<string, number>;
 }) {
@@ -27,9 +28,9 @@ export function ShopScreen({
   const pulseTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => { if (pulseTimer.current) clearTimeout(pulseTimer.current); }, []);
 
-  const handleBuy = (si: ShopItem) => {
-    if (currency < si.price) return;
-    onBuy(si.item.id, si.price);
+  const handleBuy = (si: ShopItem, quantity = 1) => {
+    if (currency < si.price * quantity) return;
+    onBuy(si.item.id, quantity);
     const key = si.item.id + (si.isDaily ? '-daily' : '');
     if (!reducedMotion) {
       setPurchasePulseId(key);
@@ -73,20 +74,21 @@ export function ShopScreen({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-black" style={{ color: '#e2e8f0' }}>
+          <div className="pkr-copy font-black" style={{ color: 'var(--pkr-ink-text)' }}>
             {si.item.name}
           </div>
-          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+          <div className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             {si.item.description}
           </div>
           {bag ? <div className="pkr-shop-owned">Owned: {bag[si.item.id] ?? 0}</div> : null}
         </div>
+        <div className="pkr-shop-buy flex shrink-0 flex-col items-stretch gap-1">
         <button
           type="button"
           aria-label={`Buy ${si.item.name} for ${si.price} Poké Dollars${canAfford ? '' : ', insufficient balance'}`}
           disabled={!canAfford}
           onClick={() => handleBuy(si)}
-          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 text-[10px] font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-75"
+          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 pkr-fine font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-75"
           style={
             canAfford
               ? {
@@ -97,12 +99,29 @@ export function ShopScreen({
               : {
                   borderColor: 'rgba(255,255,255,0.08)',
                   background: 'rgba(255,255,255,0.05)',
-                  color: '#c3cde3',
+                  color: 'var(--pkr-ink-muted)',
                 }
           }
         >
-          Buy<br />P{si.price}
+          <span className="pkr-shop-buy__verb">Buy</span> <span>₽{si.price.toLocaleString()}</span>
         </button>
+        {si.price < 5000 ? (
+          <div className="pkr-shop-multi" role="group" aria-label={`Buy several ${si.item.name}`}>
+            {[5, 10].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="pkr-game-btn"
+                disabled={currency < si.price * n}
+                aria-label={`Buy ${n} ${si.item.name} for ${si.price * n} Poké Dollars`}
+                onClick={() => handleBuy(si, n)}
+              >
+                ×{n}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        </div>
       </div>
     );
   }
@@ -112,10 +131,10 @@ export function ShopScreen({
       <div className="pkr-shop-hero">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <div className="pkr-pixel-title text-[7px] font-black tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+            <div className="pkr-pixel-title pkr-fine font-black tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
               POKE MART
             </div>
-            <p className="mt-0.5 max-w-[18rem] text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+            <p className="mt-0.5 max-w-[18rem] pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
               Buy supplies here, then switch to My items to use them.
             </p>
           </div>
@@ -123,11 +142,11 @@ export function ShopScreen({
       </div>
 
       <div className="pkr-currency-bar pkr-shimmer-bg animate-pkr-shimmer flex min-h-[2.75rem] items-center justify-between px-3 py-2">
-        <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#fde68a' }}>
-          <GameIcon name="coin" size={14} style={{ color: '#fbbf24' }} /> Your balance
+        <span className="flex items-center gap-1.5 pkr-copy font-bold" style={{ color: 'var(--pkr-ink-gold)' }}>
+          <GameIcon name="coin" size={14} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Your balance
         </span>
         <span className="text-base font-black tabular-nums" style={{ color: '#fef3c7' }}>
-          P{currency}
+          ₽{currency.toLocaleString()}
         </span>
       </div>
 
@@ -137,7 +156,7 @@ export function ShopScreen({
 
       <Panel title="Today's deals" icon={<GameIcon name="starFilled" size={13} style={{ color: '#f59e0b' }} />} accent="#d97706">
         <div className="space-y-1.5">{daily.map(renderItem)}</div>
-        <div className="mt-2 text-center text-[9px] font-bold" style={{ color: '#fbbf24' }}>
+        <div className="mt-2 text-center pkr-fine font-bold" style={{ color: 'var(--pkr-ink-gold-strong)' }}>
           Deals change daily
         </div>
       </Panel>

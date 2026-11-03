@@ -206,7 +206,8 @@ describe('1.3.1 save migration', () => {
 
   it('does not refill a deliberately dropped move', () => {
     const s = parseGameState(legacy());
-    const dropped = withLead(s, { moves: s.party[0]!.moves!.slice(0, 2), legacyMoves: undefined });
+    // Forgetting a move by hand turns off automatic move picking for that Pokémon.
+    const dropped = withLead(s, { moves: s.party[0]!.moves!.slice(0, 2), legacyMoves: undefined, autoMoves: false });
     expect(parseGameState(JSON.parse(JSON.stringify(dropped))).party[0]!.moves).toHaveLength(2);
   });
 });

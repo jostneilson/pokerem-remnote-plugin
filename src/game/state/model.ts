@@ -1,3 +1,4 @@
+import type { QuestState } from '../engine/quests';
 import type { ItemId } from '../data/items';
 import type { PokemonType } from '../data/species';
 import type { StudyDifficultyPreset } from '../engine/studyDifficulty';
@@ -68,6 +69,10 @@ export interface OwnedPokemon {
   maxHp: number;
   types: PokemonType[];
   moves?: string[];
+  /** false once the player teaches or forgets a move by hand; otherwise the best four are picked automatically. */
+  autoMoves?: boolean;
+  /** Moves bought from the move tutor before this Pokémon would learn them by level. */
+  tutorMoves?: string[];
   everstone?: boolean;
   shiny?: boolean;
 }
@@ -84,6 +89,36 @@ export interface EncounterPokemon {
   tier?: string;
   /** Rare palette swap (~1/1000). */
   shiny?: boolean;
+}
+
+export interface BattleResult {
+  seq: number;
+  kind: 'defeat' | 'catch';
+  name: string;
+  dexNum: number;
+  /** Pokémon that earned XP (the lead on a defeat, the new catch on a catch). */
+  monName: string;
+  xp: number;
+  coins: number;
+  fromLevel: number;
+  toLevel: number;
+  /** XP bar before and after, 0–100. */
+  xpPctBefore: number;
+  xpPctAfter: number;
+  newMoves: string[];
+  evolvedInto?: string;
+  shiny?: boolean;
+  perfectIvs?: boolean;
+}
+
+export interface ShinyLogEntry {
+  dexNum: number;
+  name: string;
+  /** ISO date-time the shiny was caught. */
+  caughtAt: string;
+  /** Lifetime card count at the time of the catch. */
+  card: number;
+  perfectIvs?: boolean;
 }
 
 export interface AchievementState {
@@ -310,4 +345,21 @@ export interface PokeRemGameState {
   prestigeBadges?: string[];
   /** Most recent PokéRem version the user has acknowledged in the in-plugin "What's New" card. */
   whatsNewSeenVersion?: string;
+  /** Daily and weekly quest periods, baselines and claims. */
+  quests?: QuestState;
+  /** Wild encounters since the last shiny one (drives the shiny pity). */
+  encountersSinceShiny?: number;
+  /** Cards reviewed since the last action on the current wild (see WILD_FLEE_AFTER_CARDS). */
+  wildIdleCards?: number;
+  /** What the last wild battle earned, for the result card on Play (cleared by the next encounter). */
+  lastBattleResult?: BattleResult | null;
+  /** Every shiny caught, newest last, for the Shiny Case in the Dex. */
+  shinyLog?: ShinyLogEntry[];
+  /** Active route ticket: the next `remaining` wilds come from this biome (see engine/sinks.ts). */
+  routeTicket?: { biome: string; remaining: number } | null;
+  /** Trainer card styles bought; 'classic' is always owned. */
+  ownedCardStyles?: string[];
+  trainerCardStyle?: string;
+  /** Generations enabled in settings, saved so achievements can see them. */
+  enabledGenerations?: number[];
 }

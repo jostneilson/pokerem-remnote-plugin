@@ -42,9 +42,7 @@ export function StatusScreen({
   const goal = getClosestAchievementGoal(state);
   const identity = computeTrainerBattleIdentity(state);
   const uniqueCaught = Object.values(state.collectionDex).filter((n) => n > 0).length;
-  const ds = state.dailyStats;
   const streak = state.currentStreak ?? 0;
-  const longest = state.longestStreak ?? 0;
 
   const battleMoves = useMemo(() => movesetForBattle(active), [active]);
   const partySlot = state.party.findIndex((p) => p.id === active.id);
@@ -60,7 +58,7 @@ export function StatusScreen({
         <div className="text-right"><div className="pkr-adventure-label">{identity.name}</div><p>{state.trainerBattleStats?.totalWon ?? 0} trainer wins · {uniqueCaught} species</p><p>{streak > 0 ? `${streak}-day study streak` : 'Every card grows your team.'}</p></div>
       </div>
       {goal ? <Panel title="Your next milestone" icon={<GameIcon name="trophy" size={14} />}>
-        <div className="mb-2 flex items-center justify-between gap-2"><strong>{goal.def.name}</strong><span className="text-[11px] tabular-nums" style={{color:'#a7bfca'}}>{goal.current}/{goal.target}</span></div>
+        <div className="mb-2 flex items-center justify-between gap-2"><strong>{goal.def.name}</strong><span className="pkr-fine tabular-nums" style={{color:'#a7bfca'}}>{goal.current}/{goal.target}</span></div>
         <MeterBar value={goal.current} max={goal.target} label={goal.def.name} color="#7dd3bb" showText={false}/>
       </Panel> : null}
       <Panel title="Active Pokemon" icon={<GameIcon name="starFilled" size={14} />}>
@@ -78,12 +76,12 @@ export function StatusScreen({
           <div className="min-w-0 flex-1 space-y-1.5">
             <div>
               <div className="flex flex-wrap items-center gap-1">
-                <span className="truncate text-[13px] font-black leading-tight" style={{ color: '#e2e8f0' }}>
+                <span className="truncate text-[13px] font-black leading-tight" style={{ color: 'var(--pkr-ink-text)' }}>
                   {active.nickname || active.name}
                 </span>
                 {active.shiny ? (
                   <span
-                    className="shrink-0 rounded px-1 py-px text-[7px] font-black uppercase leading-none"
+                    className="shrink-0 rounded px-1 py-px pkr-fine font-black uppercase leading-none"
                     style={{
                       background: 'linear-gradient(90deg, #fde047, #facc15)',
                       color: '#422006',
@@ -96,17 +94,17 @@ export function StatusScreen({
                 ) : null}
               </div>
               {active.nickname && active.nickname !== active.name ? (
-                <div className="truncate text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
+                <div className="truncate pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
                   Species · {active.name}
                 </div>
               ) : null}
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
                 <span>Lv {active.level}</span>
-                <span style={{ color: '#8296a5' }}>·</span>
+                <span style={{ color: 'var(--pkr-ink-faint)' }}>·</span>
                 <span>#{String(active.dexNum).padStart(3, '0')}</span>
                 {partySlot >= 0 ? (
                   <>
-                    <span style={{ color: '#8296a5' }}>·</span>
+                    <span style={{ color: 'var(--pkr-ink-faint)' }}>·</span>
                     <span style={{ color: 'var(--pkr-accent-muted, #cbd5e1)' }} title="Position in party">
                       Party {partySlot + 1}/{state.party.length}
                     </span>
@@ -114,7 +112,7 @@ export function StatusScreen({
                 ) : null}
                 {active.everstone ? (
                   <>
-                    <span style={{ color: '#8296a5' }}>·</span>
+                    <span style={{ color: 'var(--pkr-ink-faint)' }}>·</span>
                     <span title="Holding Everstone — will not evolve from level-ups">Everstone</span>
                   </>
                 ) : null}
@@ -122,13 +120,13 @@ export function StatusScreen({
             </div>
             <div className="flex flex-wrap items-center gap-1">
               {active.types.map((t) => (
-                <span key={t} className="rounded border px-1.5 py-px text-[7px] font-bold uppercase leading-tight" style={typePillStyle(t)}>
+                <span key={t} className="rounded border px-1.5 py-px pkr-fine font-bold uppercase leading-tight" style={typePillStyle(t)}>
                   {t}
                 </span>
               ))}
               {checkLevelEvolution(active) ? (
                 <span
-                  className="flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-[7px] font-black uppercase leading-tight"
+                  className="flex shrink-0 items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase leading-tight"
                   style={{ background: 'rgba(168,85,247,0.28)', color: '#f3e8ff', border: '1px solid rgba(192,132,252,0.45)' }}
                   title="Meets level for evolution — will evolve when it levels up after a win"
                 >
@@ -138,7 +136,7 @@ export function StatusScreen({
               ) : null}
             </div>
             <div>
-              <div className="mb-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+              <div className="mb-0.5 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
                 Moves
               </div>
               <div className="flex flex-wrap gap-1">
@@ -148,12 +146,12 @@ export function StatusScreen({
                   return (
                     <span
                       key={moveId}
-                      className="max-w-full truncate rounded border px-1.5 py-0.5 text-[8px] font-bold leading-tight"
+                      className="max-w-full truncate rounded border px-1.5 py-0.5 pkr-fine font-bold leading-tight"
                       style={{
                         ...(pill ?? {
                           borderColor: 'rgba(148,163,184,0.35)',
                           backgroundColor: 'rgba(30,41,59,0.5)',
-                          color: '#e2e8f0',
+                          color: 'var(--pkr-ink-text)',
                         }),
                       }}
                       title={m ? moveUiDescription(moveId) : moveId}
@@ -183,24 +181,36 @@ export function StatusScreen({
           />
         </div>
       </Panel>
+    </div>
+  );
+}
 
+/** Daily and lifetime stats plus the study streak, shown on the Trainer screen. */
+export function TrainerStatsPanels({ state }: { state: PokeRemGameState }) {
+  const uniqueCaught = Object.values(state.collectionDex).filter((n) => n > 0).length;
+  const ds = state.dailyStats;
+  const streak = state.currentStreak ?? 0;
+  const longest = state.longestStreak ?? 0;
+
+  return (
+    <>
       {ds ? (
         <Panel collapsible title="Today's stats (UTC)" icon={<GameIcon name="chart" size={14} />}>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-lg font-black tabular-nums" style={{ color: '#93c5fd' }}>{ds.reviews}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Cards</div>
+              <div className="pkr-fine font-bold uppercase" style={{ color: 'var(--pkr-ink-muted)' }}>Cards</div>
             </div>
             <div>
-              <div className="text-lg font-black tabular-nums" style={{ color: '#fde68a' }}>{ds.encounters}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Wilds</div>
+              <div className="text-lg font-black tabular-nums" style={{ color: 'var(--pkr-ink-gold)' }}>{ds.encounters}</div>
+              <div className="pkr-fine font-bold uppercase" style={{ color: 'var(--pkr-ink-muted)' }}>Wilds</div>
             </div>
             <div>
-              <div className="text-lg font-black tabular-nums" style={{ color: '#6ee7b7' }}>{ds.catches}</div>
-              <div className="text-[9px] font-bold uppercase" style={{ color: '#c3cde3' }}>Catches</div>
+              <div className="text-lg font-black tabular-nums" style={{ color: 'var(--pkr-ink-success)' }}>{ds.catches}</div>
+              <div className="pkr-fine font-bold uppercase" style={{ color: 'var(--pkr-ink-muted)' }}>Catches</div>
             </div>
           </div>
-          <p className="mt-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+          <p className="mt-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             Completed flashcards and battle outcomes for the current UTC calendar day ({ds.date}). Resets at UTC midnight.
           </p>
         </Panel>
@@ -218,63 +228,37 @@ export function StatusScreen({
           ].map((row, i) => (
             <div
               key={row.label}
-              className="flex items-center justify-between px-2 py-1.5 text-xs font-semibold transition-colors"
+              className="flex items-center justify-between px-2 py-1.5 pkr-copy font-semibold transition-colors"
               style={{
                 ...(i % 2 === 0 ? { background: 'rgba(255,255,255,0.04)' } : {}),
                 borderBottom: '1px solid rgba(255,255,255,0.04)',
               }}
             >
-              <span className="flex items-center gap-1.5" style={{ color: '#c3cde3' }}>
+              <span className="flex items-center gap-1.5" style={{ color: 'var(--pkr-ink-muted)' }}>
                 <GameIcon name={row.icon} size={13} className="" style={{ color: row.iconColor }} />{row.label}
               </span>
-              <span className="font-black" style={{ color: '#e2e8f0' }}>{row.value}</span>
+              <span className="font-black" style={{ color: 'var(--pkr-ink-text)' }}>{row.value}</span>
             </div>
           ))}
         </div>
       </Panel>
 
       <Panel collapsible title="Study streak" icon={<GameIcon name="flame" size={14} />}>
-        <p className="text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
+        <p className="pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-soft)' }}>
           {streakStudyLine(streak, longest)}
         </p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold tabular-nums">
+        <div className="mt-2 flex flex-wrap items-center gap-2 pkr-fine font-bold tabular-nums">
           <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: '#fb923c', background: 'rgba(251,146,60,0.08)' }}>
             Current · {streak} day{streak === 1 ? '' : 's'}
           </span>
-          <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: '#c3cde3', background: 'rgba(0,0,0,0.2)' }}>
+          <span className="rounded-md border border-white/10 px-2 py-1" style={{ color: 'var(--pkr-ink-muted)', background: 'rgba(0,0,0,0.2)' }}>
             Best · {longest} day{longest === 1 ? '' : 's'}
           </span>
         </div>
-        <p className="mt-2 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
+        <p className="mt-2 pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
           Streak uses UTC calendar days with at least one completed flashcard while {BRAND.wordmark} is active.
         </p>
       </Panel>
-
-      <Panel collapsible title="Trainer" icon={<GameIcon name="trainer" size={14} />}>
-        <div className="relative overflow-hidden">
-          <div className="absolute -right-3 -top-3 opacity-[0.04]">
-            <GameIcon name="pokeball" size={64} />
-          </div>
-          <div className="relative flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black" style={{ color: '#e2e8f0' }}>{state.trainerRank || 'Novice Trainer'}</span>
-              </div>
-              <div className="text-[10px] font-semibold" style={{ color: '#c3cde3' }}>{state.cardsReviewed} cards reviewed</div>
-            </div>
-            <div className="space-y-0.5 text-right">
-              {(state.currentStreak ?? 0) > 0 && (
-                <div className="flex items-center justify-end gap-1 text-[11px] font-bold" style={{ color: '#fb923c' }}>
-                  <GameIcon name="flame" size={12} />{state.currentStreak}-day streak
-                </div>
-              )}
-              <div className="flex items-center justify-end gap-1 text-[11px] font-bold" style={{ color: '#fbbf24' }}>
-                <GameIcon name="coin" size={12} />P{state.currency ?? 0}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Panel>
-    </div>
+    </>
   );
 }

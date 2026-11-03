@@ -6,12 +6,12 @@
   "repoUrl": "https://github.com/jostneilson/pokerem-remnote-plugin",
   "version": {
     "major": 1,
-    "minor": 4,
-    "patch": 1
+    "minor": 5,
+    "patch": 0
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "A pixel arcade Pokémon study adventure: wild encounters, auto attack, trainer battles, party & Pokédex, Bag & Shop, XP doublers, achievements. Open the Queue → Pokéball sidebar. Fan project.",
+  "description": "Turn your flashcard reviews into a Pokémon adventure: catch wild Pokémon, battle trainers, hunt shinies and fill your Pokédex as you study. Open the Poké Ball tab in the right sidebar.",
   "requestNative": false,
   "requiredScopes": [
     {

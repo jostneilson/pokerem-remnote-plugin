@@ -42,7 +42,7 @@ export function isMoveSupported(m: any): boolean {
 const statLabel = (s: string): string =>
   (({ specialAttack: 'Sp. Atk', specialDefense: 'Sp. Def', attack: 'Attack', defense: 'Defense', speed: 'Speed', accuracy: 'accuracy', evasion: 'evasion' } as Record<string, string>)[s] ?? s);
 /** Wild and trainer Pokémon hit softer than the lead so a same-level fight is winnable. */
-export const WILD_FOE_DAMAGE_SCALE = 0.45;
+export const WILD_FOE_DAMAGE_SCALE = 0.4;
 export const TRAINER_FOE_DAMAGE_SCALE = 0.7;
 const clampStage = (v: number) => Math.max(-6, Math.min(6, v));
 const stage = (v = 0) => (v >= 0 ? (2 + v) / 2 : 2 / (2 - v));
@@ -228,5 +228,7 @@ export function resolveExchange(
       log.push(`${f.name ?? 'Pokémon'} takes ${residual} status damage.`);
     }
   }
+  // Protected wilds (auto attack, shiny legendaries) can't be knocked out by status, confusion or recoil either.
+  if (protectWild && w.currentHp <= 0) w.currentHp = 1;
   return { player: p, wild: w, pDamage, wDamage, log: log.join(' '), playerFirst };
 }

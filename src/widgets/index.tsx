@@ -5,7 +5,9 @@ import {
   type ReactRNPlugin,
   WidgetLocation,
 } from '@remnote/plugin-sdk';
+import { STORAGE_KEY } from '../game/constants';
 import { runSingleReview } from '../game/pipeline';
+import { runQueueAction, type QueueAction } from '../game/queueActions';
 import {
   QUEUE_COMPLETE_RECENT_SESSION_KEY,
   extractQueueCompleteDedupeKey,
@@ -26,7 +28,7 @@ import '../index.css';
  * Secondary: QueueToolbar strip and FloatingWidget popup when RemNote mounts them.
  *
  * Battle actions: on-screen buttons in the sidebar, plus RemNote command palette
- * and queue menu entries that broadcast `pokerem_cmd` to mounted widgets.
+ * and queue menu entries that run wild-battle actions here in the host (see queueActions.ts).
  *
  * SDK version policy: pinned to 0.0.14 to match RemNote's embedded plugin runtime.
  */
@@ -34,8 +36,79 @@ import '../index.css';
 let queueReviewChain: Promise<void> = Promise.resolve();
 let queueListener: EventCallbackFn | undefined;
 
+/** Run a wild-battle command here in the plugin host, so it works whether or not the sidebar is open. */
+async function queueCommand(plugin: ReactRNPlugin, action: QueueAction) {
+  try {
+    const next = await runQueueAction(plugin, action);
+    if (!next) await plugin.app.toast('No wild Pokémon to battle right now.');
+  } catch (e) {
+    console.error('[PokéRem] Queue command failed', e);
+  }
+}
+
+/** One setup step; a failure is logged and the rest of activation carries on. */
+async function safely(label: string, step: () => Promise<unknown>) {
+  try {
+    await step();
+  } catch (e) {
+    console.error(`[${BRAND.wordmark}] Setup step failed: ${label}`, e);
+  }
+}
+
+const WELCOMED_KEY = 'pokerem.welcomed';
+
+/** On a brand-new install, open the sidebar once and say where it lives. */
+async function welcomeOnFirstRun(plugin: ReactRNPlugin) {
+  if (await plugin.storage.getSynced(WELCOMED_KEY)) return;
+  await plugin.storage.setSynced(WELCOMED_KEY, POKEREM_VERSION);
+  // Players who already have a save know where PokéRem is.
+  if (await plugin.storage.getSynced(STORAGE_KEY)) return;
+  await openSidebar(plugin);
+  await plugin.app.toast(
+    `${BRAND.wordmark} is ready: find the Poké Ball tab in the right sidebar.`
+  );
+}
+
+async function openSidebar(plugin: ReactRNPlugin) {
+  await plugin.window.openWidgetInRightSidebar('pokerem_sidebar');
+}
+
 async function onActivate(plugin: ReactRNPlugin) {
   neutralizeBrokenRegisterCSS(plugin);
+
+  // Widgets first: if a later setup step fails on this RemNote version, the Poké Ball tab still appears.
+  // Right-sidebar tab: same red ball as bag/shop (`public/assets/items/poke-ball.png`). Plugin list icon = `public/logo.png` + `logo.svg` at bundle root (not used here).
+  const pluginBase = (plugin.rootURL ?? '').replace(/\/?$/, '/');
+  const sidebarTabIconUrl = `${pluginBase}assets/items/poke-ball.png?v=${encodeURIComponent(POKEREM_VERSION)}`;
+
+  try {
+    await plugin.app.registerWidget('pokerem_sidebar', WidgetLocation.RightSidebar, {
+      dimensions: { height: 'auto', width: '100%' },
+      widgetTabTitle: BRAND.wordmark,
+      widgetTabIcon: sidebarTabIconUrl,
+      dontOpenByDefaultInTabLocation: false,
+    });
+  } catch (e) {
+    console.error(`[${BRAND.wordmark}] Could not register the sidebar`, e);
+  }
+
+  try {
+    await plugin.app.registerWidget('pokerem_queue_strip', WidgetLocation.QueueToolbar, {
+      dimensions: { height: 'auto', width: '100%' },
+    });
+  } catch {
+    // QueueToolbar may not mount on all hosts — that's fine, sidebar is primary.
+  }
+
+  try {
+    await plugin.app.registerWidget('pokerem_encounter_popup', WidgetLocation.FloatingWidget, {
+      dimensions: { width: 280, height: 'auto' },
+    });
+  } catch {
+    // FloatingWidget may not be available
+  }
+
+  await safely('first-run welcome', () => welcomeOnFirstRun(plugin));
 
   queueListener = (event: unknown) => {
     queueReviewChain = queueReviewChain.then(async () => {
@@ -55,32 +128,48 @@ async function onActivate(plugin: ReactRNPlugin) {
   };
   plugin.event.addListener(AppEvents.QueueCompleteCard, undefined, queueListener);
 
-  await plugin.app.registerCommand({
-    id: 'pokerem.catch',
-    name: brandCommandCaps('Catch'),
-    description:
-      'Wild encounter: throw a ball. Use from the command palette or queue menu without focusing the PokéRem sidebar. Requires an active encounter.',
-    action: async () => {
-      await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'catch' });
-    },
-  });
-  await plugin.app.registerCommand({
-    id: 'pokerem.defeat',
-    name: brandCommandCaps('Fight'),
-    description:
-      'Wild encounter: use your lead’s first damaging move. Open the sidebar to choose other moves. Works from the palette without iframe focus.',
-    action: async () => {
-      await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'fight_first' });
-    },
-  });
-  await plugin.app.registerCommand({
-    id: 'pokerem.run',
-    name: brandCommandCaps('Run'),
-    description: 'Wild encounter: flee. Palette or queue menu; no sidebar focus required.',
-    action: async () => {
-      await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'run' });
-    },
-  });
+  await safely('registerCommand', () =>
+    plugin.app.registerCommand({
+      id: 'pokerem.open',
+      name: `Open ${BRAND.wordmark}`,
+      description: 'Show the PokéRem sidebar (the Poké Ball tab on the right).',
+      action: async () => {
+        await openSidebar(plugin);
+      },
+    })
+  );
+  await safely('registerCommand', () =>
+    plugin.app.registerCommand({
+      id: 'pokerem.catch',
+      name: brandCommandCaps('Catch'),
+      description:
+        'Wild encounter: throw a ball. Use from the command palette or queue menu without focusing the PokéRem sidebar. Requires an active encounter.',
+      action: async () => {
+        await queueCommand(plugin, 'catch');
+      },
+    })
+  );
+  await safely('registerCommand', () =>
+    plugin.app.registerCommand({
+      id: 'pokerem.defeat',
+      name: brandCommandCaps('Fight'),
+      description:
+        'Wild encounter: use your lead’s first damaging move. Open the sidebar to choose other moves. Works from the palette without iframe focus.',
+      action: async () => {
+        await queueCommand(plugin, 'fight');
+      },
+    })
+  );
+  await safely('registerCommand', () =>
+    plugin.app.registerCommand({
+      id: 'pokerem.run',
+      name: brandCommandCaps('Run'),
+      description: 'Wild encounter: flee. Palette or queue menu; no sidebar focus required.',
+      action: async () => {
+        await queueCommand(plugin, 'run');
+      },
+    })
+  );
 
   try {
     const appAny = plugin.app as any;
@@ -91,7 +180,7 @@ async function onActivate(plugin: ReactRNPlugin) {
         name: brandCommandCaps('Catch'),
         location: QueueMenu,
         action: async () => {
-          await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'catch' });
+          await queueCommand(plugin, 'catch');
         },
       });
       await appAny.registerMenuItem({
@@ -99,7 +188,7 @@ async function onActivate(plugin: ReactRNPlugin) {
         name: `${brandCommandCaps('Fight')} (first move)`,
         location: QueueMenu,
         action: async () => {
-          await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'fight_first' });
+          await queueCommand(plugin, 'fight');
         },
       });
       await appAny.registerMenuItem({
@@ -107,7 +196,7 @@ async function onActivate(plugin: ReactRNPlugin) {
         name: brandCommandCaps('Run'),
         location: QueueMenu,
         action: async () => {
-          await plugin.messaging.broadcast({ channel: 'pokerem_cmd', action: 'run' });
+          await queueCommand(plugin, 'run');
         },
       });
     }
@@ -115,18 +204,21 @@ async function onActivate(plugin: ReactRNPlugin) {
     // QueueMenu registration may not be available in all SDK versions
   }
 
-  await plugin.settings.registerBooleanSetting({
-    id: 'pokerem.autoClearLog',
-    title: 'Auto-clear battle log',
-    description: 'When on, the battle log line clears each time you complete a flashcard (unless a wild encounter is active).',
-    defaultValue: true,
-  });
+  await safely('registerBooleanSetting', () =>
+    plugin.settings.registerBooleanSetting({
+      id: 'pokerem.autoClearLog',
+      title: 'Auto-clear battle log',
+      description:
+        'When on, the battle log line clears each time you complete a flashcard (unless a wild encounter is active).',
+      defaultValue: true,
+    })
+  );
   try {
     await plugin.settings.registerDropdownSetting({
       id: 'pokerem.encounterPacing',
-      title: 'Wild encounter pacing',
+      title: 'Extra wild slowdown',
       description:
-        'How reviews count toward the next wild Pokémon. "Every review" is standard. "Every 2 reviews" slows encounters. (RemNote does not yet expose card grades to plugins; finer SRS-based pacing may be added later.)',
+        'Optional extra slowdown on top of Study difficulty (set in PokéRem → Menu → Settings). "Every 2 reviews" halves how often wild Pokémon appear.',
       defaultValue: 'every_review',
       options: [
         { key: '0', label: 'Every review (default)', value: 'every_review' },
@@ -136,47 +228,41 @@ async function onActivate(plugin: ReactRNPlugin) {
   } catch {
     /* registerDropdownSetting may be unavailable */
   }
-  try {
-    await plugin.settings.registerDropdownSetting({
-      id: 'pokerem.reviewProgress',
-      title: 'Review rewards & wild pacing',
-      description:
-        'Scales Pokécoins and trainer XP from each completed flashcard, and how fast you advance toward the next wild Pokémon. RemNote does not expose card grades (Again/Hard/Good/Easy) to plugins yet — this is a manual study-intensity knob until then.',
-      defaultValue: 'full',
-      options: [
-        { key: '0', label: 'Standard (100%)', value: 'full' },
-        { key: '1', label: 'Light (75%)', value: 'light' },
-        { key: '2', label: 'Slow wilds (50%)', value: 'half' },
-      ],
-    });
-  } catch {
-    /* registerDropdownSetting may be unavailable */
-  }
-  await plugin.settings.registerBooleanSetting({
-    id: 'pokerem.reducedMotion',
-    title: 'Reduced motion',
-    description: 'Disable animations in the battle UI',
-    defaultValue: false,
-  });
+  await safely('registerBooleanSetting', () =>
+    plugin.settings.registerBooleanSetting({
+      id: 'pokerem.reducedMotion',
+      title: 'Reduced motion',
+      description: 'Disable animations in the battle UI',
+      defaultValue: false,
+    })
+  );
 
-  await plugin.settings.registerBooleanSetting({
-    id: 'pokerem.feature.queueStrip',
-    title: 'Queue toolbar strip',
-    description: `Show the compact ${BRAND.wordmark} status strip in the queue toolbar (when RemNote mounts it).`,
-    defaultValue: true,
-  });
-  await plugin.settings.registerBooleanSetting({
-    id: 'pokerem.feature.encounterFloatingPopup',
-    title: 'Floating encounter popup',
-    description: 'Open the small encounter popup near the queue when a wild Pokémon appears.',
-    defaultValue: true,
-  });
-  await plugin.settings.registerBooleanSetting({
-    id: 'pokerem.ui.showDailyHeaderStats',
-    title: 'Daily stats in battle header',
-    description: 'Show today’s reviews / encounters / catches in the battle header when space allows.',
-    defaultValue: true,
-  });
+  await safely('registerBooleanSetting', () =>
+    plugin.settings.registerBooleanSetting({
+      id: 'pokerem.feature.queueStrip',
+      title: 'Queue toolbar strip',
+      description: `Show the compact ${BRAND.wordmark} status strip in the queue toolbar (when RemNote mounts it).`,
+      defaultValue: true,
+    })
+  );
+  await safely('registerBooleanSetting', () =>
+    plugin.settings.registerBooleanSetting({
+      id: 'pokerem.feature.encounterFloatingPopup',
+      title: 'Floating encounter popup',
+      description:
+        'Show a popup with Catch / Fight / Auto / Run near the queue when a wild Pokémon appears and the queue strip is off. Shinies always get one.',
+      defaultValue: true,
+    })
+  );
+  await safely('registerBooleanSetting', () =>
+    plugin.settings.registerBooleanSetting({
+      id: 'pokerem.ui.showDailyHeaderStats',
+      title: 'Daily stats in battle header',
+      description:
+        'Show today’s reviews / encounters / catches in the battle header when space allows.',
+      defaultValue: true,
+    })
+  );
 
   try {
     await plugin.settings.registerDropdownSetting({
@@ -199,22 +285,8 @@ async function onActivate(plugin: ReactRNPlugin) {
     // registerDropdownSetting may not be available in SDK 0.0.14
   }
 
-  try {
-    await plugin.settings.registerDropdownSetting({
-      id: 'pokerem.encounterRate',
-      title: 'Encounter Frequency',
-      description: 'How many reviews between wild encounters. Less frequent = slightly better rarity odds.',
-      defaultValue: '3',
-      options: [
-        { key: '0', label: 'Every 3 reviews (default)', value: '3' },
-        { key: '1', label: 'Every 5 reviews (+rarity)', value: '5' },
-        { key: '2', label: 'Every 7 reviews (++rarity)', value: '7' },
-        { key: '3', label: 'Every 10 reviews (rare)', value: '10' },
-      ],
-    });
-  } catch {
-    // registerDropdownSetting may not be available in SDK 0.0.14
-  }
+  // Encounter frequency and review intensity used to be RemNote settings here. The in-game Study
+  // difficulty replaced both: it is chosen before play starts and always takes precedence.
 
   try {
     await plugin.settings.registerDropdownSetting({
@@ -232,33 +304,6 @@ async function onActivate(plugin: ReactRNPlugin) {
     });
   } catch {
     // registerDropdownSetting may not be available in SDK 0.0.14
-  }
-
-  // Right-sidebar tab: same red ball as bag/shop (`public/assets/items/poke-ball.png`). Plugin list icon = `public/logo.png` + `logo.svg` at bundle root (not used here).
-  const pluginBase = (plugin.rootURL ?? '').replace(/\/?$/, '/');
-  const sidebarTabIconUrl = `${pluginBase}assets/items/poke-ball.png?v=${encodeURIComponent(POKEREM_VERSION)}`;
-
-  await plugin.app.registerWidget('pokerem_sidebar', WidgetLocation.RightSidebar, {
-    dimensions: { height: 'auto', width: '100%' },
-    widgetTabTitle: BRAND.wordmark,
-    widgetTabIcon: sidebarTabIconUrl,
-    dontOpenByDefaultInTabLocation: false,
-  });
-
-  try {
-    await plugin.app.registerWidget('pokerem_queue_strip', WidgetLocation.QueueToolbar, {
-      dimensions: { height: 'auto', width: '100%' },
-    });
-  } catch {
-    // QueueToolbar may not mount on all hosts — that's fine, sidebar is primary.
-  }
-
-  try {
-    await plugin.app.registerWidget('pokerem_encounter_popup', WidgetLocation.FloatingWidget, {
-      dimensions: { width: 280, height: 'auto' },
-    });
-  } catch {
-    // FloatingWidget may not be available
   }
 }
 

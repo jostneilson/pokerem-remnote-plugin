@@ -1,6 +1,7 @@
 import type { ItemId } from '../data/items';
 import { ITEM_BY_ID } from '../data/items';
-import type { PokeRemGameState } from '../state/model';
+import type { OwnedPokemon, PokeRemGameState } from '../state/model';
+import { isPerfectIVs } from './pokemonStats';
 import { SPECIES_LIST } from '../data/species';
 
 /** Drives trainer XP on unlock; rarer goals grant bigger bonuses. */
@@ -70,6 +71,18 @@ export function achievementRewardSummary(def: AchievementDef): string {
   return parts.join(' · ');
 }
 
+/** Eight badges for trainer-battle wins; names follow their gym's type. */
+export const GYM_BADGES: { name: string; wins: number }[] = [
+  { name: 'Pebble', wins: 1 },
+  { name: 'Ripple', wins: 3 },
+  { name: 'Spark', wins: 6 },
+  { name: 'Bloom', wins: 10 },
+  { name: 'Toxin', wins: 15 },
+  { name: 'Mind', wins: 21 },
+  { name: 'Ember', wins: 28 },
+  { name: 'Quake', wins: 36 },
+];
+
 export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   // Review milestones
   { id: 'review25', name: 'Getting Started', description: 'Review 25 cards', category: 'review', tier: 'common',
@@ -92,19 +105,19 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
 
   // Collection
   { id: 'catch1', name: 'First Catch', description: 'Catch your first Pokemon', category: 'collection', tier: 'common',
-    check: (s) => uniqueCaught(s) >= 1 },
-  { id: 'catch5', name: 'Beginner Collector', description: 'Catch 5 unique species', category: 'collection', tier: 'uncommon',
+    check: (s) => ownedCount(s) >= 2 },
+  { id: 'catch5', name: 'Beginner Collector', description: 'Register 5 species in your Pokédex', category: 'collection', tier: 'uncommon',
     check: (s) => uniqueCaught(s) >= 5, progress: (s) => ({ current: Math.min(uniqueCaught(s), 5), target: 5 }) },
-  { id: 'catch25', name: 'Pokemon Collector', description: 'Catch 25 unique species', category: 'collection', tier: 'uncommon',
+  { id: 'catch25', name: 'Pokemon Collector', description: 'Register 25 species in your Pokédex', category: 'collection', tier: 'uncommon',
     check: (s) => uniqueCaught(s) >= 25, progress: (s) => ({ current: Math.min(uniqueCaught(s), 25), target: 25 }) },
-  { id: 'catch50', name: 'Avid Collector', description: 'Catch 50 unique species', category: 'collection', tier: 'rare',
+  { id: 'catch50', name: 'Avid Collector', description: 'Register 50 species in your Pokédex', category: 'collection', tier: 'rare',
     check: (s) => uniqueCaught(s) >= 50, progress: (s) => ({ current: Math.min(uniqueCaught(s), 50), target: 50 }) },
-  { id: 'catch100', name: 'Master Collector', description: 'Catch 100 unique species', category: 'collection', tier: 'rare',
+  { id: 'catch100', name: 'Master Collector', description: 'Register 100 species in your Pokédex', category: 'collection', tier: 'rare',
     check: (s) => uniqueCaught(s) >= 100, progress: (s) => ({ current: Math.min(uniqueCaught(s), 100), target: 100 }) },
-  { id: 'catch151', name: 'Kanto Complete', description: 'Catch 151 unique species', category: 'collection', tier: 'epic',
+  { id: 'catch151', name: 'Kanto Complete', description: 'Register 151 species in your Pokédex', category: 'collection', tier: 'epic',
     bonusItems: { 'rare-candy': 1, 'ultra-ball': 3 },
     check: (s) => uniqueCaught(s) >= 151, progress: (s) => ({ current: Math.min(uniqueCaught(s), 151), target: 151 }) },
-  { id: 'catch500', name: 'Living Pokedex', description: 'Catch 500 unique species', category: 'collection', tier: 'epic',
+  { id: 'catch500', name: 'Living Pokedex', description: 'Register 500 species in your Pokédex', category: 'collection', tier: 'epic',
     bonusItems: { 'rare-candy': 3 },
     check: (s) => uniqueCaught(s) >= 500, progress: (s) => ({ current: Math.min(uniqueCaught(s), 500), target: 500 }) },
 
@@ -123,12 +136,12 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: 'firstLevelUp', name: 'First Level Up', description: 'Level up a Pokemon for the first time', category: 'pokemon', tier: 'common',
     check: (s) => s.party.some((p) => p.level > 5) },
   { id: 'level25', name: 'Experienced Trainer', description: 'Reach Lv25 with any Pokemon', category: 'pokemon', tier: 'uncommon',
-    check: (s) => s.party.some((p) => p.level >= 25) },
+    check: (s) => ownedMons(s).some((p) => p.level >= 25) },
   { id: 'level50', name: 'Veteran Trainer', description: 'Reach Lv50 with any Pokemon', category: 'pokemon', tier: 'rare',
-    check: (s) => s.party.some((p) => p.level >= 50) },
+    check: (s) => ownedMons(s).some((p) => p.level >= 50) },
   { id: 'level100', name: 'Max Level', description: 'Reach Lv100 with any Pokemon', category: 'pokemon', tier: 'epic',
     bonusItems: { 'rare-candy': 2 },
-    check: (s) => s.party.some((p) => p.level >= 100) },
+    check: (s) => ownedMons(s).some((p) => p.level >= 100) },
   { id: 'fullParty', name: 'Full Party', description: 'Fill all 6 party slots', category: 'pokemon', tier: 'uncommon',
     check: (s) => s.party.length >= 6 },
   { id: 'firstEvolution', name: 'Evolution!', description: 'Evolve a Pokemon for the first time', category: 'pokemon', tier: 'uncommon',
@@ -144,6 +157,11 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: 'earn25000', name: 'Wealthy Trainer', description: 'Earn 25000 Poke Dollars total', category: 'economy', tier: 'rare',
     bonusItems: { 'ultra-ball': 5 },
     check: (s) => (s.totalCurrencyEarned ?? 0) >= 25000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 25000), target: 25000 }) },
+  { id: 'earn100k', name: 'High Roller', description: 'Earn ₽100,000 total', category: 'economy', tier: 'rare',
+    check: (s) => (s.totalCurrencyEarned ?? 0) >= 100_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 100_000), target: 100_000 }) },
+  { id: 'earn1m', name: 'Pokémon Tycoon', description: 'Earn ₽1,000,000 total', category: 'economy', tier: 'epic',
+    bonusItems: { 'gold-bottle-cap': 1 },
+    check: (s) => (s.totalCurrencyEarned ?? 0) >= 1_000_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 1_000_000), target: 1_000_000 }) },
   { id: 'shop10', name: 'Shopaholic', description: 'Buy 10 items from the shop', category: 'economy', tier: 'common',
     check: (s) => (s.totalShopPurchases ?? 0) >= 10, progress: (s) => ({ current: Math.min(s.totalShopPurchases ?? 0, 10), target: 10 }) },
 
@@ -213,12 +231,62 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     bonusItems: { 'xp-doubler-rare': 1 },
     check: (s) => (s.trainerLevel ?? 1) >= 50,
     progress: (s) => ({ current: Math.min(s.trainerLevel ?? 1, 50), target: 50 }) },
-  { id: 'trainer_level100', name: 'Trainer Lv100', description: 'Reach trainer level 100', category: 'prestige', tier: 'epic',
+  // The trainer level cap is 50, so the old "Lv100" goal is now the end-game legend goal (same id and badge).
+  { id: 'trainer_level100', name: 'Pokémon Legend', description: 'Reach trainer Lv50 with six Pokémon at Lv50 or higher', category: 'prestige', tier: 'epic',
     bucket: 'prestige', prestigeBadgeId: 'trainer_level100',
     bonusItems: { 'xp-doubler-legendary': 1 },
-    check: (s) => (s.trainerLevel ?? 1) >= 100,
-    progress: (s) => ({ current: Math.min(s.trainerLevel ?? 1, 100), target: 100 }) },
+    check: (s) => (s.trainerLevel ?? 1) >= 50 && ownedMons(s).filter((p) => p.level >= 50).length >= 6,
+    progress: (s) => ({ current: Math.min(6, ownedMons(s).filter((p) => p.level >= 50).length), target: 6 }) },
+
+  // Collection goals beyond the Dex
+  { id: 'shiny1', name: 'Something Sparkly', description: 'Own a shiny Pokémon', category: 'collection', tier: 'rare',
+    check: (s) => shinyCount(s) >= 1, progress: (s) => ({ current: Math.min(shinyCount(s), 1), target: 1 }) },
+  { id: 'shiny5', name: 'Shiny Hunter', description: 'Own 5 shiny Pokémon', category: 'collection', tier: 'epic',
+    bonusItems: { 'ultra-ball': 5 },
+    check: (s) => shinyCount(s) >= 5, progress: (s) => ({ current: Math.min(shinyCount(s), 5), target: 5 }) },
+  { id: 'perfect1', name: 'Hundo!', description: 'Own a Pokémon with perfect IVs', category: 'collection', tier: 'uncommon',
+    check: (s) => perfectCount(s) >= 1, progress: (s) => ({ current: Math.min(perfectCount(s), 1), target: 1 }) },
+  { id: 'perfect10', name: 'Perfectionist', description: 'Own 10 Pokémon with perfect IVs', category: 'collection', tier: 'rare',
+    bonusItems: { 'rare-candy': 1 },
+    check: (s) => perfectCount(s) >= 10, progress: (s) => ({ current: Math.min(perfectCount(s), 10), target: 10 }) },
+  { id: 'type_specialist', name: 'Type Specialist', description: 'Register 30 species of one type', category: 'collection', tier: 'rare',
+    check: (s) => bestTypeCount(s) >= 30, progress: (s) => ({ current: Math.min(bestTypeCount(s), 30), target: 30 }) },
+
+  // Gym badges: trainer-battle milestones
+  ...GYM_BADGES.map((b, i): AchievementDef => ({
+    id: `badge_${i + 1}`, name: `${b.name} Badge`, description: `Win ${b.wins} trainer battle${b.wins === 1 ? '' : 's'}`,
+    category: 'trainer', tier: i < 2 ? 'common' : i < 5 ? 'uncommon' : i < 7 ? 'rare' : 'epic',
+    bucket: i === 7 ? 'prestige' : 'milestone', prestigeBadgeId: `badge_${i + 1}`,
+    bonusItems: i === 7 ? { 'rare-candy': 2 } : undefined,
+    check: (s) => trainerWins(s) >= b.wins,
+    progress: (s) => ({ current: Math.min(trainerWins(s), b.wins), target: b.wins }),
+  })),
 ];
+
+function ownedMons(s: PokeRemGameState): OwnedPokemon[] {
+  return [...(s.party ?? []), ...(s.storagePokemon ?? [])];
+}
+
+function shinyCount(s: PokeRemGameState): number {
+  return ownedMons(s).filter((p) => p.shiny).length;
+}
+
+function perfectCount(s: PokeRemGameState): number {
+  return ownedMons(s).filter((p) => isPerfectIVs(p.ivs)).length;
+}
+
+function trainerWins(s: PokeRemGameState): number {
+  return s.trainerBattleStats?.totalWon ?? 0;
+}
+
+function bestTypeCount(s: PokeRemGameState): number {
+  const counts = new Map<string, number>();
+  for (const sp of SPECIES_LIST) {
+    if ((s.collectionDex?.[sp.dexNum] ?? 0) <= 0) continue;
+    for (const t of sp.types) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  return Math.max(0, ...counts.values());
+}
 
 function speciesCountForGen(gen: number): number {
   return SPECIES_LIST.filter((sp) => sp.generation === gen).length;
@@ -254,6 +322,11 @@ function enabledGensFromState(state: PokeRemGameState): number[] {
 export function allEnabledGenerationsCompleted(state: PokeRemGameState): boolean {
   const gens = enabledGensFromState(state);
   return gens.every((g) => generationCompleted(state, g));
+}
+
+/** Pokémon you own. The starter is the only one you don't catch, so a second means a first catch. */
+function ownedCount(s: PokeRemGameState): number {
+  return (s.party?.length ?? 0) + (s.storagePokemon?.length ?? 0) + (s.pendingCaughtMon ? 1 : 0);
 }
 
 function uniqueCaught(s: PokeRemGameState): number {

@@ -15,7 +15,7 @@ export function StudyDifficultyScreen({
   onChoose: (preset: StudyDifficultyPreset, custom?: { reviews: number; weight: number }) => void;
 }) {
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+    <div className="flex min-w-0 shrink-0 flex-col gap-3">
       <header
         className="relative shrink-0 overflow-hidden rounded-lg border px-3 py-3 text-center"
         style={{
@@ -32,12 +32,12 @@ export function StudyDifficultyScreen({
         />
         <div className="relative flex flex-col items-center gap-2">
           <span className="flex items-center gap-2">
-            <GameIcon name="book" size={18} style={{ color: '#fde68a' }} />
-            <span className="pkr-pixel-title text-[10px] font-black tracking-tight sm:text-[11px]" style={{ color: '#ede9fe' }}>
+            <GameIcon name="book" size={18} style={{ color: 'var(--pkr-ink-gold)' }} />
+            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: '#ede9fe' }}>
               Study difficulty
             </span>
           </span>
-          <p className="max-w-[20rem] text-[10px] font-semibold leading-snug" style={themeStyles.textSecondary}>
+          <p className="max-w-[20rem] pkr-fine font-semibold leading-snug" style={themeStyles.textSecondary}>
             This sets how often wild Pokémon appear per review, and how much trainer XP each flashcard grants.{' '}
             <span className="font-bold text-slate-300">Hard</span> means more reviews before each battle — for when you want a serious
             study grind. You can change this anytime in Settings.
@@ -45,7 +45,7 @@ export function StudyDifficultyScreen({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5 pb-1">
+      <div className="space-y-2 pr-0.5 pb-1">
         {PRESETS.map((preset) => {
           const d = STUDY_PRESET_DEFAULTS[preset];
           const label = STUDY_PRESET_LABEL[preset];
@@ -58,17 +58,17 @@ export function StudyDifficultyScreen({
 
           return (
             <Panel key={preset} title={label} accent={preset === 'hard' ? '#f87171' : preset === 'easy' ? '#4ade80' : '#fbbf24'}>
-              <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+              <p className="mb-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
                 {blurb}
               </p>
-              <div className="mb-2 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 text-[8px] font-bold" style={{ color: '#cbd5e1' }}>
+              <div className="mb-2 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 pkr-fine font-bold" style={{ color: 'var(--pkr-ink-soft)' }}>
                 <span className="text-amber-200/90">~{d.reviews}</span> reviews per wild ·{' '}
                 <span className="text-cyan-200/90">{Math.round(d.weight * 100)}%</span> card XP &amp; coin scaling
               </div>
               <button
                 type="button"
                 onClick={() => onChoose(preset)}
-                className="pkr-game-btn w-full rounded-lg border-2 px-3 py-2.5 text-[10px] font-black uppercase tracking-wide"
+                className="pkr-game-btn w-full rounded-lg border-2 px-3 py-2.5 pkr-fine font-black uppercase tracking-wide"
                 style={{
                   borderColor: '#166534',
                   background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 100%)',
@@ -82,7 +82,7 @@ export function StudyDifficultyScreen({
         })}
 
         <Panel title="Custom" accent="#a78bfa">
-          <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+          <p className="mb-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             Tune reviews per wild (2–15) and study intensity (50–150%). Same knobs as in Settings.
           </p>
           <CustomDifficultyForm
@@ -108,7 +108,7 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
         onApply(reviews, weight);
       }}
     >
-      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
+      <label className="flex flex-col gap-0.5 pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
         Reviews per wild
         <input
           name="reviews"
@@ -116,10 +116,10 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
           min={2}
           max={15}
           defaultValue={3}
-          className="rounded border border-white/15 bg-black/30 px-2 py-1 text-[11px] font-bold text-slate-100"
+          className="rounded border border-white/15 bg-black/30 px-2 py-1 pkr-fine font-bold text-slate-100"
         />
       </label>
-      <label className="flex flex-col gap-0.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
+      <label className="flex flex-col gap-0.5 pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
         Card XP intensity (0.5–1.5)
         <input
           name="weight"
@@ -128,12 +128,12 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
           max={1.5}
           step={0.05}
           defaultValue={1}
-          className="rounded border border-white/15 bg-black/30 px-2 py-1 text-[11px] font-bold text-slate-100"
+          className="rounded border border-white/15 bg-black/30 px-2 py-1 pkr-fine font-bold text-slate-100"
         />
       </label>
       <button
         type="submit"
-        className="pkr-game-btn mt-1 rounded-lg border-2 px-3 py-2 text-[10px] font-black uppercase"
+        className="pkr-game-btn mt-1 rounded-lg border-2 px-3 py-2 pkr-fine font-black uppercase"
         style={{
           borderColor: '#6d28d9',
           background: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%)',

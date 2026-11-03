@@ -80,6 +80,9 @@ export async function runSingleReview(
   const { prev, next } = await withSyncedGameWrite(async () => {
     const raw = await getSyncedGameRaw(plugin);
     const prevInner = parseGameState(raw);
+    // Nothing to advance before a starter is picked. This also means an empty or unreadable save
+    // (RemNote storage still starting up) is never replaced with a fresh game.
+    if (!prevInner.starterChosen) return { prev: prevInner, next: prevInner };
     let effectiveEncounterRate = encounterRate;
     let effectiveReviewWeight = reviewWeight;
     if (prevInner.studyDifficultyConfigured) {
@@ -114,7 +117,19 @@ export async function runSingleReview(
     const shouldNotify = await shouldShowPokeRemNotification(plugin);
     if (!shouldNotify) return next;
 
-    if (next.currentTrainerBattle && !prev.currentTrainerBattle) {
+    // One channel per event: the queue strip when it is on (it already flashes), else the floating
+    // popup, else a toast. A shiny always gets the popup as well — it should feel special.
+    const settingOn = async (id: string) => {
+      try {
+        return (await plugin.settings.getSetting<boolean>(id)) !== false;
+      } catch {
+        return true;
+      }
+    };
+    const stripOn = await settingOn('pokerem.feature.queueStrip');
+    const popupOn = await settingOn('pokerem.feature.encounterFloatingPopup');
+
+    if (next.currentTrainerBattle && !prev.currentTrainerBattle && !stripOn) {
       const t = next.currentTrainerBattle.trainer;
       const eliteTag = next.currentTrainerBattle.tier === 'elite' ? '⚔︎ Elite Trainer ' : 'Trainer ';
       await plugin.app.toast(
@@ -122,28 +137,24 @@ export async function runSingleReview(
       );
     }
     if (next.currentEncounter && !prev.currentEncounter) {
-      const tier = next.currentEncounter.tier;
-      const tierLabel = tier && tier !== 'Common' ? ` (${tier})` : '';
-      await plugin.app.toast(`Wild ${next.currentEncounter.name}${tierLabel} appeared!`);
-
-      // Show floating encounter popup near queue answer button (puppy pattern)
-      let floatingPopup = true;
-      try {
-        const fp = await plugin.settings.getSetting<boolean>('pokerem.feature.encounterFloatingPopup');
-        if (fp === false) floatingPopup = false;
-      } catch { /* default on */ }
-      if (floatingPopup) {
-        try {
-          setTimeout(async () => {
-            try {
-              await (plugin as any).window.openFloatingWidget(
-                'pokerem_encounter_popup',
-                { top: -120, left: 0 },
-                'rn-queue__show-answer-btn',
-              );
-            } catch { /* FloatingWidget may not be supported */ }
-          }, 100);
-        } catch { /* non-critical */ }
+      const enc = next.currentEncounter;
+      const showPopup = popupOn && (!stripOn || enc.shiny === true);
+      if (showPopup) {
+        // Floating encounter popup near the queue answer button (puppy pattern), with battle buttons.
+        setTimeout(async () => {
+          try {
+            await (plugin as any).window.openFloatingWidget(
+              'pokerem_encounter_popup',
+              { top: -120, left: 0 },
+              'rn-queue__show-answer-btn',
+            );
+          } catch {
+            /* FloatingWidget may not be supported */
+          }
+        }, 100);
+      } else if (!stripOn) {
+        const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
+        await plugin.app.toast(enc.shiny ? `✦ A shiny ${enc.name} appeared!` : `Wild ${enc.name}${tierLabel} appeared!`);
       }
     }
     if ((next.currentStreak ?? 0) > (prev.currentStreak ?? 0)) {

@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ACHIEVEMENT_TIER_TRAINER_XP } from '../engine/achievements';
 import { CURRENCY_REWARDS } from '../engine/shop';
-import { damageForMove } from '../engine/combatExchange';
 import { damageCeiling } from '../engine/moveMechanics';
 import { tryCatch } from '../engine/encounters';
 import { isMoveTypeLegalForSpecies } from '../data/learnsetRules';
@@ -102,7 +101,8 @@ describe('parseGameState', () => {
     };
     expect(() => parseGameState(raw)).not.toThrow();
     const s = parseGameState(raw);
-    expect(s.collectionDex).toEqual({});
+    // Owned species are backfilled into the Pokédex on load.
+    expect(s.collectionDex).toEqual({ 1: 1 });
   });
 });
 
@@ -155,7 +155,10 @@ describe('onQueueCardComplete', () => {
     };
     const xp0 = s.trainerXp ?? 0;
     const cur0 = s.currency ?? 0;
+    // Pin randomness: a 4.5% study cash bonus would otherwise make the coin check flaky.
+    const spy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const next = onQueueCardComplete(s, [1], 99, { reviewWeight: 1, encounterReviewMultiplier: 4 });
+    spy.mockRestore();
     expect(next.encounterProgress).toBe(4);
     expect((next.trainerXp ?? 0) - xp0).toBe(TRAINER_XP_SOURCES.cardReview);
     expect((next.currency ?? 0) - cur0).toBe(CURRENCY_REWARDS.review);

@@ -19,9 +19,23 @@ export interface SpeciesData {
   generation: number;
 }
 
-export { FULL_POKEDEX as SPECIES_LIST, POKEDEX_BY_DEX as SPECIES_BY_DEX, STARTER_DEX_ALL } from './pokedex';
+import { FULL_POKEDEX, STARTER_DEX_ALL, type FullSpeciesData } from './pokedex';
+import { REGIONAL_FORMS } from './regionalForms';
 
-import { FULL_POKEDEX, STARTER_DEX_ALL } from './pokedex';
+export { STARTER_DEX_ALL };
+
+/** Every species PokéRem knows: the National Dex roster plus regional forms (Galarian birds). */
+export const SPECIES_LIST: FullSpeciesData[] = [...FULL_POKEDEX, ...REGIONAL_FORMS];
+export const SPECIES_BY_DEX = new Map(SPECIES_LIST.map((s) => [s.dexNum, s]));
+
+const NATIONAL_DEX = new Map(REGIONAL_FORMS.map((f) => [f.dexNum, f.nationalDex]));
+/** Dex number to show players: a regional form shows its base species' National Dex number. */
+export function displayDexNumber(dexNum: number): number {
+  return NATIONAL_DEX.get(dexNum) ?? dexNum;
+}
+export function isRegionalForm(dexNum: number): boolean {
+  return NATIONAL_DEX.has(dexNum);
+}
 
 export const STARTER_DEX = [1, 4, 7] as const;
 

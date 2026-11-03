@@ -1,6 +1,9 @@
 import { isMoveSupported } from './moveMechanics';
 import type { OwnedPokemon } from '../state/model';
-import { LEARNSETS } from '../data/learnsets';
+import { LEARNSETS as NATIONAL_LEARNSETS } from '../data/learnsets';
+import { REGIONAL_FORM_LEARNSETS } from '../data/regionalForms';
+
+export const LEARNSETS: Record<number, (typeof NATIONAL_LEARNSETS)[number]> = { ...NATIONAL_LEARNSETS, ...REGIONAL_FORM_LEARNSETS };
 import { MOVES } from '../data/moves';
 
 const MAX_MOVES = 4;

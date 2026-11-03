@@ -6,14 +6,17 @@ export type ItemId =
   | 'sun-stone' | 'shiny-stone' | 'dusk-stone' | 'dawn-stone'
   | 'everstone'
   | 'catch-scope'
+  | 'bottle-cap' | 'gold-bottle-cap'
   | 'xp-doubler-common' | 'xp-doubler-rare' | 'xp-doubler-legendary';
 
 export interface ItemData {
   id: ItemId;
   name: string;
   iconFile: string;
-  kind: 'catch' | 'heal' | 'utility' | 'evolution' | 'hold';
+  kind: 'catch' | 'heal' | 'utility' | 'evolution' | 'hold' | 'training';
   power?: number;
+  /** Heal items: share of max HP restored (at least `power`). */
+  healPercent?: number;
   price: number;
   description: string;
 }
@@ -22,8 +25,8 @@ export const ITEMS: ItemData[] = [
   { id: 'poke-ball', name: 'Poke Ball', iconFile: 'poke-ball.png', kind: 'catch', price: 100, description: 'Standard catch ball' },
   { id: 'great-ball', name: 'Great Ball', iconFile: 'great-ball.png', kind: 'catch', price: 300, description: 'Better catch rate (+0.2)' },
   { id: 'ultra-ball', name: 'Ultra Ball', iconFile: 'ultra-ball.png', kind: 'catch', price: 600, description: 'High catch rate (+0.4)' },
-  { id: 'potion', name: 'Potion', iconFile: 'potion.png', kind: 'heal', power: 20, price: 150, description: 'Restores 20 HP' },
-  { id: 'super-potion', name: 'Super Potion', iconFile: 'super-potion.png', kind: 'heal', power: 50, price: 350, description: 'Restores 50 HP' },
+  { id: 'potion', name: 'Potion', iconFile: 'potion.png', kind: 'heal', power: 20, healPercent: 0.25, price: 150, description: 'Restores a quarter of max HP (at least 20)' },
+  { id: 'super-potion', name: 'Super Potion', iconFile: 'super-potion.png', kind: 'heal', power: 50, healPercent: 0.5, price: 350, description: 'Restores half of max HP (at least 50)' },
   { id: 'max-potion', name: 'Max Potion', iconFile: 'max-potion.png', kind: 'heal', power: 9999, price: 1000, description: 'Fully restores HP' },
   {
     id: 'revive',
@@ -31,10 +34,10 @@ export const ITEMS: ItemData[] = [
     iconFile: 'revive.png',
     kind: 'heal',
     power: -1,
-    price: 500,
+    price: 200,
     description: 'Revives a fainted Pokémon with about half its max HP. Potions and berries cannot heal fainted Pokémon — use a Revive first.',
   },
-  { id: 'oran-berry', name: 'Oran Berry', iconFile: 'oran-berry.png', kind: 'heal', power: 10, price: 80, description: 'Restores 10 HP' },
+  { id: 'oran-berry', name: 'Oran Berry', iconFile: 'oran-berry.png', kind: 'heal', power: 10, healPercent: 0.1, price: 80, description: 'Restores a tenth of max HP (at least 10)' },
   { id: 'rare-candy', name: 'Rare Candy', iconFile: 'rare-candy.png', kind: 'utility', price: 2000, description: 'Instantly raises level by 1' },
   {
     id: 'exp-candy-s',
@@ -86,12 +89,21 @@ export const ITEMS: ItemData[] = [
     price: 3000,
     description: 'Doubles XP for every Pokémon for the next 100 reviewed cards. Queues if another doubler is active.',
   },
+  { id: 'bottle-cap', name: 'Bottle Cap', iconFile: 'bottle-cap.png', kind: 'training', price: 25000, description: 'Hyper-trains one IV of a Pokémon to the maximum. Use from Party.' },
+  { id: 'gold-bottle-cap', name: 'Gold Bottle Cap', iconFile: 'gold-bottle-cap.png', kind: 'training', price: 90000, description: 'Hyper-trains all IVs of a Pokémon to the maximum (a HUNDO). Use from Party.' },
 ];
 
 export const ITEM_BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
 
+/** HP a heal item restores on a Pokémon with this max HP. */
+export function healAmountFor(item: ItemData, maxHp: number): number {
+  if (item.id === 'max-potion') return Math.max(1, maxHp);
+  const flat = Math.max(0, item.power ?? 0);
+  return Math.max(flat, Math.ceil(maxHp * (item.healPercent ?? 0)));
+}
+
 export const STARTING_BAG: Record<ItemId, number> = {
-  'poke-ball': 6,
+  'poke-ball': 10,
   'great-ball': 1,
   'ultra-ball': 0,
   'potion': 3,
@@ -115,4 +127,6 @@ export const STARTING_BAG: Record<ItemId, number> = {
   'xp-doubler-common': 0,
   'xp-doubler-rare': 0,
   'xp-doubler-legendary': 0,
+  'bottle-cap': 0,
+  'gold-bottle-cap': 0,
 };

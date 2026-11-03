@@ -2,22 +2,28 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { SPECIES_LIST } from '../../game/data/species';
 import type { PokemonType } from '../../game/data/species';
 import { ALL_TYPES } from '../../game/data/typeChart';
-import { typePillStyle } from '../battle/battleTheme';
-import { TypeSymbolImage } from '../battle/TypeBattleIcon';
 import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { DexEntryTile } from '../components/DexEntryTile';
 import { DexDetailPanel } from './DexDetailPanel';
+import { ShinyCase } from '../components/ShinyCase';
+import type { OwnedPokemon, ShinyLogEntry } from '../../game/state/model';
 
 const GEN_LABELS = ['Gen 1', 'Gen 2', 'Gen 3', 'Gen 4', 'Gen 5', 'Gen 6', 'Gen 7', 'Gen 8'];
 type CaughtFilter = 'all' | 'caught' | 'uncaught';
 
+const DEX_TILE_MIN = 104;
+
 export function CollectionScreen({
   rootURL,
   collectionDex,
+  shinyLog = [],
+  ownedPokemon = [],
 }: {
   rootURL: string | undefined;
   collectionDex: Record<number, number>;
+  shinyLog?: ShinyLogEntry[];
+  ownedPokemon?: OwnedPokemon[];
 }) {
   const [selectedGen, setSelectedGen] = useState(1);
   const [typeFilter, setTypeFilter] = useState<PokemonType | null>(null);
@@ -25,7 +31,7 @@ export function CollectionScreen({
   const [search, setSearch] = useState('');
   const [selectedDex, setSelectedDex] = useState<number | null>(null);
   const gridWrapRef = useRef<HTMLDivElement | null>(null);
-  const [dexCols, setDexCols] = useState(3);
+  const [dexCols, setDexCols] = useState(2);
 
   const totalCaught = Object.values(collectionDex).filter((n) => n > 0).length;
 
@@ -33,10 +39,9 @@ export function CollectionScreen({
     const el = gridWrapRef.current;
     if (!el) return;
     const read = () => {
+      // Tiles need ~104px so the longest names (Crabominable) fit on one line; 8px is the grid gap.
       const w = el.clientWidth;
-      if (w < 250) setDexCols(2);
-      else if (w < 440) setDexCols(3);
-      else setDexCols(4);
+      setDexCols(Math.min(5, Math.max(2, Math.floor((w + 8) / (DEX_TILE_MIN + 8)))));
     };
     read();
     let ro: ResizeObserver | null = null;
@@ -85,12 +90,14 @@ export function CollectionScreen({
         />
       ) : null}
 
+      <ShinyCase rootURL={rootURL} log={shinyLog} owned={ownedPokemon} />
+
       <div className="pkr-dex-screen-hero flex flex-wrap items-center justify-between gap-2">
         <div>
-          <div className="pkr-pixel-title text-[7px] font-black uppercase leading-tight tracking-wide" style={{ color: '#a5b4fc' }}>
+          <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: '#a5b4fc' }}>
             National dex
           </div>
-          <div className="mt-0.5 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+          <div className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             Tap a species to open its entry. Unknown silhouettes clear when you catch one.
           </div>
         </div>
@@ -98,10 +105,10 @@ export function CollectionScreen({
           className="shrink-0 rounded-lg border-2 px-2 py-1 text-center"
           style={{ borderColor: 'rgba(52,211,153,0.35)', background: 'rgba(6,78,59,0.35)' }}
         >
-          <div className="pkr-pixel-title text-[8px] font-black tabular-nums" style={{ color: '#6ee7b7' }}>
+          <div className="pkr-pixel-title pkr-fine font-black tabular-nums" style={{ color: 'var(--pkr-ink-success)' }}>
             {totalCaught}
           </div>
-          <div className="text-[6px] font-bold uppercase tracking-wider" style={{ color: '#c3cde3' }}>
+          <div className="pkr-fine font-bold uppercase tracking-wider" style={{ color: 'var(--pkr-ink-muted)' }}>
             / {SPECIES_LIST.length}
           </div>
         </div>
@@ -120,7 +127,7 @@ export function CollectionScreen({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Name or dex #…"
-          aria-label="Search Pokémon by name or dex number" className="pkr-input mb-2 w-full px-2.5 py-2 text-[11px]"
+          aria-label="Search Pokémon by name or dex number" className="pkr-input mb-2 w-full px-2.5 py-2 pkr-fine"
         />
         <div className="pkr-dex-toolbar-label">Caught</div>
         <div className="mb-2 flex flex-wrap gap-1">
@@ -146,17 +153,17 @@ export function CollectionScreen({
         className="mb-2 rounded-md border border-white/10 px-2 py-1.5 text-center"
         style={{ background: 'rgba(0,0,0,0.2)' }}
       >
-        <span className="text-[10px] font-bold" style={{ color: '#cbd5e1' }}>
+        <span className="pkr-fine font-bold" style={{ color: 'var(--pkr-ink-soft)' }}>
           Gen {selectedGen}:{' '}
           <span className="tabular-nums text-emerald-300">
             {gc.caught}/{gc.total}
           </span>{' '}
           caught
         </span>
-        <span className="mx-1.5 opacity-40" style={{ color: '#c3cde3' }}>
+        <span className="mx-1.5 opacity-40" style={{ color: 'var(--pkr-ink-muted)' }}>
           ·
         </span>
-        <span className="text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
+        <span className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
           {filtered.length} shown
         </span>
       </div>
@@ -177,10 +184,10 @@ export function CollectionScreen({
             );
           })}
           {filtered.length === 0 && (
-            <div className="py-8 text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3', gridColumn: '1 / -1' }}>
+            <div className="py-8 text-center pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-muted)', gridColumn: '1 / -1' }}>
               No species match these filters.
               <br />
-              <span className="text-[9px] opacity-90">Try another generation or clear type / caught filters.</span>
+              <span className="pkr-fine opacity-90">Try another generation or clear type / caught filters.</span>
             </div>
           )}
         </div>

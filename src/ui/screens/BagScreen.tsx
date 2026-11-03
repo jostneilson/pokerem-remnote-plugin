@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ITEMS, type ItemData, type ItemId } from '../../game/data/items';
 import { itemIconUrl } from '../../game/sprites';
 import { Panel } from '../components/Panel';
@@ -77,7 +78,7 @@ function BoostersPanel({
       title={active ? `Boosters · ${active.cardsRemaining} cards left` : "Boosters"}
       collapsible
       defaultOpen={!!active || XP_DOUBLER_ITEMS.some(({id}) => (bag[id] ?? 0) > 0)}
-      icon={<GameIcon name="coin" size={13} style={{ color: '#fde68a' }} />}
+      icon={<GameIcon name="coin" size={13} style={{ color: 'var(--pkr-ink-gold)' }} />}
       accent="#fde68a"
     >
       <div className="flex flex-col gap-2">
@@ -112,25 +113,25 @@ function BoostersPanel({
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <span
-                className="truncate text-[11px] font-black"
+                className="pkr-fine font-black"
                 style={{ color: active ? '#fde68a' : '#c3cde3' }}
               >
                 {active ? `${TIER_STYLE[active.tier].label} Doubler` : 'XP Doubler'}
               </span>
               <span
-                className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black tabular-nums"
+                className="shrink-0 rounded-full border px-2 py-0.5 pkr-fine font-black tabular-nums"
                 style={
                   active
                     ? {
                         borderColor: 'rgba(253,224,71,0.5)',
-                        color: '#fde68a',
+                        color: 'var(--pkr-ink-gold)',
                         background: 'rgba(120,53,15,0.4)',
                       }
                     : {
                         borderColor: 'rgba(100,116,139,0.35)',
-                        color: '#8296a5',
+                        color: 'var(--pkr-ink-faint)',
                         background: 'rgba(0,0,0,0.2)',
                       }
                 }
@@ -138,7 +139,7 @@ function BoostersPanel({
                 {active ? `${active.cardsRemaining}/${activeTotal}` : 'Off'}
               </span>
             </div>
-            <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+            <div className="mt-0.5 line-clamp-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
               {active ? '2× XP for all Pokémon — ticks down each card' : 'No booster active · use one below to start 2× XP'}
             </div>
             {active ? (
@@ -155,13 +156,13 @@ function BoostersPanel({
             ) : null}
             {queue.length > 0 ? (
               <div className="mt-1 flex flex-wrap items-center gap-1">
-                <span className="text-[7px] font-black uppercase tracking-widest" style={{ color: '#c3cde3' }}>
+                <span className="pkr-fine font-black uppercase tracking-widest" style={{ color: 'var(--pkr-ink-muted)' }}>
                   Next
                 </span>
                 {queue.map((q, i) => (
                   <span
                     key={i}
-                    className="grid place-items-center rounded-full text-[8px] font-black"
+                    className="grid place-items-center rounded-full pkr-fine font-black"
                     style={{
                       width: 14,
                       height: 14,
@@ -211,11 +212,11 @@ function BoostersPanel({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="flex min-w-0 flex-wrap items-baseline gap-1.5">
-                    <span className="text-[11px] font-black" style={{ color: owned ? '#e2e8f0' : '#c3cde3' }}>
+                    <span className="pkr-fine font-black" style={{ color: owned ? '#e2e8f0' : '#c3cde3' }}>
                       {style.name}
                     </span>
                     <span
-                      className="shrink-0 rounded px-1 py-[1px] text-[7px] font-black uppercase leading-none tracking-[0.1em]"
+                      className="shrink-0 rounded px-1 py-[1px] pkr-fine font-black uppercase leading-none tracking-[0.1em]"
                       style={{
                         background: owned ? style.chipBg : 'rgba(15,23,42,0.6)',
                         color: owned ? style.chipText : '#c3cde3',
@@ -226,21 +227,21 @@ function BoostersPanel({
                     </span>
                   </span>
                   <span
-                    className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black tabular-nums"
+                    className="shrink-0 rounded-full border px-2 py-0.5 pkr-fine font-black tabular-nums"
                     style={
                       owned
-                        ? { borderColor: 'rgba(110,231,183,0.35)', color: '#6ee7b7', background: 'rgba(6,78,59,0.35)' }
-                        : { borderColor: 'rgba(100,116,139,0.35)', color: '#8296a5', background: 'rgba(0,0,0,0.2)' }
+                        ? { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
+                        : { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
                     }
                   >
                     ×{count}
                   </span>
                 </div>
-                <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+                <div className="mt-0.5 line-clamp-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
                   2× XP for all Pokémon · next {XP_DOUBLER_CARDS[tier]} cards
                 </div>
                 {!owned ? (
-                  <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+                  <div className="mt-1 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
                     Earn from trainer battles &amp; achievements
                   </div>
                 ) : null}
@@ -282,7 +283,7 @@ const CATEGORIES: { label: string; icon: JSX.Element; kinds: string[]; accent?: 
   { label: 'Poke Balls', icon: <GameIcon name="pokeball" size={13} style={{ color: '#ef4444' }} />, kinds: ['catch'], accent: '#f87171' },
   { label: 'Medicine', icon: <GameIcon name="pills" size={13} style={{ color: '#f472b6' }} />, kinds: ['heal'], accent: '#f472b6' },
   { label: 'Evolution stones', icon: <GameIcon name="gem" size={13} style={{ color: '#c084fc' }} />, kinds: ['evolution'], accent: '#c084fc' },
-  { label: 'Key items', icon: <GameIcon name="key" size={13} style={{ color: '#fbbf24' }} />, kinds: ['utility', 'hold'], accent: '#fbbf24' },
+  { label: 'Key items', icon: <GameIcon name="key" size={13} style={{ color: 'var(--pkr-ink-gold-strong)' }} />, kinds: ['utility', 'hold', 'training'], accent: '#fbbf24' },
 ];
 
 function totalBagCount(bag: BagCounts): number {
@@ -295,15 +296,21 @@ function ItemRow({
   count,
   onUse,
   canUse,
+  targets,
 }: {
   rootURL: string | undefined;
   item: ItemData;
   count: number;
-  onUse: () => void;
+  onUse: (targetId?: string) => void;
   canUse: boolean;
+  /** Party members this item can go to; with more than one, Use opens a picker. */
+  targets?: { id: string; label: string; ok: boolean }[];
 }) {
   const isEmpty = count <= 0;
+  const [picking, setPicking] = useState(false);
+  const choose = targets && targets.length > 1;
   return (
+    <div>
     <div className={`pkr-bag-item ${isEmpty ? 'pkr-bag-item--empty' : ''}`}>
       <div className="pkr-bag-item__icon-slot">
         <img
@@ -315,33 +322,33 @@ function ItemRow({
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-[11px] font-black" style={{ color: isEmpty ? '#c3cde3' : '#e2e8f0' }}>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+          <span className="min-w-0 break-words pkr-fine font-black" style={{ color: isEmpty ? '#c3cde3' : '#e2e8f0' }}>
             {item.name}
           </span>
           <span
-            className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black tabular-nums"
+            className="shrink-0 rounded-full border px-2 py-0.5 pkr-fine font-black tabular-nums"
             style={
               isEmpty
-                ? { borderColor: 'rgba(100,116,139,0.35)', color: '#8296a5', background: 'rgba(0,0,0,0.2)' }
-                : { borderColor: 'rgba(110,231,183,0.35)', color: '#6ee7b7', background: 'rgba(6,78,59,0.35)' }
+                ? { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
+                : { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
             }
           >
             ×{count}
           </span>
         </div>
         {item.description ? (
-          <div className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+          <div className="mt-0.5 line-clamp-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             {item.description}
           </div>
         ) : null}
         {!isEmpty && !canUse ? (
-          <div className="mt-1 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
-            {item.kind === 'evolution' ? 'Party → select Pokémon → Stone evolution' : 'Equip for encounters'}
+          <div className="mt-1 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
+            {item.kind === 'evolution' ? 'Party → select Pokémon → Stone evolution' : item.kind === 'training' ? 'Party → select Pokémon → Hyper training' : 'Equip for encounters'}
           </div>
         ) : null}
         {isEmpty ? (
-          <div className="mt-1 text-[8px] font-bold" style={{ color: '#8296a5' }}>
+          <div className="mt-1 pkr-fine font-bold" style={{ color: 'var(--pkr-ink-faint)' }}>
             Out of stock · visit Shop
           </div>
         ) : null}
@@ -349,17 +356,37 @@ function ItemRow({
       {canUse && count > 0 ? (
         <button
           type="button"
-          onClick={onUse}
-          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 text-[9px] font-black uppercase"
+          onClick={() => (choose ? setPicking((v) => !v) : onUse(targets?.[0]?.id))}
+          aria-expanded={choose ? picking : undefined}
+          className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 pkr-fine font-black uppercase"
           style={{
             borderColor: '#166534',
             background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 100%)',
             color: '#052e16',
           }}
-          title={`Use ${item.name} on your lead Pokémon`}
+          title={choose ? `Choose who gets the ${item.name}` : `Use ${item.name}`}
         >
-          Use
+          {choose ? 'Use ▾' : 'Use'}
         </button>
+      ) : null}
+    </div>
+      {picking && choose && canUse && count > 0 ? (
+        <div className="pkr-bag-target-picker" role="group" aria-label={`Use ${item.name} on`}>
+          {targets!.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className="pkr-btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!t.ok}
+              onClick={() => {
+                onUse(t.id);
+                setPicking(false);
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       ) : null}
     </div>
   );
@@ -377,9 +404,20 @@ export function BagScreen({
   bag: BagCounts;
   currency?: number;
   state?: PokeRemGameState;
-  onUseItem: (itemId: ItemId) => void;
+  onUseItem: (itemId: ItemId, targetId?: string) => void;
   onActivateXpDoubler?: (tier: XpDoublerTier) => void;
 }) {
+  const targetsFor = (item: ItemData) =>
+    state?.party.map((p) => ({
+      id: p.id,
+      label: `${p.nickname || p.name} ${p.currentHp}/${p.maxHp}`,
+      ok:
+        item.id === 'revive'
+          ? p.currentHp <= 0
+          : item.kind === 'heal'
+            ? p.currentHp > 0 && p.currentHp < p.maxHp
+            : p.level < 100,
+    }));
   const total = totalBagCount(bag);
   const isEmpty = total <= 0;
 
@@ -390,18 +428,18 @@ export function BagScreen({
           <div className="flex items-center gap-2">
             <GameIcon name="bag" size={20} style={{ color: 'var(--pkr-accent, #fbbf24)' }} />
             <div>
-              <div className="pkr-pixel-title text-[7px] font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+              <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
                 Your bag
               </div>
-              <div className="text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
-                Medicine treats your <span className="font-bold text-slate-300">lead</span>.{' '}
+              <div className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
+                Tap <span className="font-bold text-slate-300">Use</span> to pick who gets an item.{' '}
                 <span className="font-bold text-slate-300">Revive</span> only works on fainted Pokémon; other heals need them conscious first.
               </div>
             </div>
           </div>
           <span
-            className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title text-[6px] font-black tabular-nums"
-            style={{ borderColor: 'rgba(148,163,184,0.35)', color: '#cbd5e1' }}
+            className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title pkr-fine font-black tabular-nums"
+            style={{ borderColor: 'rgba(148,163,184,0.35)', color: 'var(--pkr-ink-soft)' }}
             title="Total item count"
           >
             {total} pcs
@@ -411,11 +449,11 @@ export function BagScreen({
 
       {currency != null ? (
         <div className="pkr-currency-bar pkr-shimmer-bg animate-pkr-shimmer flex min-h-[2.75rem] items-center justify-between px-3 py-2">
-          <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#fde68a' }}>
-            <GameIcon name="coin" size={14} style={{ color: '#fbbf24' }} /> Poké Dollars
+          <span className="flex items-center gap-1.5 pkr-copy font-bold" style={{ color: 'var(--pkr-ink-gold)' }}>
+            <GameIcon name="coin" size={14} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Poké Dollars
           </span>
           <span className="text-base font-black tabular-nums" style={{ color: '#fef3c7' }}>
-            P{currency}
+            ₽{currency.toLocaleString()}
           </span>
         </div>
       ) : null}
@@ -431,7 +469,7 @@ export function BagScreen({
 
       {isEmpty ? (
         <Panel title="Bag is empty" icon={<GameIcon name="box" size={14} />}>
-          <p className="text-center text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
+          <p className="text-center pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-muted)' }}>
             No items yet. Open the <span className="font-bold text-amber-200">Shop</span> tab to buy balls and medicine.
           </p>
         </Panel>
@@ -455,8 +493,9 @@ export function BagScreen({
                       rootURL={rootURL}
                       item={item}
                       count={count}
-                      onUse={() => onUseItem(item.id)}
+                      onUse={(targetId) => onUseItem(item.id, targetId)}
                       canUse={canUse}
+                      targets={targetsFor(item)}
                     />
                   );
                 })}

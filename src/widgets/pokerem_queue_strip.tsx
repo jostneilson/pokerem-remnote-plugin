@@ -1,7 +1,7 @@
 import '../style.css';
 import { useCallback, useEffect, useState } from 'react';
 import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, usePlugin } from '@remnote/plugin-sdk';
-import { STORAGE_KEY, SYNC_BROADCAST_KEY, REVIEWS_PER_ENCOUNTER, getSyncedGameRaw } from '../game/constants';
+import { STORAGE_KEY, SYNC_BROADCAST_KEY, REVIEWS_PER_ENCOUNTER, WILD_FLEE_AFTER_CARDS, getSyncedGameRaw } from '../game/constants';
 import { createInitialStateV3, parseGameState, activePokemon } from '../game/state/store';
 import type { PokeRemGameState } from '../game/state/model';
 import { frontSpriteUrl, backSpriteUrl } from '../game/sprites';
@@ -12,6 +12,9 @@ import { BRAND } from '../ui/theme/gameTheme';
 import { PokeRemSatelliteMiniCard } from '../ui/components/PokeRemSatelliteChrome';
 import { PokeRemTrekStrip } from '../ui/components/PokeRemTrekStrip';
 import { estimatedQueueCompletionsUntilWild } from '../game/wildEncounterDisplay';
+import { recommendedBall, wildCatchChancePreview } from '../game/engine/encounters';
+import { bestPotionForLead } from '../game/state/store';
+import { runQueueAction, type QueueAction } from '../game/queueActions';
 
 /**
  * Compact queue toolbar strip — same HUD kit as the sidebar when RemNote mounts the queue toolbar.
@@ -25,6 +28,7 @@ function PokeRemQueueStrip() {
   const [encounterRate, setEncounterRate] = useState(REVIEWS_PER_ENCOUNTER);
   const [encounterPacingModulo, setEncounterPacingModulo] = useState(1);
   const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
+  const [busy, setBusy] = useState<QueueAction | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -102,6 +106,19 @@ function PokeRemQueueStrip() {
     void refresh();
   });
 
+  const act = async (action: QueueAction) => {
+    if (busy) return;
+    setBusy(action);
+    try {
+      const next = await runQueueAction(plugin, action);
+      if (next) setState(next);
+    } catch (e) {
+      console.error(`[${BRAND.wordmark}] Queue toolbar action failed`, e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (!queueStripOn) return null;
 
   if (!state || !state.starterChosen || !state.studyDifficultyConfigured) return null;
@@ -116,7 +133,13 @@ function PokeRemQueueStrip() {
   const wildReviewWeight = state.studyDifficultyConfigured ? state.studyCardWeight : pluginReviewWeight;
   const amb = getBattleAmbience(state.battleSceneIndex ?? 0);
   const ambienceStyle = battleAmbienceCssVars(amb);
-  const leadFaintedNoEncounter = !hasEncounter && active.currentHp <= 0;
+  const leadFaintedNoEncounter = !hasEncounter && state.party.every((p) => p.currentHp <= 0);
+  const inTrainerBattle = !!state.currentTrainerBattle;
+  const picked = wild ? recommendedBall(state.bag, wild, active) : null;
+  const ball = picked && (state.bag[picked] ?? 0) > 0 ? picked : null;
+  const catchPct = wild && ball ? Math.round(wildCatchChancePreview(wild, active, ball) * 100) : 0;
+  const potion = !hasEncounter && !inTrainerBattle ? bestPotionForLead(state) : null;
+  const hpPct = active.maxHp > 0 ? Math.max(0, Math.min(100, (active.currentHp / active.maxHp) * 100)) : 0;
 
   const remaining =
     !hasEncounter && !leadFaintedNoEncounter
@@ -130,12 +153,12 @@ function PokeRemQueueStrip() {
         })
       : 0;
   const trekTitle = leadFaintedNoEncounter
-    ? 'Your lead has fainted; wild encounters are paused.'
+    ? 'Your whole team has fainted. It rests while you study, or heal it in the sidebar.'
     : `About ${remaining} queue completions until the next wild (${progress} of ${effectiveRate} toward encounter)`;
 
   return (
     <div
-      className={`pkr-pixel-surface pkr-queue-shell relative flex w-full min-w-0 flex-wrap items-stretch gap-1.5 border px-2 py-1.5 text-[7px] sm:text-[9px] ${
+      className={`pkr-pixel-surface pkr-queue-shell relative flex w-full min-w-0 flex-wrap items-stretch gap-1.5 border px-2 py-1.5 pkr-fine ${
         hasEncounter ? 'animate-pkr-queue-wild' : ''
       }`}
       style={{
@@ -153,7 +176,7 @@ function PokeRemQueueStrip() {
         >
           <span className="flex shrink-0 items-center gap-1">
             <GameIcon name="pokeball" size={12} />
-            <span className="pkr-pixel-title text-[6px] font-black tracking-tight sm:text-[7px]" style={{ color: amb.pillActiveText }}>
+            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: amb.pillActiveText }}>
               {BRAND.wordmark}
             </span>
           </span>
@@ -169,15 +192,18 @@ function PokeRemQueueStrip() {
               <div className="truncate font-bold leading-tight" style={{ color: amb.pillActiveText }}>
                 {active.name}
               </div>
-              <div className="text-[6px] font-bold sm:text-[7px]" style={{ color: amb.accentMuted }}>
-                Lv{active.level}
+              <div className="pkr-fine font-bold" style={{ color: amb.accentMuted }}>
+                Lv{active.level} · {active.currentHp}/{active.maxHp}
+              </div>
+              <div className="pkr-queue-hp" aria-hidden="true">
+                <i style={{ width: `${hpPct}%`, background: hpPct > 50 ? '#4ade80' : hpPct > 20 ? '#facc15' : '#f87171' }} />
               </div>
             </div>
           </div>
         </PokeRemSatelliteMiniCard>
 
         <PokeRemSatelliteMiniCard accentBorder={`${amb.accent}40`} className="flex flex-col justify-center gap-0.5 px-1.5 py-1">
-          <span className="pkr-battle-hud-role text-[5px] sm:text-[6px]" style={{ color: amb.accentMuted }}>
+          <span className="pkr-battle-hud-role pkr-fine" style={{ color: amb.accentMuted }}>
             Next wild
           </span>
           <PokeRemTrekStrip
@@ -193,15 +219,15 @@ function PokeRemQueueStrip() {
 
         <PokeRemSatelliteMiniCard
           accentBorder={hasEncounter ? 'rgba(251,191,36,0.35)' : `${amb.accent}33`}
-          className="flex min-w-0 flex-[1_1_140px] items-center gap-1.5 px-1.5 py-1 sm:flex-1"
+          className="pkr-queue-wild-card flex min-w-0 flex-[1_1_140px] flex-wrap items-center gap-1.5 px-1.5 py-1 sm:flex-1"
         >
           {hasEncounter && wild ? (
             <>
               <span
-                className="shrink-0 rounded-full px-1.5 py-px text-[6px] font-black sm:text-[7px]"
+                className="shrink-0 rounded-full px-1.5 py-px pkr-fine font-black"
                 style={{
                   background: 'linear-gradient(180deg, rgba(251,191,36,0.28) 0%, rgba(180,83,9,0.2) 100%)',
-                  color: '#fde68a',
+                  color: 'var(--pkr-ink-gold)',
                   border: '1px solid rgba(251,191,36,0.4)',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
                 }}
@@ -216,23 +242,67 @@ function PokeRemQueueStrip() {
                 style={{ imageRendering: 'pixelated' }}
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate font-bold leading-tight" style={{ color: '#fde68a' }}>
-                  {wild.name}
+                <div className={`truncate font-bold leading-tight ${wild.shiny ? 'pkr-queue-shiny' : ''}`} style={{ color: wild.shiny ? '#fde047' : '#fde68a' }}>
+                  {wild.shiny ? `✦ Shiny ${wild.name}!` : wild.name}
                 </div>
-                <div className="text-[6px] font-bold sm:text-[7px]" style={{ color: amb.accentMuted }}>
-                  Open sidebar to battle
+                <div className="pkr-fine font-bold" style={{ color: amb.accentMuted }}>
+                  Lv{wild.level} · {wild.currentHp}/{wild.maxHp} HP
                 </div>
               </div>
+              <div className="pkr-queue-actions" role="group" aria-label={`Battle ${wild.name}`}>
+                <button type="button" disabled={!!busy || !ball} onClick={() => void act('catch')} title={ball ? `Throw a ${ball.replace('-', ' ')}` : 'No balls left'}>
+                  Catch{ball ? ` ${catchPct}%` : ''}
+                </button>
+                <button type="button" disabled={!!busy || active.currentHp <= 0} onClick={() => void act('fight')}>
+                  Fight
+                </button>
+                <button type="button" disabled={!!busy || active.currentHp <= 0} onClick={() => void act('auto')} title="Attack until it's weak enough to catch">
+                  Auto
+                </button>
+                <button type="button" disabled={!!busy} onClick={() => void act('run')}>
+                  Run
+                </button>
+              </div>
             </>
+          ) : state.currentTrainerBattle ? (
+            <div className="flex w-full items-center gap-1">
+              <span className="min-w-0 pkr-fine font-bold leading-snug" style={{ color: 'var(--pkr-ink-gold)' }}>
+                {state.currentTrainerBattle.phase === 'active'
+                  ? `Trainer battle in progress: finish it in the sidebar`
+                  : state.currentTrainerBattle.phase === 'team_select'
+                    ? `${state.currentTrainerBattle.trainer.className} challenges you! Open the sidebar to battle, or they move on in ${Math.max(1, WILD_FLEE_AFTER_CARDS - (state.wildIdleCards ?? 0))} cards`
+                    : 'Trainer battle over: see the result in the sidebar'}
+              </span>
+            </div>
+          ) : state.pendingCaughtMon ? (
+            <div className="flex w-full items-center justify-between gap-1">
+              <span className="min-w-0 pkr-fine font-bold leading-snug" style={{ color: 'var(--pkr-ink-gold)' }}>
+                Party full: swap in {state.pendingCaughtMon.name} from the sidebar, or it goes to storage with your next card
+              </span>
+              <div className="pkr-queue-actions">
+                <button type="button" disabled={!!busy} onClick={() => void act('store')} title={`Send ${state.pendingCaughtMon.name} to storage`}>
+                  Storage
+                </button>
+              </div>
+            </div>
           ) : leadFaintedNoEncounter ? (
-            <div className="min-w-0 text-[6px] font-bold leading-snug sm:text-[7px]" style={{ color: '#fca5a5' }}>
-              Wilds paused — heal or switch lead
+            <div className="flex w-full items-center justify-between gap-1">
+              <span className="min-w-0 pkr-fine font-bold leading-snug" style={{ color: 'var(--pkr-ink-danger)' }}>
+                Team resting: wilds return in {Math.max(1, WILD_FLEE_AFTER_CARDS - (state.wildIdleCards ?? 0))} cards
+              </span>
             </div>
           ) : (
             <div className="flex w-full items-center justify-between gap-1">
-              <span className="text-[6px] font-bold sm:text-[7px]" style={{ color: amb.uiMutedHover }}>
+              <span className="pkr-fine font-bold" style={{ color: amb.uiMutedHover }}>
                 Wild in <strong style={{ color: amb.pillActiveText }}>{remaining}</strong> review{remaining === 1 ? '' : 's'}
               </span>
+              {potion?.owned ? (
+                <div className="pkr-queue-actions">
+                  <button type="button" disabled={!!busy} onClick={() => void act('heal')} title={`Use a ${potion.id.replace('-', ' ')} on ${active.name}`}>
+                    Heal
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
         </PokeRemSatelliteMiniCard>

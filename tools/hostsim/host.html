@@ -8,7 +8,8 @@
   aside { width: 240px; flex: none; display: grid; gap: 6px; align-content: start; }
   button { padding: 6px; }
   #stage { height: calc(100vh - 24px); background: #fff; }
-  #stage iframe { border: 0; width: 100%; height: 100%; display: block; }
+  #stage { display: flex; flex-direction: column; }
+  #stage iframe { border: 0; width: 100%; height: 100%; display: block; flex: 1; min-height: 0; }
   #log { font: 11px ui-monospace, monospace; white-space: pre-wrap; max-height: 45vh; overflow: auto; background: #fff; padding: 6px; }
 </style>
 </head>
@@ -45,16 +46,18 @@ const domWait = new Map();
 let domId = 0;
 function log(kind, text) { logEl.textContent = `[${kind}] ${text}\n` + logEl.textContent; (window.hostsimLog ||= []).push({ kind, text }); }
 function send(msg) { for (const f of frames.values()) f.contentWindow?.postMessage(msg, '*'); }
-async function mount(name, visible) {
+async function mount(name, visible, height) {
   const f = document.createElement('iframe');
+  f.dataset.widget = name;
+  if (height) f.style.cssText = `height:${height}px;flex:none;border-bottom:1px dashed #9ab`;
   f.setAttribute('sandbox', SANDBOX);
   if (!visible) f.style.display = 'none';
   frames.set(name, f);
+  stage.appendChild(f); // Placed now so widgets keep their order however long each bundle takes.
   // Browsers refuse opaque-origin frames loading from loopback, so the bundle is inlined.
   const code = (await (await fetch(`/${name}.js`)).text()).replace(/<\/script/gi, '<\\/script');
   if (frames.get(name) !== f) return; // Reseeded while fetching.
   f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%}</style><script>window.HOSTSIM_ROOT=${JSON.stringify(ROOT)}<\/script></head><body><script>${code}<\/script></body></html>`;
-  stage.appendChild(f);
 }
 window.addEventListener('message', (e) => {
   const d = e.data;
@@ -101,6 +104,9 @@ window.hostsim = {
     if (kind === 'legacy') db.synced.pokerem_game_v1 = JSON.parse(JSON.stringify(LEGACY));
     if (kind === 'custom') db.synced.pokerem_game_v1 = JSON.parse(JSON.stringify(custom));
     mount('index', false);
+    // The queue widgets RemNote shows above the flashcard, then the sidebar.
+    mount('pokerem_queue_strip', true, 96);
+    mount('pokerem_encounter_popup', true, 300);
     mount('pokerem_sidebar', true);
   },
 };

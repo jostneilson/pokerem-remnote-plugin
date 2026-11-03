@@ -1,37 +1,58 @@
-# PokéRem arcade design contract — 1.3.0 candidate
+# PokéRem arcade design contract — next release (after 1.4.1)
 
 ## Visual identity
 
-A crisp 90s handheld/arcade game inside a study tool. Pixel fonts, square framed panels, stepped highlights, restrained movement, and real Pokémon sprite art. No sound. Navy ink and cream are the shared chrome, violet is the supporting frame color, and gold signals rewards. Scene backgrounds and type/HP colors keep their gameplay meaning.
+A crisp 90s handheld/arcade game inside a study tool. One pixel font, square framed panels, stepped highlights, restrained movement, and real Pokémon sprite art. No sound. Navy ink and cream are the shared chrome, violet is the supporting frame color, and gold signals rewards and shinies. Scene backgrounds and type/HP colors keep their gameplay meaning.
 
-## Typography and assets
+## Typography
 
-- Pixelify Sans: body, menu controls, secondary labels, tooltips, and dialogue. Use 14–17px for normal content, with sufficient line height. It is a pixel font designed to remain readable in longer text.
-- Press Start 2P: short titles, wordmark, and short panel headings. Use 8px or larger. Do not apply it to paragraphs.
-- Both fonts are bundled in `public/assets/fonts`, including original SIL OFL notices. Font bytes are embedded as data URLs in the injected widget CSS during development and build. No external font request or separately hosted font asset is required.
-- Sprites use pixelated rendering. Avoid fractional scale animations on sprites; translate them instead.
+- **One face:** the bundled original "PokeRem Pixel" font (`--pkr-font-body`; `--pkr-font-display` points at the same face). It ships in `public/assets/fonts` and is embedded in the widget CSS, so there is no external font request. Only the digit 5 was redrawn, for clarity.
+- **Type scale** (tokens on `:root` in `src/style.css`):
+
+  | Token | Size | Use |
+  |---|---|---|
+  | `--pkr-text-title` | 15px | Panel and card titles (display face) |
+  | `--pkr-text-body` | 14px | Body text, prompts, names |
+  | `--pkr-text-label` | 12px | Buttons, labels, secondary lines |
+  | `--pkr-text-micro` | 11px | Chips, dates, Dex numbers |
+
+  New markup uses these tokens, or the `pkr-type-title` / `pkr-type-body` / `pkr-type-label` / `pkr-type-micro` classes. Don't add new `text-[Npx]` Tailwind sizes.
+- **Fine print and copy:** older screens use three sidebar classes instead of Tailwind sizes. `pkr-fine` is fine print: 15px in the sidebar, 14px on portaled pixel surfaces (queue strip, popup, Dex sheet) and 13px inside compact battle plates. `pkr-copy` is 15px and `pkr-lead` is 17px. Titles and panel headers (`pkr-pixel-title`, `pkr-panel-header`) come last in the cascade, so they keep the title style even when combined with fine print or bold. None of these use `!important`. The only `!important` left in `src/style.css` is for reduced motion and for overriding inline layout sizes.
+- `text-[12px]` and `text-[13px]` survive in a few trainer-battle and stat spots, where they draw at their real size.
+- **Currency** is written ₽ on screen. Screen-reader labels may say "Poké Dollars".
+
+## Color and contrast
+
+- Body text meets 4.5:1 against its panel. Every scene's `uiMuted` colour in `battleAmbience.ts` is at least 4.6:1 on the `#1a2039` panel.
+- Type labels are white with a 1px dark outline (`TYPE_LABEL_OUTLINE`), as in the main games. Electric, Ice, Ground, Steel, Fairy and Normal use dark ink.
+- Battle commands are flat fills with a pixel bevel (`.pkr-cmd`, `--catch`/`--fight`/`--run`), not glossy gradients.
+
+## Sprites
+
+- Official PokeAPI sprites only, never recoloured. Pixelated rendering. Translate sprites; never scale them by fractions.
+- Shiny and rare sprites glow along their silhouette (a `drop-shadow` on the `img`). Never put a ring, outline or box around the sprite image.
+- Showcase stages (Shiny Case, result card, evolution) give the sprite room: a radial glow, a pedestal shadow, and no clipping.
 
 ## Layout
 
-Play owns the arena. Party, Bag (including Shop), Dex, Progress, Rewards, Types, and Settings use the full panel without repeating the arena above their content. Play/Party/Bag/Dex and Menu stay available at the top. Menu reveals the less frequent destinations. Navigation shows labels, reward attention, and keyboard focus.
+Play owns the arena. Party, Bag (including Shop), Dex, the Trainer screen (rewards and progress), Types and Settings use the full panel without repeating the arena above their content. Play, Party, Bag, Dex and Menu stay available at the top; Menu reveals the less frequent destinations. Navigation shows labels, reward attention and keyboard focus.
 
-A pending wild/trainer encounter gets a Return to Play button on management screens. Viewing menus does not dismiss encounters or override trainer restrictions. The underlying saves and reducers remain authoritative.
+When no wild is out, the field stays clear: next-wild progress lives in the command area, never over a Pokémon.
 
-Extra status statistics, help, Settings explanations, and achievement categories use native disclosures. Actions and owned items stay easy to reach. Dex uses generation/type selectors instead of a wall of buttons. No feature is removed.
+A pending wild or trainer encounter shows a Return to Play button on management screens. Viewing menus does not dismiss encounters or override trainer restrictions. Saves and reducers remain authoritative.
 
 ## Shared controls
 
-1–2px corners; 2px frames; subtle inset light/dark pixels. Buttons have clear focus, hover, disabled, and pressed states. Press feedback uses a small translation, not scale. Main action targets are at least 36px tall. Meters use `pkr-meter-track`/`pkr-meter-fill` and retain semantic colors and accessible values.
+1–2px corners; 2px frames; subtle inset light and dark pixels. Buttons have clear focus, hover, disabled and pressed states. Pressing translates by 1–2px; it never scales. Main action targets are at least 36px tall. Meters use `pkr-meter-track`/`pkr-meter-fill` and keep semantic colors and accessible values.
 
-Reduced motion suppresses decorative animation throughout the sidebar. No continuous shimmer on currency. Modal/detail surfaces and standalone widgets must follow the same fonts and frames.
+## Motion
+
+Decorative motion uses only transform and opacity, with `--pkr-motion-*` durations and `--pkr-ease-*` curves. Reduced motion (the RemNote setting or the OS) keeps every state and its gold styling, but still: no wipes, sparkles, twinkles or silhouette pulses. Moments with sequences, such as a shiny encounter, the result card or evolution, can be skipped and jump straight to their final state.
 
 ## Verification boundary
 
-Source/type checks, reducer tests, server rendering, and archive checks do not prove visual quality. Inspect the running UI at narrow and wide widths, expand controls, open sheets, and check keyboard navigation before release. Keep screenshot evidence and remaining host checks in the milestone QA document.
-
-## Wild auto attack and display controls
-
-- No Study companion / Compact view toolbar. Settings > Display owns the session-scoped Compact view control.
-- Auto attack is explicitly started for one wild encounter. It chooses the strongest effective legal move and checks the maximum critical damage before each turn. Equality with wild HP stops the loop. Catch always remains a user action.
-- Turns are spaced by 900ms and serialized through the synced save lock. Cancel on Stop, manual battle actions, leaving Play, hidden document, changed encounter/lead, save failure, or unmount. A 100-turn cap prevents an unbounded loop. No persistent auto-attack save field.
-- Automated verification: 95 tests pass, including six auto-attack safety cases and existing save compatibility checks. These checks do not establish animation quality or native-host end-to-end acceptance.
+Type checks, reducer tests and server rendering don't prove visual quality. Before a release:
+- run the overflow check, the contrast check and screenshots at 280, 320, 400 and 520px;
+- open sheets and disclosures;
+- tab through the battle controls;
+- check the installed plugin against the old testing deck.

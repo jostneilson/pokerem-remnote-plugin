@@ -68,25 +68,25 @@ export function RouteFindBanner({
         />
         <div className="min-w-0 flex-1 text-left">
           <div
-            className="pkr-pixel-title mb-0.5 text-[5px] font-black uppercase leading-tight tracking-wide sm:text-[6px]"
+            className="pkr-pixel-title mb-0.5 pkr-fine font-black uppercase leading-tight tracking-wide"
             style={{ color: accentMuted }}
           >
             {kind}
           </div>
-          <p className="text-[8px] font-bold leading-snug sm:text-[9px]" style={{ color: '#f1f5f9' }}>
+          <p className="pkr-fine font-bold leading-snug" style={{ color: '#f1f5f9' }}>
             {notice.headline}
           </p>
-          <p className="mt-0.5 text-[7px] font-semibold leading-snug sm:text-[8px]" style={{ color: accentMuted }}>
+          <p className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: accentMuted }}>
             {notice.subline}
           </p>
         </div>
         <button
           type="button"
           onClick={() => onAcknowledge?.()}
-          className="shrink-0 rounded border px-1.5 py-0.5 text-[8px] font-bold leading-none hover:brightness-110"
+          className="shrink-0 rounded border px-1.5 py-0.5 pkr-fine font-bold leading-none hover:brightness-110"
           style={{
             borderColor: accent,
-            color: '#f8fafc',
+            color: 'var(--pkr-ink-bright)',
             background: 'rgba(15,23,42,0.55)',
           }}
           aria-label="Dismiss route find notification"

@@ -37,7 +37,7 @@ export function MeterBar({
   const fillColor = fillGradient ? undefined : color || autoColor;
   const fillClass = colorClass || '';
   const trackH = compact ? 'h-[4px]' : 'h-2';
-  const textRow = compact ? 'text-[8px]' : 'text-[10px]';
+  const textRow = 'pkr-fine';
 
   useEffect(() => {
     if (pulseKey === undefined || pulseKey <= 0) return;
@@ -49,7 +49,7 @@ export function MeterBar({
   return (
     <div className={compact ? 'space-y-0.5' : 'space-y-0.5'}>
       {showText && (
-        <div className={`flex justify-between font-bold ${textRow}`} style={{ color: '#c3cde3' }}>
+        <div className={`flex justify-between font-bold ${textRow}`} style={{ color: 'var(--pkr-ink-muted)' }}>
           <span>{label}</span>
           <span className="tabular-nums">
             {valueText ?? `${Math.floor(value)}/${Math.floor(max)}`}

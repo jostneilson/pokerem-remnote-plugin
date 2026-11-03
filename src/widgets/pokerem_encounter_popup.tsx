@@ -1,8 +1,10 @@
 import '../style.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { renderWidget, usePlugin } from '@remnote/plugin-sdk';
 import { getSyncedGameRaw } from '../game/constants';
-import { parseGameState } from '../game/state/store';
+import { activePokemon, parseGameState } from '../game/state/store';
+import type { PokeRemGameState } from '../game/state/model';
+import { recommendedBall, wildCatchChancePreview } from '../game/engine/encounters';
 import type { PokemonType } from '../game/data/species';
 import { frontSpriteUrl } from '../game/sprites';
 import { PokemonSprite } from '../ui/components/PokemonSprite';
@@ -12,6 +14,10 @@ import { getBattleAmbience } from '../game/engine/battleAmbience';
 import { PokeRemSatelliteHudFrame } from '../ui/components/PokeRemSatelliteChrome';
 import { GameIcon } from '../ui/components/GameIcon';
 import { BRAND } from '../ui/theme/gameTheme';
+import { runQueueAction, type QueueAction } from '../game/queueActions';
+
+/** The popup closes itself this long after it opens or after the last tap. */
+const POPUP_LINGER_MS = 9000;
 
 function tierAccent(tier?: string): { border: string; glow: string } {
   if (tier === 'Legendary') return { border: '#eab308', glow: 'rgba(234,179,8,0.35)' };
@@ -32,6 +38,41 @@ function EncounterPopup() {
     shiny?: boolean;
   } | null>(null);
   const [sceneIndex, setSceneIndex] = useState(0);
+  const [catchPct, setCatchPct] = useState<number | null>(null);
+  /** The wild was caught, defeated or fled: the result stays up briefly with no actions left to tap. */
+  const [ended, setEnded] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [log, setLog] = useState('');
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  const close = useCallback(async () => {
+    try {
+      const windowAny = (plugin as any).window;
+      if (typeof windowAny?.closeFloatingWidget === 'function') {
+        await windowAny.closeFloatingWidget('pokerem_encounter_popup');
+      }
+    } catch {
+      /* host may not support close */
+    }
+  }, [plugin]);
+
+  const scheduleClose = useCallback(
+    (ms: number) => {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = window.setTimeout(() => void close(), ms);
+    },
+    [close],
+  );
+
+  const readCatch = (state: PokeRemGameState) => {
+    const wild = state.currentEncounter;
+    const picked = wild ? recommendedBall(state.bag, wild, activePokemon(state)) : null;
+    setCatchPct(
+      wild && picked && (state.bag[picked] ?? 0) > 0
+        ? Math.round(wildCatchChancePreview(wild, activePokemon(state), picked) * 100)
+        : null
+    );
+  };
 
   useEffect(() => {
     void (async () => {
@@ -40,23 +81,40 @@ function EncounterPopup() {
       if (state.currentEncounter) {
         setEncounter(state.currentEncounter);
         setSceneIndex(state.battleSceneIndex ?? 0);
-        window.setTimeout(async () => {
-          try {
-            const windowAny = (plugin as any).window;
-            if (typeof windowAny?.closeFloatingWidget === 'function') {
-              await windowAny.closeFloatingWidget('pokerem_encounter_popup');
-            }
-          } catch {
-            /* host may not support close */
-          }
-        }, 4000);
+        readCatch(state);
+        scheduleClose(POPUP_LINGER_MS);
       }
     })();
-  }, [plugin]);
+    return () => window.clearTimeout(closeTimer.current);
+  }, [plugin, scheduleClose]);
+
+  const act = async (action: QueueAction) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const next = await runQueueAction(plugin, action);
+      if (!next) return;
+      setLog(next.lastBattleLog ?? '');
+      if (next.currentEncounter) {
+        setEncounter(next.currentEncounter);
+        readCatch(next);
+        scheduleClose(POPUP_LINGER_MS);
+      } else {
+        setEnded(true);
+        scheduleClose(2600);
+      }
+    } catch (e) {
+      console.error(`[${BRAND.wordmark}] Encounter popup action failed`, e);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (!encounter) return null;
 
-  const { border: tierBorder, glow: tierGlow } = tierAccent(encounter.tier);
+  const { border: tierBorder, glow: tierGlow } = encounter.shiny
+    ? { border: '#fde047', glow: 'rgba(253,224,71,0.55)' }
+    : tierAccent(encounter.tier);
   const amb = getBattleAmbience(sceneIndex);
 
   return (
@@ -101,18 +159,18 @@ function EncounterPopup() {
         <div className="min-w-0 flex-1 py-0.5">
           <div className="mb-1 flex items-center gap-1">
             <GameIcon name="pokeball" size={11} />
-            <span className="pkr-battle-hud-role text-[5px] sm:text-[6px]" style={{ color: amb.accentMuted }}>
+            <span className="pkr-battle-hud-role pkr-fine" style={{ color: amb.accentMuted }}>
               {BRAND.wordmarkCaps}
             </span>
           </div>
 
           <div
-            className="pkr-pixel-title text-[7px] leading-snug sm:text-[8px]"
+            className="pkr-pixel-title pkr-fine leading-snug"
             style={{ color: amb.pillActiveText, textShadow: '2px 2px 0 rgba(0,0,0,0.55)' }}
           >
             {encounter.tier && encounter.tier !== 'Common' && (
               <span
-                className="mr-1 inline-block rounded px-1 py-px align-middle text-[6px] font-bold uppercase sm:text-[7px]"
+                className="mr-1 inline-block rounded px-1 py-px align-middle pkr-fine font-bold uppercase"
                 style={{
                   backgroundColor: tierBorder,
                   color: encounter.tier === 'Legendary' ? '#422006' : '#fff',
@@ -123,10 +181,10 @@ function EncounterPopup() {
                 {encounter.tier}
               </span>
             )}
-            Wild {encounter.name}!
+            {encounter.shiny ? `✦ Shiny ${encounter.name}!` : `Wild ${encounter.name}!`}
           </div>
 
-          <div className="mt-0.5 text-[7px] font-bold sm:text-[8px]" style={{ color: amb.accentMuted }}>
+          <div className="mt-0.5 pkr-fine font-bold" style={{ color: amb.accentMuted }}>
             Lv{encounter.level}
           </div>
 
@@ -136,15 +194,21 @@ function EncounterPopup() {
             ))}
           </div>
 
-          <div
-            className="pkr-pixel-title mt-2 flex items-center gap-1 text-[6px] leading-tight sm:text-[7px]"
-            style={{ color: '#fca5a5', textShadow: '1px 1px 0 rgba(0,0,0,0.5)' }}
-          >
-            <span className="inline-flex shrink-0 opacity-90" aria-hidden style={{ color: amb.accentMuted }}>
-              <GameIcon name="party" size={10} />
-            </span>
-            Open sidebar to battle
-          </div>
+          {log ? (
+            <div className="mt-1 line-clamp-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-text)' }} role="status">
+              {log}
+            </div>
+          ) : null}
+          {ended ? null : (
+            <div className="pkr-queue-actions pkr-popup-actions mt-1.5" role="group" aria-label={`Battle ${encounter.name}`}>
+              <button type="button" disabled={busy || catchPct == null} onClick={() => void act('catch')}>
+                Catch{catchPct != null ? ` ${catchPct}%` : ''}
+              </button>
+              <button type="button" disabled={busy} onClick={() => void act('fight')}>Fight</button>
+              <button type="button" disabled={busy} onClick={() => void act('auto')}>Auto</button>
+              <button type="button" disabled={busy} onClick={() => void act('run')}>Run</button>
+            </div>
+          )}
         </div>
       </div>
     </PokeRemSatelliteHudFrame>

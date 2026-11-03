@@ -5,9 +5,9 @@ const PRIMARY: {id:SectionTab;label:string;icon:GameIconName}[]=[
  {id:'status',label:'Play',icon:'navStatus'}, {id:'party',label:'Party',icon:'navParty'},
  {id:'bag',label:'Bag',icon:'navBag'}, {id:'dex',label:'Dex',icon:'navDex'},
 ];
+/** Trainer holds quests, achievements, badges and level rewards (the old Progress and Rewards tabs). */
 const MORE: {id:SectionTab;label:string;icon:GameIconName}[]=[
- {id:'progress',label:'Progress',icon:'navProgress'},
- {id:'rewards',label:'Rewards',icon:'navRewards'}, {id:'types',label:'Types',icon:'navTypes'},
+ {id:'progress',label:'Trainer',icon:'navProgress'}, {id:'types',label:'Types',icon:'navTypes'},
 ];
 export function SidebarNavigation({active,settings,rewardsAttention,progressAttention,onSelect,onSettings}:{
  active:SectionTab;settings:boolean;rewardsAttention:boolean;progressAttention:boolean;
@@ -16,7 +16,7 @@ export function SidebarNavigation({active,settings,rewardsAttention,progressAtte
  const [open,setOpen]=useState(false);
  const ref=useRef<HTMLElement>(null);
  const moreRef=useRef<HTMLButtonElement>(null);
- const selectedMore=settings?'Settings':MORE.find(t=>t.id===active)?.label;
+ const selectedMore=settings?'Settings':MORE.find(t=>t.id===(active==='rewards'?'progress':active))?.label;
  const onKeyDown=(e:KeyboardEvent)=>{
   if(e.key==='Escape'){setOpen(false);moreRef.current?.focus();return;}
   if(!['ArrowRight','ArrowLeft','Home','End'].includes(e.key))return;
@@ -25,8 +25,8 @@ export function SidebarNavigation({active,settings,rewardsAttention,progressAtte
   buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length]?.focus();
  };
  const button=(t:typeof PRIMARY[number])=>{
-  const selected=!settings&&(active===t.id || t.id==='bag' && active==='shop');
-  const attention=t.id==='rewards'&&rewardsAttention||t.id==='progress'&&progressAttention;
+  const selected=!settings&&(active===t.id || t.id==='bag' && active==='shop' || t.id==='progress' && active==='rewards');
+  const attention=t.id==='progress'&&(rewardsAttention||progressAttention);
   return <button key={t.id} type="button" className={`pkr-tab-tap ${selected?'pkr-tab-active':'pkr-tab-inactive'}`}
    aria-current={selected?'page':undefined} aria-label={`${t.label}${attention?', rewards available':''}`} title={t.label}
    onClick={()=>{onSelect(t.id);setOpen(false);if(MORE.some(m=>m.id===t.id))moreRef.current?.focus();}}><span className="pkr-nav-icon" aria-hidden="true"><GameIcon name={t.icon} size={24} tabPixel/>{attention?<i className="pkr-nav-dot"/>:null}</span><span>{t.label}</span></button>;

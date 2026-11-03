@@ -1,9 +1,10 @@
 import { ITEMS, type ItemId, type ItemData } from '../data/items';
 
 /** Revive is always in stock at a fixed PokéCoin price (not daily rotation). */
+/** Revive costs the same everywhere (shop list, Quick Care, item data). */
 export const REVIVE_SHOP_PRICE = 200;
 
-const ALWAYS_TAIL: ItemId[] = ['revive', 'potion', 'exp-candy-s', 'catch-scope'];
+const ALWAYS_TAIL: ItemId[] = ['revive', 'potion', 'exp-candy-s', 'catch-scope', 'bottle-cap', 'gold-bottle-cap'];
 
 /** Matches {@link TRAINER_REWARDS} level 7 — Ultra Ball is always stocked once unlocked. */
 export const ULTRA_BALL_UNLOCK_LEVEL = 7;
@@ -40,7 +41,7 @@ export function getShopInventory(trainerLevel: number = 1): ShopItem[] {
 
   const always: ShopItem[] = alwaysIds.map((id) => {
     const item = ITEMS.find((i) => i.id === id)!;
-    const price = id === 'revive' ? REVIVE_SHOP_PRICE : item.price;
+    const price = item.price;
     return { item, price, isDaily: false };
   });
 
@@ -52,6 +53,11 @@ export function getShopInventory(trainerLevel: number = 1): ShopItem[] {
   });
 
   return [...always, ...daily];
+}
+
+/** Today's shop price for an item, or null when the shop doesn't sell it right now. */
+export function shopPrice(itemId: string, trainerLevel: number = 1): number | null {
+  return getShopInventory(trainerLevel).find((s) => s.item.id === itemId)?.price ?? null;
 }
 
 export const CURRENCY_REWARDS = {

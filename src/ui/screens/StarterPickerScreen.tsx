@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { SPECIES_BY_DEX } from '../../game/data/species';
 import { frontSpriteUrl } from '../../game/sprites';
 import { Panel } from '../components/Panel';
@@ -23,8 +24,10 @@ export function StarterPickerScreen({
   rootURL: string | undefined;
   onChoose: (dexNum: number) => void;
 }) {
+  const [pending, setPending] = useState<number | null>(null);
+  const pendingSpecies = pending != null ? SPECIES_BY_DEX.get(pending) : undefined;
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+    <div className="flex min-w-0 shrink-0 flex-col gap-3">
       <header
         className="relative shrink-0 overflow-hidden rounded-lg border px-3 py-3 text-center"
         style={{
@@ -42,17 +45,34 @@ export function StarterPickerScreen({
         <div className="relative flex flex-col items-center gap-2">
           <span className="flex items-center gap-2">
             <GameIcon name="pokeball" size={18} />
-            <span className="pkr-pixel-title text-[10px] font-black tracking-tight sm:text-[11px]" style={{ color: '#ede9fe' }}>
+            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: '#ede9fe' }}>
               {BRAND.wordmark}
             </span>
           </span>
-          <p className="max-w-[18rem] text-[10px] font-semibold leading-snug" style={themeStyles.textSecondary}>
+          <p className="max-w-[18rem] pkr-fine font-semibold leading-snug" style={themeStyles.textSecondary}>
             Choose your starter Pokémon. Your party begins with one partner — pick a generation below.
           </p>
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5 pb-1">
+      {pendingSpecies ? (
+        <div className="pkr-starter-confirm" role="dialog" aria-label={`Choose ${pendingSpecies.name}?`}>
+          <img src={frontSpriteUrl(rootURL, pendingSpecies.dexNum)} alt="" width={56} height={56} style={{ imageRendering: 'pixelated' }} />
+          <p>
+            Start your journey with <strong>{pendingSpecies.name}</strong>? You can't change your starter later.
+          </p>
+          <div className="pkr-starter-confirm-actions">
+            <button type="button" className="pkr-btn-primary" autoFocus onClick={() => onChoose(pendingSpecies.dexNum)}>
+              Choose {pendingSpecies.name}
+            </button>
+            <button type="button" className="pkr-btn-secondary" onClick={() => setPending(null)}>
+              Back
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="space-y-2 pr-0.5 pb-1">
         {GEN_STARTERS.map(({ gen, label, starters, accent }) => (
           <Panel key={gen} title={label} accent={accent}>
             <div className="flex flex-wrap justify-center gap-2">
@@ -63,8 +83,9 @@ export function StarterPickerScreen({
                   <button
                     key={dex}
                     type="button"
-                    onClick={() => onChoose(dex)}
-                    className="pkr-card flex flex-col items-center rounded-lg p-2 transition-all hover:brightness-110 active:translate-y-px"
+                    onClick={() => setPending(dex)}
+                    aria-pressed={pending === dex}
+                    className={`pkr-card flex flex-col items-center rounded-lg p-2 transition-all hover:brightness-110 active:translate-y-px${pending === dex ? ' pkr-starter-pending' : ''}`}
                     style={{ width: '90px' }}
                   >
                     <img
@@ -74,14 +95,14 @@ export function StarterPickerScreen({
                       height={48}
                       style={{ imageRendering: 'pixelated' }}
                     />
-                    <div className="mt-1 text-[10px] font-black" style={{ color: '#e2e8f0' }}>
+                    <div className="mt-1 pkr-fine font-black" style={{ color: 'var(--pkr-ink-text)' }}>
                       {s.name}
                     </div>
                     <div className="mt-0.5 flex flex-wrap justify-center gap-0.5">
                       {s.types.map((t) => (
                         <span
                           key={t}
-                          className="rounded border px-1 py-px text-[7px] font-bold uppercase"
+                          className="rounded border px-1 py-px pkr-fine font-bold uppercase"
                           style={typePillStyle(t)}
                         >
                           {t}

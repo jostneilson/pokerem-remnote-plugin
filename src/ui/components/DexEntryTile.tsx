@@ -1,3 +1,4 @@
+import { displayDexNumber } from '../../game/data/species';
 import { frontSpriteUrl } from '../../game/sprites';
 import { PokemonSprite } from './PokemonSprite';
 
@@ -25,7 +26,7 @@ export function DexEntryTile({
       type="button"
       onClick={onSelect}
       className={`pkr-dex-tile ${owned ? 'pkr-dex-tile--caught' : 'pkr-dex-tile--unknown'}`}
-      aria-label={owned ? `${species.name}, number ${species.dexNum}` : `Unknown species, number ${species.dexNum}`}
+      aria-label={owned ? `${species.name}, number ${displayDexNumber(species.dexNum)}` : `Unknown species, number ${displayDexNumber(species.dexNum)}`}
     >
       <div className={`pkr-dex-tile__sprite ${owned ? '' : 'pkr-dex-tile__sprite--silhouette'}`}>
         <PokemonSprite
@@ -37,7 +38,7 @@ export function DexEntryTile({
         />
         {!owned ? <span className="pkr-dex-tile__mystery" aria-hidden>?</span> : null}
       </div>
-      <div className="pkr-dex-tile__dexno">#{species.dexNum}</div>
+      <div className="pkr-dex-tile__dexno">#{displayDexNumber(species.dexNum)}</div>
       <div className={`pkr-dex-tile__name ${owned ? '' : 'pkr-dex-tile__name--hidden'}`}>
         {owned ? species.name : '???'}
       </div>
