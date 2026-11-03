@@ -1,3 +1,4 @@
+import { EvolutionScene, useEvolutionWatcher } from '../ui/battle/EvolutionScene';
 import '../style.css';
 import { SidebarNavigation } from '../ui/components/SidebarNavigation';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +16,9 @@ import {
   setTab,
   switchActivePokemon,
   useHealingItem,
+  quickHealPokemon,
+  dismissBattleResult,
+  setAutoMoves,
   useEvolutionStone,
   powerUpPokemon,
   togglePokemonFavorite,
@@ -28,12 +32,25 @@ import {
   moveToParty,
   swapPartyWithStorage,
   buyItem,
+  buyRouteTicket,
+  buyCardStyle,
+  equipCardStyle,
+  teachTutorMove,
+  useBottleCap,
+  claimAllQuests,
+  claimQuest,
   claimTrainerReward,
+  claimAllTrainerRewards,
+  rematchTrainer,
+  trainerRematchCost,
   resolvePendingCaughtReplace,
   cancelPendingCaught,
   consumeCatchScopeScan,
   acknowledgeRouteFindNotice,
   dismissMainNotice,
+  claimMainNotice,
+  claimAllRewards,
+  pendingRewardCount,
   lockTrainerTeam,
   applyTrainerCombatTurn,
   claimTrainerCatch,
@@ -66,7 +83,6 @@ import { TrainerBattleSurface } from '../ui/battle/TrainerBattleSurface';
 import { ULTRA_BALL_UNLOCK_LEVEL } from '../game/engine/shop';
 import { WhatsNewCard } from '../ui/components/WhatsNewCard';
 import { POKEREM_VERSION } from '../releaseMeta';
-import { GameIcon, type GameIconName } from '../ui/components/GameIcon';
 import { battleAmbienceCssVars, getBattleAmbience } from '../game/engine/battleAmbience';
 import {
   getUnclaimedAchievements,
@@ -77,6 +93,13 @@ import { OnboardingTipsBar } from '../ui/components/OnboardingTipsBar';
 import { QuickCarePanel } from '../ui/components/QuickCarePanel';
 const ALL_TABS: SectionTab[] = ['status', 'party', 'bag', 'shop', 'dex', 'types', 'progress', 'rewards'];
 
+
+const ONBOARDING_TIPS_DISMISSED_KEY = 'pokerem.onboardingTipsDismissed';
+/** The getting-started tip stops showing once a player has reviewed this many cards. */
+const ONBOARDING_TIPS_MAX_CARDS = 30;
+/** Empty first reads to retry (and the gap between them) before treating the save as new. */
+const EMPTY_SAVE_RETRIES = 4;
+const EMPTY_SAVE_RETRY_MS = 250;
 function PokeRemSidebar() {
   const plugin = usePlugin();
   neutralizeBrokenRegisterCSS(plugin);
@@ -96,8 +119,6 @@ function PokeRemSidebar() {
   const [showDailyHeaderStats, setShowDailyHeaderStats] = useState(true);
   const [onboardingTipsLoaded, setOnboardingTipsLoaded] = useState(false);
   const [onboardingTipsDismissed, setOnboardingTipsDismissed] = useState(false);
-  const stateRef = useRef(state);
-  stateRef.current = state;
 
   const rewardsTabAttention = useMemo(() => {
     const claimed = state.claimedRewardLevels ?? [];
@@ -122,9 +143,12 @@ function PokeRemSidebar() {
     let cancel = false;
     void (async () => {
       try {
-        const v = await plugin.storage.getSession('pokerem.onboardingTipsDismissed');
+        // Synced, so a dismissal survives restarts and other devices. Older builds kept it per session.
+        const v =
+          (await plugin.storage.getSynced(ONBOARDING_TIPS_DISMISSED_KEY)) === true ||
+          (await plugin.storage.getSession(ONBOARDING_TIPS_DISMISSED_KEY)) === true;
         if (!cancel) {
-          setOnboardingTipsDismissed(v === true);
+          setOnboardingTipsDismissed(v);
           setOnboardingTipsLoaded(true);
         }
       } catch {
@@ -143,8 +167,6 @@ function PokeRemSidebar() {
   const sidebarRootRef = useRef<HTMLDivElement | null>(null);
 
   const battle = usePokeRemBattleActions(plugin, (next) => setState(next));
-  const battleRef = useRef(battle);
-  battleRef.current = battle;
 
   const refreshFromStorage = useCallback(async () => {
     const raw = await getSyncedGameRaw(plugin);
@@ -154,7 +176,22 @@ function PokeRemSidebar() {
     return s;
   }, [plugin]);
 
-  useEffect(() => { void refreshFromStorage().catch(() => setSaveError('Could not load your save. Reopen the sidebar to retry.')); }, [refreshFromStorage]);
+  // First load: RemNote's synced storage can briefly read empty while it starts up, so an empty
+  // read is retried before this is treated as a brand-new player (who would see the starter picker).
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      for (let attempt = 0; attempt < EMPTY_SAVE_RETRIES; attempt++) {
+        const raw = await getSyncedGameRaw(plugin);
+        if ((raw != null && raw !== '') || cancelled) break;
+        await new Promise((r) => window.setTimeout(r, EMPTY_SAVE_RETRY_MS));
+      }
+      if (!cancelled) await refreshFromStorage();
+    })().catch(() => setSaveError('Could not load your save. Reopen the sidebar to retry.'));
+    return () => {
+      cancelled = true;
+    };
+  }, [plugin, refreshFromStorage]);
 
   useEffect(() => {
     if (!state.starterChosen || !state.studyDifficultyConfigured) return;
@@ -257,15 +294,6 @@ function PokeRemSidebar() {
     void refreshFromStorage();
   });
 
-  useOnMessageBroadcast('pokerem_cmd', (msg: any) => {
-    const s = stateRef.current;
-    const b = battleRef.current;
-    if (!s.currentEncounter || !s.starterChosen) return;
-    if (msg?.action === 'catch') b.makeCatch();
-    else if (msg?.action === 'defeat' || msg?.action === 'fight_first') b.makeFightMove();
-    else if (msg?.action === 'run') b.makeRun();
-  });
-
   const applyReducer = async (fn: (s: PokeRemGameState) => PokeRemGameState) => {
     if (savingRef.current || !loaded) return;
     savingRef.current = true;
@@ -293,15 +321,22 @@ function PokeRemSidebar() {
 
   const active = activePokemon(state);
   const sidebarTab = state.selectedTab === 'battle' ? 'status' : state.selectedTab;
-  const effectiveTab = ALL_TABS.includes(sidebarTab) ? sidebarTab : 'status';
+  // Rewards now lives inside the Trainer screen; saves that remember the old tab land there.
+  const effectiveTab = sidebarTab === 'rewards' ? 'progress' : ALL_TABS.includes(sidebarTab) ? sidebarTab : 'status';
   useEffect(() => { if (showSettings || effectiveTab !== 'status') battle.stopAutoAttack(); }, [showSettings, effectiveTab, battle.stopAutoAttack]);
   const canCatch = (state.bag['poke-ball'] ?? 0) > 0 || (state.bag['great-ball'] ?? 0) > 0 || (state.bag['ultra-ball'] ?? 0) > 0;
 
   const ambienceStyle = battleAmbienceCssVars(getBattleAmbience(state.battleSceneIndex ?? 0));
 
+  const dismissOnboardingTips = () => {
+    setOnboardingTipsDismissed(true);
+    void plugin.storage.setSynced(ONBOARDING_TIPS_DISMISSED_KEY, true).catch(() => undefined);
+  };
+  // Only for new players: anyone past their first few dozen cards already knows their way around.
   const showOnboardingTips =
     state.starterChosen &&
     state.studyDifficultyConfigured &&
+    state.cardsReviewed < ONBOARDING_TIPS_MAX_CARDS &&
     onboardingTipsLoaded &&
     !onboardingTipsDismissed &&
     !showSettings;
@@ -327,17 +362,11 @@ function PokeRemSidebar() {
       ) : null}
       {showOnboardingTips ? (
         <OnboardingTipsBar
-          onOpenSettings={() => setShowSettings(true)}
-          onDismiss={() => {
-            setOnboardingTipsDismissed(true);
-            void (async () => {
-              try {
-                await plugin.storage.setSession('pokerem.onboardingTipsDismissed', true);
-              } catch {
-                /* non-fatal */
-              }
-            })();
+          onOpenSettings={() => {
+            dismissOnboardingTips();
+            setShowSettings(true);
           }}
+          onDismiss={dismissOnboardingTips}
         />
       ) : null}
 
@@ -367,7 +396,7 @@ function PokeRemSidebar() {
               }
             />
           ) : (
-            <Suspense fallback={<p className="py-4 text-center text-[10px] font-semibold" style={{ color: '#64748b' }}>Loading…</p>}>
+            <Suspense fallback={<p className="py-4 text-center pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-dim)' }}>Loading…</p>}>
               {effectiveTab === 'status' && active ? (
                 <StatusScreen rootURL={plugin.rootURL} state={state} active={active} />
               ) : null}
@@ -383,6 +412,11 @@ function PokeRemSidebar() {
                   evolutionBlocked={!!state.currentEncounter || !!state.currentTrainerBattle}
                   evolutionMessage={state.lastOutcomeKind === 'evolution' ? state.lastBattleLog : undefined}
                   onEvolve={(pid, item) => void applyReducer(s => useEvolutionStone(s, pid, item))}
+                  onBottleCap={(pid, item, stat) => void applyReducer(s => useBottleCap(s, pid, item, stat))}
+                  onTutor={(pid, moveId) => void applyReducer(s => teachTutorMove(s, pid, moveId))}
+                  onHeal={(pid) => void applyReducer((s) => quickHealPokemon(s, pid))}
+                  onSetAutoMoves={(pid, on) => void applyReducer((s) => setAutoMoves(s, pid, on))}
+                  healBlocked={!!state.currentTrainerBattle}
                   storagePokemon={state.storagePokemon}
                   activeId={state.activePokemonId}
                   onSwitch={(id) => void applyReducer((s) => switchActivePokemon(s, id))}
@@ -399,14 +433,17 @@ function PokeRemSidebar() {
                 <ItemsScreen
                   initialView={effectiveTab === 'shop' ? 'shop' : 'inventory'}
                   reducedMotion={reducedMotion}
-                  onBuy={(itemId, price) => void applyReducer((s) => buyItem(s, itemId, price))}
+                  onBuy={(itemId, qty) => void applyReducer((s) => buyItem(s, itemId, qty))}
+                  onBuyRouteTicket={(id) => void applyReducer((s) => buyRouteTicket(s, id))}
+                  onBuyCardStyle={(id) => void applyReducer((s) => buyCardStyle(s, id))}
+                  onEquipCardStyle={(id) => void applyReducer((s) => equipCardStyle(s, id))}
                   rootURL={plugin.rootURL}
                   state={state}
-                  onUseItem={(itemId) =>
+                  onUseItem={(itemId, targetId) =>
                     void applyReducer((s) =>
                       itemId === 'rare-candy' || itemId === 'exp-candy-s'
-                        ? useLeadUtilityItem(s, itemId)
-                        : useHealingItem(s, itemId as any),
+                        ? useLeadUtilityItem(s, itemId, targetId)
+                        : useHealingItem(s, itemId as any, targetId),
                     )
                   }
                   onActivateXpDoubler={(tier) =>
@@ -415,7 +452,12 @@ function PokeRemSidebar() {
                 />
               ) : null}
               {effectiveTab === 'dex' ? (
-                <CollectionScreen rootURL={plugin.rootURL} collectionDex={state.collectionDex} />
+                <CollectionScreen
+                  rootURL={plugin.rootURL}
+                  collectionDex={state.collectionDex}
+                  shinyLog={state.shinyLog}
+                  ownedPokemon={[...state.party, ...state.storagePokemon]}
+                />
               ) : null}
               {effectiveTab === 'types' ? (
                 <TypeChartScreen rootURL={plugin.rootURL} />
@@ -430,13 +472,17 @@ function PokeRemSidebar() {
                   onClaimAllAchievements={() => {
                     void applyReducer((s) => claimAllAchievements(s));
                   }}
-                />
-              ) : null}
-              {effectiveTab === 'rewards' ? (
-                <RewardsScreen
-                  state={state}
-                  reducedMotion={reducedMotion}
-                  onClaimReward={(level) => void applyReducer((s) => claimTrainerReward(s, level))}
+                  onClaimQuest={(id) => void applyReducer((s) => claimQuest(s, id))}
+                  onClaimAllQuests={() => void applyReducer((s) => claimAllQuests(s))}
+                  rewards={
+                    <RewardsScreen
+                      embedded
+                      state={state}
+                      reducedMotion={reducedMotion}
+                      onClaimReward={(level) => void applyReducer((s) => claimTrainerReward(s, level))}
+                      onClaimAll={() => void applyReducer((s) => claimAllTrainerRewards(s))}
+                    />
+                  }
                 />
               ) : null}
             </Suspense>
@@ -447,13 +493,13 @@ function PokeRemSidebar() {
           <div className="mt-3 pt-2">
             <div className="pkr-seam mb-2" />
             {state.currentEncounter && effectiveTab === 'status' ? (
-              <p className="text-center text-[10px] font-semibold" style={{ color: 'rgba(252,211,77,0.9)' }}>
-                Wild encounter — use <strong className="font-black" style={{ color: '#fde68a' }}>Catch</strong>,{' '}
-                <strong className="font-black" style={{ color: '#fde68a' }}>Fight</strong> (first damaging move), or{' '}
-                <strong className="font-black" style={{ color: '#fde68a' }}>Run</strong> above, or the RemNote command palette / queue menu.
+              <p className="text-center pkr-fine font-semibold" style={{ color: 'rgba(252,211,77,0.9)' }}>
+                Wild encounter — use <strong className="font-black" style={{ color: 'var(--pkr-ink-gold)' }}>Catch</strong>,{' '}
+                <strong className="font-black" style={{ color: 'var(--pkr-ink-gold)' }}>Fight</strong> (first damaging move), or{' '}
+                <strong className="font-black" style={{ color: 'var(--pkr-ink-gold)' }}>Run</strong> above, or the RemNote command palette / queue menu.
               </p>
             ) : (
-              <p className="text-center text-[10px] font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
+              <p className="text-center pkr-fine font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
                 Developed by {POKEREM_AUTHOR}
               </p>
             )}
@@ -462,6 +508,8 @@ function PokeRemSidebar() {
       </div>
     </>
   );
+
+  const [evolutions, nextEvolution] = useEvolutionWatcher(useMemo(() => [...state.party, ...state.storagePokemon], [state.party, state.storagePokemon]), loaded);
 
   return (
     <div
@@ -472,19 +520,16 @@ function PokeRemSidebar() {
       style={ambienceStyle}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      {state.lastStudyReward ? <div className="pkr-study-reward" key={`study-${state.lastStudyReward.seq}`} role="status">
-        Lead +{state.lastStudyReward.leadXp} XP{state.lastStudyReward.benchXp>0?` · Party +${state.lastStudyReward.benchXp} XP`:''}
-        {state.lastStudyReward.bonus>0?<strong className="pkr-cash-bonus"> ✦ {state.lastStudyReward.tier} +{state.lastStudyReward.bonus} coins</strong>:null}
-      </div>:null}
       {loaded && (state.currentTrainerBattle || state.currentEncounter || state.pendingCaughtMon) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
       {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
+      {evolutions[0] ? <EvolutionScene key={evolutions[0].key} event={evolutions[0]} rootURL={plugin.rootURL} reducedMotion={reducedMotion} onDone={nextEvolution} /> : null}
       {/* ── Starter selection ── */}
       {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
-        <div className="mx-2 mb-2 mt-2 flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
           <StarterPickerScreen rootURL={plugin.rootURL} onChoose={(dex) => void applyReducer((s) => chooseStarter(s, dex))} />
         </div>
       ) : !state.studyDifficultyConfigured ? (
-        <div className="mx-2 mb-2 mt-2 flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
           <StudyDifficultyScreen
             onChoose={(preset, custom) => {
               void applyReducer((s) => configureStudyDifficulty(s, preset, custom));
@@ -513,8 +558,10 @@ function PokeRemSidebar() {
                     void applyReducer((s) => claimTrainerCatch(s, idx, ball))
                   }
                   onDismissCatchOffer={() => void applyReducer((s) => dismissTrainerCatchOffer(s))}
-                  onBuyBall={(id, price) => void applyReducer((s) => buyItem(s, id, price))}
+                  onBuyBall={(id) => void applyReducer((s) => buyItem(s, id))}
                   onClose={() => void applyReducer((s) => closeTrainerBattle(s))}
+                  onRematch={() => void applyReducer((s) => rematchTrainer(s))}
+                  rematchCost={trainerRematchCost(state)}
                   ballPrices={[
                     { id: 'poke-ball', price: 100, unlocked: true },
                     { id: 'great-ball', price: 300, unlocked: true },
@@ -549,7 +596,6 @@ function PokeRemSidebar() {
                 onRun={battle.makeRun}
                 encounterRate={effectiveEncounterRate}
                 currency={state.currency}
-                onBuyBall={() => void applyReducer((s) => buyItem(s, 'poke-ball', 100))}
                 reducedMotion={reducedMotion}
                 pendingCaughtMon={state.pendingCaughtMon ?? null}
                 partyForReplace={state.party}
@@ -562,6 +608,10 @@ function PokeRemSidebar() {
                 onAcknowledgeRouteFind={() => void applyReducer((s) => acknowledgeRouteFindNotice(s))}
                 showDailyHeaderStats={showDailyHeaderStats}
                 onDismissMainNotice={(id) => void applyReducer((s) => dismissMainNotice(s, id))}
+                onClaimMainNotice={(id) => void applyReducer((s) => claimMainNotice(s, id))}
+                onClaimAllRewards={() => void applyReducer((s) => claimAllRewards(s))}
+                onDismissResult={() => void applyReducer((s) => dismissBattleResult(s))}
+                pendingRewards={pendingRewardCount(state)}
                 sidebarSplitLayout={({ sticky, lower }) => (
                   <>
                     {sticky}

@@ -1,88 +1,76 @@
 # PokéRem
 
-**Turn your flashcard reviews into a Pokémon study adventure.**
+**Every flashcard you review moves your Pokémon adventure forward.**
 
-Choose a starter, grow your team as you study, and meet wild Pokémon along the way. Catch, battle, collect, and build your trainer's progress inside the RemNote flashcard queue.
+![A shiny Galarian Zapdos appears, Mewtwo picks a super-effective move, and a shiny HUNDO is caught](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-hero.png)
 
-## New in 1.4.1
+Study as you normally do in RemNote. Every few cards a wild Pokémon appears: catch it, battle it, or keep reviewing. Your team levels up as you study, evolves, learns new moves, and takes on trainers. Shinies are rare, and every one feels special.
 
-Fixes 1.4.0, which could not save inside RemNote; existing progress is intact. Adds one-tap care actions on Play (revive, send out, heal, restock), clearer pixel fonts, and fairer battles.
+PokéRem never touches your cards or your grades. It only rewards you for showing up and reviewing.
 
-## New in 1.3.1
+## Play without leaving your reviews
 
-- **Stone evolution:** select a Pokémon in Party, open Stone evolution, and confirm a compatible stone. The stone is spent only when evolution succeeds. Nicknames, XP, and shiny status carry forward. Nine stone types are available through daily Shop deals and route finds.
-- **Accessible Revives:** always stocked for 200 coins, with more regular route drops and a boost when your party needs one.
-- **True shiny Pokémon:** rare wild shinies use their species-specific front and back shiny sprites. A gold star reveal celebrates the discovery and a successful catch. Reduced motion keeps the celebration still. At regular Medium pacing, shiny odds are 1/1,000, rising to 1/200 after completing the enabled wild Pokédex. Slower encounter settings increase the per-encounter odds proportionally: half as many encounters means double the shiny chance.
+Catch, Fight, Auto and Run sit in a strip right above your flashcard, so you can play a full battle between cards without opening anything.
 
-## The 1.3 arcade revival
+![The queue strip above a flashcard: your lead's HP, next-wild progress, and one-tap Catch, Fight, Auto and Run](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-queue-strip.png)
 
-- **A consistent 90s arcade look:** crisp pixel fonts, framed menus, larger icons, readable labels, and smooth feedback throughout the game. Fonts are bundled with the plugin.
-- **A simpler interface:** Play, Party, Bag, and Dex are always one tap away. Menu holds Progress, Rewards, Types, and Settings. Management screens have room to breathe without the arena above them.
-- **Bag and Shop together:** switch between My items and Shop in the Bag tab. See what you own as you shop, activate queued XP Doublers, and use your medicine.
-- **Auto attack for wild encounters:** weaken a wild Pokémon with repeated attacks, then stop before the next hit could knock it out—even on a critical hit. It also stops if your lead faints. Stop at any time, then choose Catch yourself.
-- **Less clutter:** fold away extra statistics and achievement categories, use simpler Pokédex filters, and enable Compact view from Settings → Display.
-- **Your progress carries forward:** existing saves remain compatible. Trainer challenges, XP Doublers, storage, achievements, prestige badges, and collection rewards are all still here.
+## Catch 'em as you study
 
-## See PokéRem
+- **905 Pokémon from eight generations**, appearing at sensible levels for your team. Each battle scene favours its own types: forests, caves, beaches, snowfields and more.
+- **Pick your ball.** Every ball shows its live catch chance, and PokéRem suggests the cheapest good one.
+- **Shiny hunting.** About 1 in 250 wild Pokémon sparkles, and a gentle safety net makes sure every regular studier meets one. Shinies get their own gold star entrance and a SHINY CAUGHT! card. Shiny legendaries are always caught with the first ball.
+- **Perfect IVs.** A Pokémon with top stats earns four gold stars and a **HUNDO** badge.
+- **Legendaries and Ultra Beasts** show up as rare events once your team is strong enough.
 
-Screenshots of the 1.3 arcade interface, cropped to the plugin only. No personal notes or flashcards are shown.
+## Battles that feel like the games
 
-### Study, explore, and catch
+Classic main-series layout: "What will Mewtwo do?", moves tagged *Super effective* or *Not very effective*, smart wild and trainer foes, and a result card that fills your XP bar and shows each new level and move. Every Pokémon keeps its best four moves automatically. Auto attack weakens a wild Pokémon without knocking it out, so you can catch it.
 
-Your reviews move the adventure forward. Keep your lead, encounter progress, and next milestone in view. Wild battles offer Catch, Fight, Run, and optional Auto attack.
+![A level-up result card: Pidgey fainted, the XP bar fills, Froakie grows to Lv 18 and learns Quick Attack](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-level-up.png)
 
-![PokéRem 1.3.0 pixel arcade Play screen with Charmander, encounter progress, and next achievement](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/221be5f8c30d27aa132c75cc058390a9f38864db/public/assets/screenshots/arcade-play.png)
+## Trainer challenges
 
-### Your items, ready to use
+Themed trainers challenge you as you study, from Bug Catchers to Dragon Masters and elite trainers. Pick three Pokémon and battle 3-on-3. Win coins, items, gym badges, and a chance to catch one of their team. Lost? Heal up and rematch.
 
-Manage medicine, Poké Balls, and XP boosters in **Bag → My items**. Switch to **Shop** in the same tab to replenish your inventory; owned counts appear alongside each purchase.
+![A 3-on-3 trainer battle against Hiker Russ, with both teams' line-ups and your moves](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-battle.png)
 
-![PokéRem 1.3.0 Bag medicine panel with readable item counts and Use buttons](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/221be5f8c30d27aa132c75cc058390a9f38864db/public/assets/screenshots/arcade-bag.png)
+## Build your dream team
 
-### A trainer identity that grows with you
+Level up and evolve, with every evolution played out in the panel. Teach moves with the Move Tutor, appraise IVs, set your lead, and heal in one tap. Fill your Pokédex, keep your shinies in the Shiny Case, and store as many Pokémon as you like.
 
-Track your trainer level, study streak, next reward tier, and closest achievement. Claim rewards as you reach milestones.
+![Party screen: Pokémon cards with HP, XP, types, IV stars, and one-tap Lead and Heal](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-party.png)
 
-![PokéRem 1.3.0 trainer license, next goals, and achievement completion](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/221be5f8c30d27aa132c75cc058390a9f38864db/public/assets/screenshots/arcade-progress.png)
+## Goals for every study session
 
-### Clear goals, less clutter
+Three daily quests and two weekly ones, eight gym badges, 55 achievements, a trainer license that levels up as you study, and a shop with balls, potions, XP Doublers, route tickets and trainer card styles. Studying earns plenty of coins, so there's always something to work towards.
 
-Expand the achievement category you need. Review, collection, battle, and Pokémon milestones stay organized without a wall of detail.
+![Trainer screen: trainer license, level rewards, and today's and this week's quests](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-screen.png)
 
-![PokéRem 1.3.0 collapsible review, collection, battle, and Pokémon achievement categories](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/221be5f8c30d27aa132c75cc058390a9f38864db/public/assets/screenshots/arcade-milestones.png)
+## Made for studying
 
-## More ways to grow
+- **It never gets in your way.** Ignore a wild Pokémon and it wanders off. If your lead faints, a teammate steps in. A team that's fully down rests while you study. Nothing waiting in the sidebar ever stops the game.
+- **You set the pace.** Choose a study difficulty for how often wild Pokémon appear. Turn on Compact view to hide the arena, or reduced motion for still animations.
+- **Your progress is safe.** Your save lives in your RemNote knowledge base, carries across updates, and can be exported from Settings.
+- **Keyboard friendly.** C, F, A and R, plus 1–4 for moves.
 
-- **Trainer challenges:** rare 3-on-3 battles with themed opponents and stronger elite trainers. Lock in your team before combat; victory offers rewards and a chance to catch one opponent. Switching, healing, and items are disabled during active trainer combat.
-- **XP Doublers:** double every Pokémon's earned XP for 25, 50, or 100 reviewed cards. Activate one and queue more from Bag. These do not double trainer XP.
-- **Pokédex and storage:** browse by generation, type, and caught status; search your collection and manage your party and stored Pokémon.
-- **Long-term goals:** achievements, generation-completion rewards, prestige badges, trainer titles, and claim-all in Progress.
+## Get started
 
-## Open PokéRem
+1. Install PokéRem and open RemNote's right sidebar.
+2. Select the **Poké Ball** tab, or run **Open PokéRem** from the command palette (Ctrl/Cmd+K). On a fresh install PokéRem opens it for you.
+3. Choose your starter and study difficulty, then review flashcards as normal.
 
-1. Open your **Flashcard Queue** in RemNote.
-2. Open the right sidebar using the **AI chat / sidebar** button near the top right.
-3. Select the **Pokéball** tab at the top of the sidebar.
-4. Choose your starter and study difficulty on first launch, then review normally.
+Use **Play** for battles, **Party** for your team, **Bag** for items and the shop, and **Dex** for your collection. **Menu** opens the Trainer screen, type chart and Settings.
 
-Use **Play** for encounters, **Party** for your team, **Bag** for items and shopping, and **Dex** for your collection. **Menu** opens Progress, Rewards, Types, and Settings.
+**Don't see the Poké Ball?** PokéRem runs on RemNote desktop and web, not the mobile apps. Check that it's switched on under Settings → Plugins, then reload RemNote. A console message saying `snippet.css` returned 403 is harmless. If the tab still doesn't appear, please [open an issue](https://github.com/jostneilson/pokerem-remnote-plugin/issues).
 
-## Fit it to your study sessions
-
-Adjust study difficulty and encounter pacing, choose supplementary surfaces, and enable reduced motion. **Menu → Settings → Display → Compact view** hides the wild arena while keeping battle controls available. PokéRem adds game progress alongside your review workflow; it does not change your flashcards or grade your answers. No audio.
-
-## Your progress
-
-Party, storage, collection, inventory, trainer progress, achievements, and active boosters are saved through RemNote plugin storage for your knowledge base. Existing saves remain compatible. Export a backup from PokéRem **Settings** before changing builds; avoid returning to an older version after upgrading.
-
-Desktop only. Pokémon sprites require an internet connection; item icons, battle backgrounds, and pixel fonts are bundled with the plugin.
+Pokémon sprites load from the internet. Item icons, battle backgrounds and fonts are bundled. No audio.
 
 ## Support and feedback
 
-Found a bug or have an idea? [Open an issue](https://github.com/jostneilson/pokerem-remnote-plugin/issues).
+Found a bug or have an idea? [Open an issue](https://github.com/jostneilson/pokerem-remnote-plugin/issues). See what changed in each version in the [changelog](https://github.com/jostneilson/pokerem-remnote-plugin/blob/main/CHANGELOG.md).
 
 Enjoying your study adventure? [Support PokéRem on Ko-fi](https://ko-fi.com/pokerem).
 
 ## Credits
 
-PokéRem is an unofficial fan-made project and is not affiliated with Nintendo, Game Freak, or The Pokémon Company. Pokémon and related names belong to their respective owners. See [attribution and asset credits](https://github.com/jostneilson/pokerem-remnote-plugin/blob/main/ATTRIBUTION.md) and the [project repository](https://github.com/jostneilson/pokerem-remnote-plugin).
+PokéRem is an unofficial fan project and is not affiliated with Nintendo, Game Freak, or The Pokémon Company. Pokémon and related names belong to their respective owners. See [attribution and asset credits](https://github.com/jostneilson/pokerem-remnote-plugin/blob/main/ATTRIBUTION.md) and the [project repository](https://github.com/jostneilson/pokerem-remnote-plugin).

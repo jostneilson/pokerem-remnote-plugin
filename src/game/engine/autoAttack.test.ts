@@ -11,6 +11,7 @@ function fixture() {
     level: 10,
     totalXp: xpThresholdForLevel(10),
     moves: ['scratch'],
+    autoMoves: false,
     currentHp: 500,
     maxHp: 500,
   };

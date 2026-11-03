@@ -30,3 +30,8 @@ export function powerUpPreview(mon:OwnedPokemon) {
  const level=Math.min(100,mon.level+1),old=new Set(getUnlockedLearnsetMoveIds(mon.dexNum,mon.level));
  return {cost:powerUpCost(mon.level),level,stats:battleStats({...mon,level}),newMoves:getUnlockedLearnsetMoveIds(mon.dexNum,level).filter(m=>!old.has(m))};
 }
+
+/** All three IVs maxed: shown as four gold stars and a HUNDO badge. */
+export function isPerfectIVs(ivs: PokemonIVs | undefined): boolean {
+  return !!ivs && ivs.hp >= 3 && ivs.attack >= 3 && ivs.defense >= 3;
+}

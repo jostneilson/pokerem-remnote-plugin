@@ -1,47 +1,10 @@
 import { rollIVs, battleStats } from './pokemonStats';
 import { REVIEWS_PER_ENCOUNTER } from '../constants';
-import { SPECIES_BY_DEX, SPECIES_LIST } from '../data/species';
-import { STARTER_DEX_ALL } from '../data/pokedex';
+import { SPECIES_BY_DEX, SPECIES_LIST, type PokemonType } from '../data/species';
 import { getEffectiveness } from '../data/typeChart';
-import { maxHpFor } from './progression';
-import type { EncounterPokemon, OwnedPokemon } from '../state/model';
-
-type Tier = 'Common' | 'Baby' | 'Ultra' | 'Legendary' | 'Mythical';
-
-interface TierConfig {
-  minReviews: number;
-  weight: number;
-}
-
-const TIER_THRESHOLDS: Record<Tier, TierConfig> = {
-  Common:    { minReviews: 0,    weight: 65 },
-  Baby:      { minReviews: 100,  weight: 12 },
-  Ultra:     { minReviews: 300,  weight: 11 },
-  Legendary: { minReviews: 1000, weight: 8 },
-  Mythical:  { minReviews: 2500, weight: 4 },
-};
-
-const TIER_ORDER: Tier[] = ['Common', 'Baby', 'Ultra', 'Legendary', 'Mythical'];
-
-function getEligibleTiers(cardsReviewed: number): { tier: Tier; weight: number }[] {
-  return TIER_ORDER
-    .filter((t) => cardsReviewed >= TIER_THRESHOLDS[t].minReviews)
-    .map((t) => ({ tier: t, weight: TIER_THRESHOLDS[t].weight }));
-}
-
-function pickWeightedTier(tiers: { tier: Tier; weight: number }[], rng: () => number): Tier {
-  const total = tiers.reduce((sum, t) => sum + t.weight, 0);
-  let roll = rng() * total;
-  for (const t of tiers) {
-    roll -= t.weight;
-    if (roll <= 0) return t.tier;
-  }
-  return tiers[0].tier;
-}
-
-const starterSet = new Set(STARTER_DEX_ALL as readonly number[]);
-
-const MAX_WILD_LEVEL = 100;
+import { canBeShiny } from '../data/shinyArt';
+import { biomeTypesForScene, encounterBaseLevel, isEventSpecies, MAX_WILD_LEVEL, pickEverydaySpecies } from './speciesPool';
+import type { BattleCondition, EncounterPokemon, OwnedPokemon } from '../state/model';
 
 /** Shiny odds before the player has caught every wild-eligible species in enabled generations. */
 export const SHINY_ODDS_PRE_DEX_COMPLETE = 1 / 250;
@@ -49,32 +12,53 @@ export const SHINY_ODDS_PRE_DEX_COMPLETE = 1 / 250;
 /** Shiny odds after full species completion for enabled generations (duplicate hunting). */
 export const SHINY_ODDS_POST_DEX_COMPLETE = 1 / 250;
 
-/** Rounded mean of party levels; used so wild encounters track your roster. */
+/** Party level wild encounters scale from (top three party members; see speciesPool). */
 export function averagePartyLevel(party: OwnedPokemon[]): number {
-  if (party.length === 0) return 1;
-  const sum = party.reduce((acc, p) => acc + (typeof p.level === 'number' && p.level > 0 ? p.level : 1), 0);
-  return Math.max(1, Math.min(MAX_WILD_LEVEL, Math.round(sum / party.length)));
+  return encounterBaseLevel(party);
 }
 
-/** Small skew so rarer tiers feel special without jumping far above the party band. */
-function tierLevelSkew(tier: Tier): number {
-  if (tier === 'Ultra') return 1;
-  if (tier === 'Legendary') return 2;
-  if (tier === 'Mythical') return 3;
-  return 0;
+/** Galarian Articuno, Zapdos and Moltres: a quarter of their encounters are shiny. */
+export const GALARIAN_BIRDS: ReadonlySet<number> = new Set([10169, 10170, 10171]);
+export const GALARIAN_BIRD_SHINY_ODDS = 0.25;
+
+/** After this many encounters without a shiny, the odds start climbing... */
+export const SHINY_PITY_START = 500;
+/** ...until one is guaranteed this many encounters later. */
+export const SHINY_PITY_SPAN = 250;
+
+/** Shiny odds with a gentle pity: unchanged until a long dry spell, then rising to certain. */
+export function shinyOddsWithPity(base: number, encountersSinceShiny: number): number {
+  const over = encountersSinceShiny - SHINY_PITY_START;
+  if (over <= 0) return base;
+  const t = Math.min(1, over / SHINY_PITY_SPAN);
+  return Math.min(1, base + (1 - base) * t * t);
 }
+
+/** Shiny chance for one encounter of this species: Galarian birds 25%, otherwise base odds with pity. */
+export function encounterShinyOdds(dexNum: number, baseOdds: number, encountersSinceShiny: number): number {
+  if (!canBeShiny(dexNum)) return 0;
+  if (GALARIAN_BIRDS.has(dexNum)) return GALARIAN_BIRD_SHINY_ODDS;
+  return shinyOddsWithPity(baseOdds, encountersSinceShiny);
+}
+
+/** Legendaries, Mythicals and Ultra Beasts appear as rare events once you're established. */
+export const EVENT_MIN_PARTY_LEVEL = 25;
+export const EVENT_MIN_REVIEWS = 500;
+export const EVENT_CHANCE = 0.012;
+/** Share of everyday encounters drawn from species you haven't caught yet (until the Dex is complete). */
+export const UNCAUGHT_BIAS = 0.7;
+/** Wild battle HP relative to the same Pokémon once caught. */
+export const WILD_HP_SCALE = 0.65;
 
 /**
- * All species dex numbers that can appear in wild encounters for the given generations
- * (implemented roster ∩ enabled gens, excluding starters).
+ * All species obtainable in the enabled generations. Starters count: they turn up in the wild as
+ * rare encounters, and legendaries as events.
  */
 export function wildEncounterSpeciesDexSet(enabledGens: number[]): Set<number> {
   const genSet = new Set(enabledGens);
   const out = new Set<number>();
   for (const s of SPECIES_LIST) {
-    if (genSet.has(s.generation) && !starterSet.has(s.dexNum)) {
-      out.add(s.dexNum);
-    }
+    if (genSet.has(s.generation)) out.add(s.dexNum);
   }
   return out;
 }
@@ -102,6 +86,10 @@ export type SpawnEncounterOpts = {
   pacing?: { reviewsPerEncounter: number; modulo?: number; unitsPerReview?: number };
   /** Injected RNG (defaults to `Math.random`) — use for tests. */
   rng?: () => number;
+  /** Battle scene the encounter appears in; favours the scene's types. */
+  sceneIndex?: number;
+  /** Encounters since the last shiny, for the pity ramp. */
+  encountersSinceShiny?: number;
 };
 
 export function spawnEncounter(
@@ -113,54 +101,45 @@ export function spawnEncounter(
 ): EncounterPokemon & { tier?: string } {
   const rng = typeof opts?.rng === 'function' ? opts.rng : Math.random;
   const collectionDex = opts?.collectionDex ?? {};
+  const gens = enabledGens.length > 0 ? enabledGens : [1];
+  const dexComplete = isWildDexGenerationComplete(collectionDex, gens);
 
-  const eligibleTiers = getEligibleTiers(cardsReviewed);
+  // Shiny is rolled first so it is independent of everything else about the encounter.
+  const shinyRoll = rng();
 
-  // When encounter rate is slower, shift weight from Common to rarer tiers
-  const adjusted = rarityBonus > 0
-    ? eligibleTiers.map((t) => {
-        if (t.tier === 'Common') {
-          return { ...t, weight: Math.max(30, t.weight - rarityBonus * 2.5) };
-        }
-        const bonus = (rarityBonus * 2.5) / Math.max(1, eligibleTiers.length - 1);
-        return { ...t, weight: t.weight + bonus };
-      })
-    : eligibleTiers;
+  const base = encounterBaseLevel(party);
+  const eventChance = EVENT_CHANCE + Math.min(0.012, Math.max(0, rarityBonus) * 0.002);
+  const eventPool =
+    base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < eventChance
+      ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum))
+      : [];
 
-  const tier = pickWeightedTier(adjusted, rng);
-
-  const genSet = new Set(enabledGens);
-  const pool = SPECIES_LIST.filter((s) =>
-    s.tier === tier &&
-    genSet.has(s.generation) &&
-    !starterSet.has(s.dexNum)
-  );
-
-  const fallbackPool = SPECIES_LIST.filter((s) =>
-    s.tier === 'Common' &&
-    genSet.has(s.generation) &&
-    !starterSet.has(s.dexNum)
-  );
-
-  const basePool = pool.length > 0 ? pool : fallbackPool;
-  const dexComplete = isWildDexGenerationComplete(collectionDex, enabledGens);
-
-  let pickPool = basePool;
-  if (!dexComplete) {
-    const uncaught = basePool.filter((s) => (collectionDex[s.dexNum] ?? 0) <= 0);
-    if (uncaught.length > 0) pickPool = uncaught;
+  let dexNum: number;
+  let level: number;
+  if (eventPool.length > 0) {
+    const uncaught = eventPool.filter((s) => (collectionDex[s.dexNum] ?? 0) <= 0);
+    const pool = uncaught.length > 0 && rng() < UNCAUGHT_BIAS ? uncaught : eventPool;
+    dexNum = pool[Math.floor(rng() * pool.length)]!.dexNum;
+    level = base + 3 + Math.floor(rng() * 3);
+  } else {
+    level = base + Math.floor(rng() * 3) - 1;
+    level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
+    dexNum = pickEverydaySpecies({
+      level,
+      enabledGens: gens,
+      rng,
+      favourTypes: biomeTypesForScene(opts?.sceneIndex),
+      collectionDex,
+      uncaughtBias: dexComplete ? 0 : UNCAUGHT_BIAS,
+    });
   }
+  level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
+  const species = SPECIES_BY_DEX.get(dexNum) ?? SPECIES_BY_DEX.get(16)!;
+  const shiny = shinyRoll < encounterShinyOdds(species.dexNum, shinyOddsForPacing(dexComplete, opts?.pacing), opts?.encountersSinceShiny ?? 0);
 
-  const species = pickPool[Math.floor(rng() * pickPool.length)] ?? SPECIES_BY_DEX.get(16)!;
-
-  const avg = averagePartyLevel(party);
-  const band = Math.floor(rng() * 3) - 1;
-  const level = Math.max(1, Math.min(MAX_WILD_LEVEL, avg + band + tierLevelSkew(tier)));
-  const ivs=rollIVs(rng);
-  const maxHp = battleStats({dexNum:species.dexNum,level,ivs}).hp;
-
-  const shinyOdds = shinyOddsForPacing(dexComplete, opts?.pacing);
-  const shiny = rng() < shinyOdds;
+  const ivs = rollIVs(rng);
+  // Wild Pokémon have a lighter HP pool than owned ones so everyday fights take 2–4 turns.
+  const maxHp = Math.max(1, Math.round(battleStats({ dexNum: species.dexNum, level, ivs }).hp * WILD_HP_SCALE));
 
   return {
     ivs,
@@ -170,17 +149,48 @@ export function spawnEncounter(
     maxHp,
     currentHp: maxHp,
     types: species.types,
-    tier,
+    tier: species.tier,
     shiny,
   };
 }
 
 /** Capped catch probability (0–0.92) — shared by rolls and UI previews. */
-export function computeCatchChance(ballBonus: number, baseCatchRate: number | undefined, hpRatio: number): number {
+export function computeCatchChance(ballBonus: number, baseCatchRate: number | undefined, hpRatio: number, statusMult = 1): number {
   const rate = baseCatchRate != null ? baseCatchRate : 127;
   const clampedHp = Math.max(0, Math.min(1, hpRatio));
   const hpFactor = 1 + (1 - clampedHp) * 0.55;
-  return Math.min(0.92, (rate / 255) * (1 + ballBonus) * hpFactor);
+  return Math.min(0.92, (rate / 255) * (1 + ballBonus) * hpFactor * statusMult);
+}
+
+/** Main-series status catch bonus: asleep or frozen ×2, paralysed, poisoned or burned ×1.5. */
+export function catchStatusMultiplier(condition: BattleCondition | undefined): number {
+  const a = condition?.ailment;
+  if (a === 'sleep' || a === 'freeze') return 2;
+  if (a === 'paralysis' || a === 'poison' || a === 'burn') return 1.5;
+  return 1;
+}
+
+/** A shiny Legendary or Mythical (Ultra Beasts included) is always caught by the first ball. */
+export function isGuaranteedCatch(enc: { dexNum: number; shiny?: boolean }): boolean {
+  return enc.shiny === true && isEventSpecies(enc.dexNum);
+}
+
+export type CatchBall = 'poke-ball' | 'great-ball' | 'ultra-ball';
+/** Cheapest first. */
+export const CATCH_BALLS: readonly CatchBall[] = ['poke-ball', 'great-ball', 'ultra-ball'];
+export const BALL_CATCH_BONUS: Record<CatchBall, number> = { 'poke-ball': 0, 'great-ball': 0.2, 'ultra-ball': 0.4 };
+/** The one-tap Catch throws the cheapest ball with at least this chance. */
+export const RECOMMENDED_BALL_CHANCE = 0.5;
+
+/**
+ * Ball the one-tap Catch throws: the cheapest one you own with a reasonable chance, else the best
+ * one you own. Saves Ultra Balls for when they matter.
+ */
+export function recommendedBall(bag: Record<string, number>, enc: EncounterPokemon, active: OwnedPokemon | undefined): CatchBall {
+  const owned = CATCH_BALLS.filter((b) => (bag[b] ?? 0) > 0);
+  if (owned.length === 0) return 'poke-ball';
+  const good = owned.find((b) => wildCatchChancePreview(enc, active, b) >= RECOMMENDED_BALL_CHANCE);
+  return good ?? owned[owned.length - 1]!;
 }
 
 /**
@@ -202,21 +212,20 @@ export function nextCatchBallForBag(bag: Record<string, number>): 'poke-ball' | 
 export function wildCatchChancePreview(
   enc: EncounterPokemon,
   active: OwnedPokemon | undefined,
-  ball: 'poke-ball' | 'great-ball' | 'ultra-ball',
+  ball: CatchBall,
 ): number {
-  const ballBonus = ball === 'ultra-ball' ? 0.4 : ball === 'great-ball' ? 0.2 : 0;
+  if (isGuaranteedCatch(enc)) return 1;
   const baseCatchRate = SPECIES_BY_DEX.get(enc.dexNum)?.baseCatchRate;
-  let typeBonus = 0;
-  if (active && enc.types.length > 0) {
-    for (const aType of active.types) {
-      if (getEffectiveness(aType, enc.types) >= 2) {
-        typeBonus = 0.15;
-        break;
-      }
-    }
-  }
   const hpRatio = enc.maxHp > 0 ? enc.currentHp / enc.maxHp : 1;
-  return computeCatchChance(ballBonus + typeBonus, baseCatchRate, hpRatio);
+  return computeCatchChance(BALL_CATCH_BONUS[ball] + catchTypeBonus(active, enc.types), baseCatchRate, hpRatio, catchStatusMultiplier(enc.condition));
+}
+
+export const CATCH_TYPE_ADVANTAGE_BONUS = 0.15;
+
+/** Catch bonus when your lead has a super-effective type against the target (wild and trainer alike). */
+export function catchTypeBonus(active: { types: PokemonType[] } | undefined, targetTypes: PokemonType[]): number {
+  if (!active || targetTypes.length === 0) return 0;
+  return active.types.some((t) => getEffectiveness(t, targetTypes) >= 2) ? CATCH_TYPE_ADVANTAGE_BONUS : 0;
 }
 
 /** Equalizes expected shiny discoveries per completed card against Medium/every-review pacing. */

@@ -2,7 +2,8 @@ import { GameIcon } from './GameIcon';
 import { BRAND } from '../theme/gameTheme';
 
 /**
- * One-time-per-session style tip strip — points new users at Settings for workflow and behavior.
+ * Getting-started tip for new players — points at Settings for controls and study flow. Shown until
+ * dismissed (remembered across sessions) or the player's first few dozen cards.
  */
 export function OnboardingTipsBar({
   onOpenSettings,
@@ -18,15 +19,15 @@ export function OnboardingTipsBar({
       aria-label="Getting started tips"
     >
       <GameIcon name="pokeball" size={16} style={{ color: 'var(--pkr-accent, #fbbf24)' }} className="shrink-0" />
-      <p className="min-w-0 flex-1 text-[9px] font-semibold leading-snug" style={{ color: '#cbd5e1' }}>
+      <p className="min-w-0 flex-1 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-soft)' }}>
         <span className="font-black text-slate-200">First time with {BRAND.wordmark}?</span> Open{' '}
-        <span className="font-black text-amber-200">Settings</span> (gear tab) for controls, recommended study flow, and troubleshooting.
+        <span className="font-black text-amber-200">Menu → Settings</span> for controls, recommended study flow, and troubleshooting.
       </p>
       <div className="flex shrink-0 flex-wrap items-center gap-1">
-        <button type="button" className="pkr-btn-secondary px-2 py-1 text-[9px] font-bold" onClick={onOpenSettings}>
+        <button type="button" className="pkr-btn-secondary px-2 py-1 pkr-fine font-bold" onClick={onOpenSettings}>
           Open settings
         </button>
-        <button type="button" className="text-[9px] font-bold underline decoration-slate-500 underline-offset-2" style={{ color: '#64748b' }} onClick={onDismiss}>
+        <button type="button" className="pkr-fine font-bold underline decoration-slate-500 underline-offset-2" style={{ color: 'var(--pkr-ink-dim)' }} onClick={onDismiss}>
           Dismiss
         </button>
       </div>

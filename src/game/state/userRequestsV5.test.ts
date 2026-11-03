@@ -175,7 +175,7 @@ describe('User specific requirements in 1.4.0', () => {
       const p3 = makeMon('p3', 7, ['Water'], 30);
       expect(averagePartyLevel([p1, p2, p3])).toBe(20);
       expect(averagePartyLevel([p1])).toBe(10);
-      expect(averagePartyLevel([])).toBe(1);
+      expect(averagePartyLevel([])).toBe(5);
     });
 
     it('spawns wild Pokemon at levels matching average party level', () => {

@@ -59,7 +59,8 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
         height={size}
         style={{
           imageRendering: 'pixelated',
-          transform:grounded && ground.src===effectiveSrc?`translate(${ground.x}px,${ground.y}px)`:undefined,
+          // A front sprite standing in for a missing back is mirrored so it faces the foe.
+          transform:[grounded && ground.src===effectiveSrc?`translate(${ground.x}px,${ground.y}px)`:'',frontFallback&&!errored?'scaleX(-1)':''].filter(Boolean).join(' ')||undefined,
           ...style,
         }}
         className={`pkr-sprite-image drop-shadow-[2px_3px_0_rgba(0,0,0,0.35)] ${loaded ? '' : 'opacity-0'} `}

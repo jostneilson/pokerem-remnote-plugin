@@ -5,6 +5,103 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
+## [Unreleased]
+
+## [1.5.0] - 2026-11-03
+
+### Added
+
+- **Quests.** Three daily quests and two weekly ones, each measuring something different (cards, catches, defeats, trainer wins, evolutions, new species). Each pays coins and items, with one-tap Claim and Claim all on the Trainer screen.
+- **Galarian Articuno, Zapdos and Moltres.** They appear as legendary events when Gen 8 is enabled, with their real Psychic/Flying, Fighting/Flying and Dark/Flying types, base stats and learnsets (including Freezing Glare, Thunderous Kick and Fiery Wrath) and official sprites. A quarter of their encounters are shiny, and a shiny one is a sure catch. The Dex shows them as #144–146.
+- **Perfect IVs are a HUNDO.** A Pokémon with all three IVs maxed shows four gold stars and a gold HUNDO badge wherever its appraisal appears. Existing Pokémon are rated automatically; their IVs don't change.
+- **Hyper training.** Bottle Caps (₽25,000) max one IV; Gold Bottle Caps (₽90,000) max all three for a HUNDO. Use them from a Pokémon's card in Party. Both sell in the shop, and the ₽1,000,000 milestone gives a Gold Bottle Cap.
+- **Bigger money milestones:** ₽100,000 and ₽1,000,000 earned, matching today's income.
+- **Gym badges.** Eight badges for trainer wins (1, 3, 6, 10, 15, 21, 28 and 36), shown with your prestige badges.
+- **Collection goals:** own a shiny, own five shinies, own a perfect-IV Pokémon, own ten of them, and register 30 species of one type.
+
+- **Automatic best moves.** Every party Pokémon keeps its strongest four moves and re-picks whenever a level-up, Rare Candy, Power Up or evolution unlocks a better one. Picks weigh power, accuracy, multi-hit, same-type bonus, the Pokémon's stronger attacking stat and super-effective coverage, plus at most one status move when it earns the slot. Teaching or forgetting a move by hand turns this off for that Pokémon; tick **Auto best moves** in Party to turn it back on. Trainers field the same picks.
+- **Battle from the queue.** The queue strip shows your lead's HP and, during an encounter, Catch (with its odds), Fight, Auto and Run. With no wild, a Heal button appears when your lead is hurt. The floating popup has the same buttons. These, and the RemNote Catch/Fight/Run commands, now run without the sidebar open.
+- **Trainer rematch.** After a loss, **Heal & rematch** pays the Pokémon Center price and faces the same trainer again at full health.
+- **Trainer screen.** Rewards and Progress are one screen (Menu → Trainer): trainer card, level rewards with Claim all, quests, achievements, badges, and the stats and streak panels that used to sit under Play.
+- **One-tap care.** Party cards have Lead and Heal (or Revive) buttons that pick the right potion. Bag items show **Use ▾** to choose any party member. The shop sells ×5 and ×10 of items under ₽5,000. Reward banners have Claim and Claim all.
+- **Starter confirmation** before your pick is locked in.
+- **Battle result card.** After a knockout or catch, the battle panel shows the XP bar filling, then the new level, any moves learned and any evolution, with an OK to close it. The next wild clears it on its own.
+- **Main-series battle prompts.** "What will Charmander do?" types out in the dialogue box. Move tiles say Super effective, Not very effective or No effect against the current foe.
+- **Keyboard play.** Battle buttons are back in the tab order. In the battle panel: C catch, F fight, A auto, R run, 1–4 pick a move, Esc goes back.
+- **A shiny encounter feels different.** A gold-and-white star wipe replaces the black one, the sprite lands with a sparkle burst and keeps a soft gold aura, the plates turn gold, the prompt reads "✦ A shiny … appeared!", and the ball wobbles with gold sparks. Catching one shows a SHINY CAUGHT! card with a star sweep, plus a HUNDO line for perfect IVs. Reduced motion keeps the gold styling without the movement.
+- **Shiny Case** in the Dex, laid out as a display case: each shiny stands on a lit stage with its Dex number, rarity, the date and card number it was caught, and a gold HUNDO ribbon for perfect IVs. Shinies you owned before the log existed are listed too.
+- **Evolution sequence.** Whenever a Pokémon evolves, by battle, Rare Candy, Power Up, stone or trainer battle, the panel plays "What? X is evolving!": its white silhouette trades places with the new form faster and faster, a flash, then the new Pokémon with a sparkle burst. Skip jumps to the end; reduced motion shows the result at once.
+- **Move Tutor** (Party → a Pokémon). Teaches a level-up move up to 15 levels early, priced by power and how early (about ₽2,000–₽8,000). Auto best moves uses it when it earns a slot, and tutored moves survive saves.
+- **Route tickets** (Shop). ₽6,000 sends your next 10 wild Pokémon to one of nine places (Meadow, Waterside, Spooky Woods and more), with that place's types more likely. More of the same ticket stacks; Play shows how many wilds are left.
+- **Trainer card styles** (Shop). Six cosmetic looks for your trainer license, from Ember (₽25,000) to Champion Gold (₽300,000). Equip any style you own, or go back to Classic.
+
+### Changed
+
+- **Wild encounters make sense.** A Pokémon only appears at or above the level it evolves at, so no more Lv2 Alakazam. Rarity is per species, from its real catch rate. Legendaries, Mythicals and Ultra Beasts are rare events (about 1 in 80) once your top Pokémon average Lv25 and you've reviewed 500 cards. Each battle scene favours its own types: water on the pond, ghosts in the woods.
+- **You can meet species you've already caught.** About 70% of encounters favour uncaught species until your Dex is complete. You can still meet caught ones, so you can hunt shinies and better IVs.
+- **The other starters are obtainable** as uncommon wild encounters.
+- **Encounter levels follow your three strongest party members.** A bench of new Lv2 catches no longer drags every encounter down. Trainer teams use the same rule.
+- **Starters begin at Lv5**, as in the main series, with rolled IVs.
+- **Smarter foes.** Wild and trainer Pokémon choose moves by the damage they'd really do, with the occasional status move. Elite trainers almost always pick their best move.
+- **Shorter, fairer wild fights:** about 3 turns. Wild Pokémon have 65% of their owned HP in battle, and caught Pokémon get their full HP.
+- **Shinies: still 1 in 250, with a safety net.** After 500 encounters without a shiny, the odds climb until one is guaranteed by 750. At 100 cards a day, most players meet their first shiny within about a week, and almost everyone within four. Long-run odds stay near 1 in 250.
+- **Shiny art is the real thing.** An audit confirmed all 908 species have official shiny front and back sprites, drawn in the same style as the normal ones. If a back sprite is ever missing, the shiny front is mirrored in its place.
+- **Healing keeps up with your Pokémon.** Potions restore a quarter of max HP (at least 20), Super Potions half (at least 50), Oran Berries a tenth. The Pokémon Center charges more as your team levels up (1 coin per HP per 10 levels, plus 20 per level for each fainted Pokémon), so carrying potions pays off. Income is unchanged.
+- **New trainers start with 10 Poké Balls** instead of 6.
+- **Choose your ball.** Each ball in the battle menu shows how many you have and its live catch %. Tap one to throw it. One-tap Catch throws the cheapest ball with at least a 50% chance (otherwise your best one), so Ultra Balls aren't wasted on Pidgeys. The throw animation shows the ball you threw.
+- **Status helps catching:** asleep or frozen ×2; paralysed, poisoned or burned ×1.5.
+- **Auto attack keeps going through status.** Protected turns can't knock the wild out by any route, including poison, burn, confusion or recoil, so sleep and paralysis no longer stop it.
+- **Shiny Legendaries are a sure catch.** A shiny Legendary, Mythical or Ultra Beast is caught by your first ball, whatever its HP. Attacks can't knock it out, and it stays if your lead faints.
+- **Trainer battles.** Teams follow the same evolution-level rules, with no repeats, and the ace is a level higher. Knocking out a trainer's Pokémon earns 1.5× the wild XP instead of a flat 25. Losing costs 5% of your coins, capped by party level. A small party fights with only what it has; no more copies of one Pokémon.
+
+- Use the original pixel body font consistently across titles, controls, stats, hints, and secondary windows. Redraw only the digit **5** with a clear top bar and left stem; preserve all other characters and spacing.
+
+- **Ignored wild Pokémon wander off** after 12 cards with no action, so progress, healing and trainer XP keep moving. Shinies and Legendary events never leave.
+- **Nothing waiting in the sidebar can stall your studying.** After a full-party catch you can still pick who swaps out, but reviewing the next card sends the new Pokémon to storage instead of pausing wilds. A trainer challenge you don't take moves on after 12 cards, so wild encounters keep coming. If your lead faints, the healthiest teammate takes over on the next card; if the whole team is down, it rests while you study and is back at half HP after 12 cards. The queue strip says what's waiting and how many cards are left, and has a one-tap **Storage** button.
+- **The sidebar starts at the menu.** The per-card "Lead +XP · Party +XP" line at the top is gone; XP still shows on the bars and in battle.
+- **The queue strip fits any width.** In a narrow strip the wild gets its own row with four even Catch / Fight / Auto / Run buttons beneath; the buttons are larger, bevelled and pressable. The encounter popup uses a 2×2 grid, shows the catch chance, and puts away its buttons once the wild is gone.
+- **Trainer battles start with your best team picked.** Your three strongest healthy Pokémon are pre-selected, so locking in is one tap; tap to change them.
+- **The shop fits a narrow sidebar.** Under 340px, Buy and ×5 / ×10 sit in one row under the item text.
+- **One notification per event.** A wild Pokémon shows in the queue strip when it's on, otherwise the floating popup, otherwise a toast. A shiny always gets the popup too.
+- **One pacing control.** The in-game Study difficulty sets reviews per wild and how much each card is worth. The RemNote settings "Encounter Frequency" and "Review rewards & wild pacing" did nothing once a difficulty was chosen and are gone. "Every 2 reviews" stays as **Extra wild slowdown**.
+- **Easy pacing is 2 reviews per wild** (Medium stays 3), so the two presets differ.
+- **Play is shorter:** the arena, commands, quick care, your lead and next milestone. One restock button reads "Buy 5 Poké Balls · ₽500".
+- **First run:** brand-new saves skip the release notes, and onboarding points to Menu → Settings.
+- **Cleaner battle commands.** Catch, Fight and Run are flat, bevelled pixel buttons in the arcade palette instead of glossy gradients, and they press down when tapped. Trainer battle headers use the same navy panels with a tier-coloured edge.
+- **Shiny and rare sprites glow along their outline** instead of sitting in a gold or coloured box, so wings and tails are never boxed in.
+- **The field stays clear when no wild is around.** Next-wild progress moved into the command area, so it no longer covers your Pokémon, and the duplicate "Keep reviewing" box is gone.
+- **Readable new panels.** The result card, Shiny Case, queue prompts and other new panels use the same type scale as the rest of the sidebar (11/12/14/15px).
+- **Currency is ₽ everywhere** on screen, including trainer battle rewards and the shop balance.
+- Party sprites are drawn larger in narrow sidebars, and the Dex grid keeps names on one line at every width.
+
+### Fixed
+
+- **Setup works in a short sidebar.** The starter and difficulty screens scroll as one page instead of squeezing the list under a fixed header. The "Start your journey with…?" confirmation stays pinned in view while you browse, with its button focused.
+- **First Catch means a catch.** Picking a starter no longer unlocks it. The species-count achievements now say what they count: species registered in your Pokédex.
+- **The "First time with PokéRem?" tip stops coming back.** Dismissing it, or opening Settings from it, is now remembered across restarts and devices (it used to reset every session), and it only shows during a new player's first 30 cards.
+- **Updates can never restart your progress.** Each of these could replace a real save with a fresh game, and none of them can now:
+  - A review that reads an empty or unreadable save (RemNote storage still starting up) no longer writes.
+  - The sidebar retries an empty first read before showing the starter picker.
+  - Picking a starter can't replace an existing team.
+  - A save from a newer or unrecognised version is kept rather than reset.
+  - Any save with Pokémon skips the setup screens.
+- **PokéRem always shows up after install** ([#3](https://github.com/jostneilson/pokerem-remnote-plugin/issues/3)). The Poké Ball sidebar tab now registers before anything else, and each setup step that follows is guarded, so a failing setting or menu registration on some RemNote versions can no longer leave the plugin invisible. A fresh install opens the sidebar once and says where to find it. There is a new **Open PokéRem** command, the store description points to the right sidebar, and an empty `snippet.css` now ships, so RemNote's request for it no longer logs a 403.
+- Keep wild and trainer Pokémon visible with the main-series battle layout: the foe's name/HP plate sits top-left, yours bottom-right, each over open field instead of a Pokémon. The field keeps its size; nothing is added above it.
+- Make battle plates compact. Rarity is a small chip beside the role, shiny is a gold sparkle beside the name, and plate text is sized for narrow sidebars.
+- Play the shiny reveal over the field for about three seconds instead of pushing the field down. Shiny sprites glow instead of sitting in a box.
+- Let the Dex generation picker wrap below its label instead of cutting off at 280px.
+- **Achievements you couldn't earn.** The Lv25/50/100 Pokémon goals count Pokémon in storage. "Trainer Lv100" is impossible with the level cap of 50, so it became "Pokémon Legend": trainer Lv50 with six Pokémon at Lv50+ (same badge). "Complete every enabled generation" now reads your real generation settings, which are saved with your progress.
+- **Pokédex registration.** Your starter and every Pokémon you evolve (level-up, stone or Power Up) now count in the Dex. Older saves backfill from the Pokémon you own when they load.
+- **One catch rule.** Wild and trainer catches share the same code and the same type-advantage bonus (it was 0.15 for wild and 0.10 for trainer).
+- **Revive costs ₽200 everywhere.** The item listing said ₽500.
+- **Shop prices come from the shop.** Purchases use today's shop price, whatever the UI sends, and can buy several at once.
+- Power Up evolutions award trainer XP, as stone evolutions do.
+- The Team Rocket trainer is "Team Rocket Grunt", not "Team Rocket Grunt Grunt".
+- The header no longer wraps to two lines in a 320px sidebar; today's review/encounter/catch counter shows from 380px.
+- Bold pixel text no longer smears: the font now covers the heaviest weight the UI uses, so a bold 2 can't be misread as an 8.
+- The battle message box is valid HTML (React logged a nesting warning every combat turn).
+- Auto attack keeps its "don't knock out" protection when it picks a lead for you.
+
 ## [1.4.1] - 2026-10-31
 
 ### Fixed

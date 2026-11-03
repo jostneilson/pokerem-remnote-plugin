@@ -14,6 +14,7 @@ export function TrainerIdentityCard({
   subtitle,
   reducedMotion = false,
   rewardSparkleKey,
+  cardStyle,
 }: {
   rankTitle: string;
   trainerLevel: number;
@@ -25,13 +26,15 @@ export function TrainerIdentityCard({
   reducedMotion?: boolean;
   /** Monotonic key (e.g. claim count) — short sparkle when claiming milestone rewards. */
   rewardSparkleKey?: number;
+  /** Cosmetic card style id (engine/sinks.ts); Classic when unset. */
+  cardStyle?: string;
 }) {
   const maxed = trainerLevel >= 50 && xpProg.needed <= 0;
   const xpMoment = useTrainerXpMoment(trainerXp, trainerLevel, reducedMotion, rewardSparkleKey);
 
   return (
     <div
-      className={`pkr-trainer-identity ${xpMoment.focusXpUi ? 'pkr-trainer-identity--xp-focus' : ''} ${
+      className={`pkr-trainer-identity ${cardStyle ? `pkr-trainer-identity--style-${cardStyle}` : ''} ${xpMoment.focusXpUi ? 'pkr-trainer-identity--xp-focus' : ''} ${
         xpMoment.phase === 'reward_sparkle' ? 'pkr-trainer-identity--reward-sparkle' : ''
       }`}
     >
@@ -44,14 +47,14 @@ export function TrainerIdentityCard({
           <span className="pkr-trainer-identity__level-label">Lv</span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="pkr-pixel-title text-[5px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+          <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
             Trainer license
           </div>
-          <h2 className="mt-1 truncate text-sm font-black leading-tight tracking-tight" style={{ color: '#f8fafc' }}>
+          <h2 className="mt-1 truncate pkr-lead font-black leading-tight tracking-tight" style={{ color: 'var(--pkr-ink-bright)' }}>
             {rankTitle}
           </h2>
           {subtitle ? (
-            <div className="mt-0.5 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
+            <div className="mt-0.5 pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
               {subtitle}
             </div>
           ) : null}
@@ -60,7 +63,7 @@ export function TrainerIdentityCard({
               <TrainerXpStarBurst variant={xpMoment.burstVariant} burstKey={xpMoment.fillPulseKey} />
             ) : null}
             {maxed ? (
-              <div className="text-[9px] font-bold" style={{ color: '#fde68a' }}>
+              <div className="pkr-fine font-bold" style={{ color: 'var(--pkr-ink-gold)' }}>
                 Max trainer level — keep claiming milestone rewards below.
               </div>
             ) : (

@@ -34,6 +34,8 @@ Item icons, type orbs, battle backgrounds, and small battle effects are **intend
 
 Battle background filenames follow the **Team Aqua–style** field art set used in development (referenced in code comments, e.g. [`battleAmbience.ts`](src/game/engine/battleAmbience.ts)). **Before you publish** a public GitHub repo or marketplace zip, confirm the **exact pack and license** for every PNG you ship: retain and ship any required `LICENSE` / `NOTICE` files next to the art, and add a one-line provenance row here (pack name, URL, SPDX or plain-language license).
 
+**Provenance (owner, November 2026):** the battle backgrounds came from a free pack offered for public distribution. The exact pack name and URL weren't recorded. If the source is found, add its name, link and licence here.
+
 **Runtime note:** Item and type art in this repo are expected to be original or properly licensed pixel work suitable for redistribution with the MIT-licensed plugin code. Do not substitute unknown “ripped” tiles without clearing rights first.
 
 ---
@@ -56,5 +58,11 @@ Before each public release, verify:
 ## Bundled pixel fonts (1.3.0)
 
 Pixelify Sans and Press Start 2P are distributed under the SIL Open Font License 1.1. Font files and their original OFL notices are included in `public/assets/fonts/`. Sources: https://github.com/google/fonts/tree/main/ofl/pixelifysans and https://github.com/google/fonts/tree/main/ofl/pressstart2p.
+
+The next update uses **PokeRem Pixel**, a renamed derivative of the bundled
+Pixelify Sans. Only the digit `5` is redrawn for readability; all other glyphs
+and advance widths are preserved. The derivative retains the SIL OFL 1.1 and
+original copyright. See `public/assets/fonts/README.md` and the reproducible
+generator `scripts/generate-clear-five.py`.
 
 1.3.1 evolution stone mappings were checked against PokéAPI's `pokemon_evolution.csv` and `items.csv` (https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv). The reference snapshot in `src/game/data/stoneEvolutionReference.ts` supports offline regression checks. Sun/Shiny/Dusk/Dawn item icons and species-specific shiny sprites use https://github.com/PokeAPI/sprites. Existing simplified non-stone evolution rules are preserved.

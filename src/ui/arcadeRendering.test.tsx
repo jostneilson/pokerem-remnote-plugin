@@ -22,7 +22,11 @@ describe('arcade management screens',()=>{
  });
  it('identifies a secondary destination while keeping the menu reachable',()=>{
   const html=renderToStaticMarkup(<SidebarNavigation active="progress" settings={false} rewardsAttention={false} progressAttention={false} onSelect={noop} onSettings={noop}/>);
-  expect(html).toContain('Menu, current section Progress');expect(html).toContain('aria-controls="pkr-more-navigation"');
+  expect(html).toContain('Menu, current section Trainer');expect(html).toContain('aria-controls="pkr-more-navigation"');
+ });
+ it('opens the merged Trainer screen for saves that remember the old Rewards tab',()=>{
+  const html=renderToStaticMarkup(<SidebarNavigation active="rewards" settings={false} rewardsAttention={true} progressAttention={false} onSelect={noop} onSettings={noop}/>);
+  expect(html).toContain('Menu, current section Trainer');
  });
  it('retains content under a native keyboard-operable disclosure',()=>{
   const html=renderToStaticMarkup(<Panel collapsible title="Statistics"><p>Retained statistics</p></Panel>);

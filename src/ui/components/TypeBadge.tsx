@@ -5,7 +5,7 @@ import { typeSymbolUrl } from '../battle/typeSymbolUrl';
 export function TypeBadge({ rootURL, type }: { rootURL: string | undefined; type: PokemonType }) {
   return (
     <span
-      className="inline-flex items-center gap-0.5 rounded border px-1 py-px text-[8px] font-bold uppercase leading-tight"
+      className="inline-flex items-center gap-0.5 rounded border px-1 py-px pkr-fine font-bold uppercase leading-tight"
       style={typePillStyle(type)}
     >
       <img

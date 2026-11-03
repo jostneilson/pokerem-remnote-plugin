@@ -2,43 +2,14 @@ import { useState, type CSSProperties } from 'react';
 import type { PokemonType } from '../../game/data/species';
 import { ALL_TYPES, getWeaknesses, getResistances, getImmunities, getEffectiveness } from '../../game/data/typeChart';
 import { typePillStyle, TYPE_COLORS } from '../battle/battleTheme';
-import { TypeSymbolImage } from '../battle/TypeBattleIcon';
 import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 
 type ViewMode = 'simple' | 'chart';
 
-function TypePickerButton({
-  rootURL,
-  type,
-  selected,
-  onClick,
-}: {
-  rootURL: string | undefined;
-  type: PokemonType;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  const pill = typePillStyle(type);
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex min-h-[1.85rem] items-center gap-1 rounded-md border-2 px-1.5 py-1 text-[7px] font-black uppercase transition-all ${
-        selected ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-[#0f172a]' : 'opacity-80 hover:opacity-100'
-      }`}
-      style={pill}
-      title={type}
-    >
-      <TypeSymbolImage rootURL={rootURL} type={type} size={15} variant="resist" />
-      <span className="max-w-[3.5rem] truncate">{type}</span>
-    </button>
-  );
-}
-
 function TypeChip({ type }: { type: PokemonType }) {
   return (
-    <span className="inline-flex items-center gap-0.5 rounded border-2 px-1 py-px text-[7px] font-black uppercase" style={typePillStyle(type)}>
+    <span className="inline-flex items-center gap-0.5 rounded border-2 px-1 py-px pkr-fine font-black uppercase" style={typePillStyle(type)}>
       {type}
     </span>
   );
@@ -56,13 +27,13 @@ function SimpleView({ selected }: { selected: PokemonType }) {
   const noEffect = ALL_TYPES.filter((def) => getEffectiveness(selected, [def]) === 0);
 
   return (
-    <div className="space-y-2 text-[10px]">
+    <div className="space-y-2 pkr-fine">
       <div className="pkr-typechart-section">
         <div className="pkr-typechart-section-title">Defending as {selected}</div>
-        <div className="space-y-1.5" style={{ color: '#cbd5e1' }}>
+        <div className="space-y-1.5" style={{ color: 'var(--pkr-ink-soft)' }}>
           {weakTo.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#fca5a5' }}>
+              <span className="font-black" style={{ color: 'var(--pkr-ink-danger)' }}>
                 Weak (2× damage)
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -86,7 +57,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
           ) : null}
           {immune.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#c3cde3' }}>
+              <span className="font-black" style={{ color: 'var(--pkr-ink-muted)' }}>
                 Immune (0×)
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -101,7 +72,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
 
       <div className="pkr-typechart-section">
         <div className="pkr-typechart-section-title">Attacking as {selected}</div>
-        <div className="space-y-1.5" style={{ color: '#cbd5e1' }}>
+        <div className="space-y-1.5" style={{ color: 'var(--pkr-ink-soft)' }}>
           {strongAgainst.length > 0 ? (
             <div>
               <span className="font-black" style={{ color: '#86efac' }}>
@@ -116,7 +87,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
           ) : null}
           {weakAgainst.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#fca5a5' }}>
+              <span className="font-black" style={{ color: 'var(--pkr-ink-danger)' }}>
                 Not very effective vs
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -128,7 +99,7 @@ function SimpleView({ selected }: { selected: PokemonType }) {
           ) : null}
           {noEffect.length > 0 ? (
             <div>
-              <span className="font-black" style={{ color: '#c3cde3' }}>
+              <span className="font-black" style={{ color: 'var(--pkr-ink-muted)' }}>
                 No effect on
               </span>
               <div className="mt-1 flex flex-wrap gap-0.5">
@@ -166,7 +137,7 @@ function cellStyle(eff: number): CSSProperties {
   if (eff === 0) {
     return {
       background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)',
-      color: '#c3cde3',
+      color: 'var(--pkr-ink-muted)',
       fontWeight: 900,
     };
   }
@@ -179,7 +150,7 @@ function cellStyle(eff: number): CSSProperties {
   }
   return {
     background: 'rgba(30,41,59,0.35)',
-    color: '#8296a5',
+    color: 'var(--pkr-ink-faint)',
     fontWeight: 700,
   };
 }
@@ -257,10 +228,10 @@ export function TypeChartScreen({ rootURL }: { rootURL?: string }) {
   return (
     <Panel title="Type matchups" icon={<GameIcon name="diamond" size={14} />}>
       <div className="pkr-typechart-hero">
-        <div className="pkr-pixel-title text-[6px] font-black uppercase leading-snug tracking-wide" style={{ color: '#a5b4fc' }}>
+        <div className="pkr-pixel-title pkr-fine font-black uppercase leading-snug tracking-wide" style={{ color: '#a5b4fc' }}>
           Battle reference
         </div>
-        <p className="mt-1 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <p className="mt-1 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           <span className="font-bold text-slate-300">Simple</span> highlights one type.{' '}
           <span className="font-bold text-slate-300">Full chart</span> is the classic attack-vs-defend matrix.
         </p>

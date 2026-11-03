@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 're
 import { createPortal } from 'react-dom';
 import type { OwnedPokemon } from '../../game/state/model';
 import type { PokemonType } from '../../game/data/species';
-import { ITEMS } from '../../game/data/items';
+import { ITEMS, ITEM_BY_ID } from '../../game/data/items';
 import { checkItemEvolution } from '../../game/engine/evolution';
 import { MOVES } from '../../game/data/moves';
 import { dedupeMoveIds, getUnlockedLearnsetMoveIds, moveUiDescription } from '../../game/engine/moveLearn';
@@ -14,7 +14,10 @@ import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
 import { PokemonAppraisal } from '../components/PokemonAppraisal';
-import { battleStats, ivAverage, powerUpPreview } from '../../game/engine/pokemonStats';
+import { battleStats, isPerfectIVs, ivAverage, ivsFor, powerUpPreview } from '../../game/engine/pokemonStats';
+import { bestHealItemFor, type TrainableIv } from '../../game/state/store';
+import { tutorOptions } from '../../game/engine/sinks';
+import { moveDisplayName } from '../../game/engine/combatExchange';
 import '../collection.css';
 
 function sortTeachableMoves(types: readonly PokemonType[], ids: string[]): string[] {
@@ -41,7 +44,7 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
   const list = dedupeMoveIds(moves);
   if (list.length === 0) {
     return (
-      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 text-[9px] font-semibold" style={{ color: '#c3cde3' }}>
+      <div className="rounded border border-dashed border-white/10 px-2 py-1.5 pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
         No moves in this moveset yet — use “Teachable moves” to pull from moves unlocked at this level.
       </div>
     );
@@ -55,18 +58,18 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
           <div key={mid} className="flex min-h-[2rem] items-start gap-1">
             <div className="min-w-0 flex-1 rounded border px-1.5 py-1" style={typePillStyle(m.type)}>
               <div className="flex items-center gap-1">
-                <span className="truncate text-[8px] font-black">{m.name}</span>
+                <span className="truncate pkr-fine font-black">{m.name}</span>
                 {m.power > 0 ? (
-                  <span className="shrink-0 rounded px-0.5 text-[7px] font-bold" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                  <span className="shrink-0 rounded px-0.5 pkr-fine font-bold" style={{ background: 'rgba(0,0,0,0.2)' }}>
                     {m.power}
                   </span>
                 ) : (
-                  <span className="shrink-0 rounded px-0.5 text-[7px] font-bold uppercase" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                  <span className="shrink-0 rounded px-0.5 pkr-fine font-bold uppercase" style={{ background: 'rgba(0,0,0,0.2)' }}>
                     Status
                   </span>
                 )}
               </div>
-              <div className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: 'inherit', opacity: 0.88 }}>
+              <div className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: 'inherit', opacity: 0.88 }}>
                 {moveUiDescription(mid)}
               </div>
             </div>
@@ -74,7 +77,7 @@ function MoveList({ moves, onForget }: { moves: string[]; onForget?: (id: string
               <button
                 type="button"
                 onClick={() => onForget(mid)}
-                className="pkr-btn-secondary shrink-0 px-2 py-1 text-[8px] font-bold"
+                className="pkr-btn-secondary shrink-0 px-2 py-1 pkr-fine font-bold"
                 title={`Forget ${m.name}`}
                 aria-label={`Forget ${m.name}`}
               >
@@ -96,7 +99,7 @@ function TeachableMovesBrowser({
   onPickMove: (moveId: string) => void;
 }) {
   const current = dedupeMoveIds(pokemon.moves ?? []);
-  const unlocked = getUnlockedLearnsetMoveIds(pokemon.dexNum, pokemon.level);
+  const unlocked = dedupeMoveIds([...getUnlockedLearnsetMoveIds(pokemon.dexNum, pokemon.level), ...(pokemon.tutorMoves ?? [])]);
   const candidates = sortTeachableMoves(
     pokemon.types,
     unlocked.filter((id) => !current.includes(id)),
@@ -104,7 +107,7 @@ function TeachableMovesBrowser({
 
   if (candidates.length === 0) {
     return (
-      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 text-[8px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+      <p className="mt-1 rounded border border-white/10 px-2 py-1.5 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
         {unlocked.length === 0
           ? 'No learnset moves unlocked at this level yet — level up to grow this path.'
           : 'Every move unlocked at this level is already in the moveset. Level up to unlock more, or drop a move to swap one back in.'}
@@ -125,26 +128,26 @@ function TeachableMovesBrowser({
             <div className="flex items-start justify-between gap-1">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1">
-                  <span className="rounded border px-1 py-px text-[7px] font-black uppercase" style={typePillStyle(m.type)}>
+                  <span className="rounded border px-1 py-px pkr-fine font-black uppercase" style={typePillStyle(m.type)}>
                     {m.type}
                   </span>
-                  <span className="text-[8px] font-black" style={{ color: '#e2e8f0' }}>
+                  <span className="pkr-fine font-black" style={{ color: 'var(--pkr-ink-text)' }}>
                     {m.name}
                   </span>
                   {m.power > 0 ? (
-                    <span className="text-[7px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
+                    <span className="pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-muted)' }}>
                       Pow {m.power}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-0.5 text-[7px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+                <p className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
                   {moveUiDescription(mid)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => onPickMove(mid)}
-                className="pkr-btn-primary shrink-0 px-2 py-0.5 text-[7px] font-black uppercase"
+                className="pkr-btn-primary shrink-0 px-2 py-0.5 pkr-fine font-black uppercase"
               >
                 Learn
               </button>
@@ -170,7 +173,7 @@ export function PartyScreen({
   onMoveToParty,
   onSwapStorageForParty,
   bag, onEvolve, evolutionBlocked = false, evolutionMessage,
-  currency = 0, onPowerUp, onToggleFavorite, powerUpBlocked = false,
+  currency = 0, onPowerUp, onToggleFavorite, powerUpBlocked = false, onBottleCap, onHeal, healBlocked = false, onSetAutoMoves, onTutor,
 }: {
   rootURL: string | undefined;
   bag?: Record<string, number>;
@@ -194,6 +197,15 @@ export function PartyScreen({
   onPowerUp?: (id: string, expectedLevel: number) => void;
   onToggleFavorite?: (id: string) => void;
   powerUpBlocked?: boolean;
+  /** Hyper training: Bottle Cap maxes `stat`; Gold Bottle Cap maxes all IVs. */
+  onBottleCap?: (pokemonId: string, itemId: 'bottle-cap' | 'gold-bottle-cap', stat?: TrainableIv) => void;
+  /** One-tap heal from the card: uses the best owned potion, or a Revive when fainted. */
+  onHeal?: (pokemonId: string) => void;
+  healBlocked?: boolean;
+  /** Turn automatic best-move picking on or off; teaching or forgetting a move by hand turns it off. */
+  onSetAutoMoves?: (pokemonId: string, on: boolean) => void;
+  /** Teach a move from the Move Tutor. */
+  onTutor?: (pokemonId: string, moveId: string) => void;
 }) {
   const [pendingStone, setPendingStone] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -329,16 +341,74 @@ export function PartyScreen({
           })}
           {!ITEMS.some(item => item.kind === 'evolution' && checkItemEvolution(p, item.id)) ? <p>No compatible stone evolution for this Pokémon.</p> : <p className="mt-2">Find stones while studying or in Bag → Shop’s daily deals.</p>}
         </Panel> : null}
-        <div className="pkr-pixel-title mb-1 mt-1 text-[6px] font-black uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+        {onBottleCap && ((bag?.['bottle-cap'] ?? 0) > 0 || (bag?.['gold-bottle-cap'] ?? 0) > 0) ? (() => {
+          const ivs = ivsFor(p);
+          const perfect = isPerfectIVs(ivs);
+          const caps = bag?.['bottle-cap'] ?? 0;
+          const golds = bag?.['gold-bottle-cap'] ?? 0;
+          return <Panel title="Hyper training">
+            {perfect ? <p>Every IV is already maxed.</p> : <>
+              {caps > 0 ? <div className="pkr-hyper-row" role="group" aria-label={`Bottle Cap, ${caps} left`}>
+                <span>Bottle Cap ×{caps}</span>
+                {(['hp', 'attack', 'defense'] as const).map(stat => (
+                  <button key={stat} type="button" className="pkr-game-btn px-2 py-1" disabled={powerUpBlocked || ivs[stat] >= 3}
+                    onClick={() => onBottleCap(p.id, 'bottle-cap', stat)}>
+                    {stat === 'hp' ? 'HP' : stat === 'attack' ? 'ATK' : 'DEF'} {ivs[stat]}/3
+                  </button>
+                ))}
+              </div> : null}
+              {golds > 0 ? <button type="button" className="pkr-game-btn mt-2 w-full px-3 py-2" disabled={powerUpBlocked}
+                onClick={() => onBottleCap(p.id, 'gold-bottle-cap')}>Gold Bottle Cap ×{golds} · make a HUNDO</button> : null}
+            </>}
+          </Panel>;
+        })() : null}
+        {onTutor ? (() => {
+          const options = tutorOptions(p);
+          if (options.length === 0) return null;
+          return <details className="pkr-tutor">
+            <summary><span>Move Tutor</span><span className="pkr-tutor__count">{options.length} move{options.length === 1 ? '' : 's'}</span></summary>
+            <p className="pkr-tutor__note">Learn a move early, up to 15 levels before {p.nickname || p.name} would.{p.autoMoves !== false ? ' Auto best moves uses it if it earns a slot.' : ''}</p>
+            <ul className="pkr-tutor__list">
+              {options.map(o => {
+                const m = MOVES[o.moveId];
+                return <li key={o.moveId} className="pkr-tutor__row">
+                  <span className="pkr-tutor__move">
+                    <strong>{moveDisplayName(o.moveId)}</strong>
+                    <span>{m?.type ?? ''}{m && m.power > 0 ? ` · ${m.power}\u00a0PWR` : ' · Status'} · <span className="whitespace-nowrap">Lv {o.learnLevel}</span></span>
+                  </span>
+                  <button type="button" className="pkr-game-btn pkr-tutor__buy" disabled={powerUpBlocked || currency < o.price}
+                    aria-label={`Teach ${moveDisplayName(o.moveId)} for ${o.price} Poké Dollars`}
+                    onClick={() => onTutor(p.id, o.moveId)}>₽{o.price.toLocaleString()}</button>
+                </li>;
+              })}
+            </ul>
+          </details>;
+        })() : null}
+        <div className="pkr-pixel-title mb-1 mt-1 pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
           Moves ({dedupeMoveIds(p.moves ?? []).length}/4)
         </div>
+        {onSetAutoMoves ? (
+          <label className="pkr-auto-moves">
+            <input
+              type="checkbox"
+              checked={p.autoMoves !== false}
+              onChange={(e) => onSetAutoMoves(p.id, e.target.checked)}
+            />
+            <span>
+              <strong>Auto best moves</strong>
+              {p.autoMoves !== false
+                ? ' · picks the strongest set and updates as new moves unlock'
+                : ' · off, you chose these moves'}
+            </span>
+          </label>
+        ) : null}
         <MoveList moves={p.moves ?? []} onForget={onForgetMove ? (mid) => onForgetMove(p.id, mid) : undefined} />
         {onLearnMove ? (
           <div className="mt-2">
             <button
               type="button"
               onClick={() => setMovePickerPokemonId((cur) => (cur === p.id ? null : p.id))}
-              className="w-full pkr-btn-secondary py-1.5 text-[8px] font-black uppercase"
+              className="w-full pkr-btn-secondary py-1.5 pkr-fine font-black uppercase"
             >
               {movePickerPokemonId === p.id ? 'Hide teachable moves' : 'Teachable moves'}
             </button>
@@ -365,7 +435,7 @@ export function PartyScreen({
                 type="text"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
-                className="pkr-input min-w-0 flex-1 rounded border px-2 py-1 text-[10px]"
+                className="pkr-input min-w-0 flex-1 rounded border px-2 py-1 pkr-fine"
                 placeholder="Nickname"
                 maxLength={12}
                 autoFocus
@@ -460,9 +530,36 @@ export function PartyScreen({
       </>
     );
 
+    const healItem = isParty && onHeal ? bestHealItemFor(bag ?? {}, p) : null;
+    const needsCare = p.currentHp < p.maxHp;
+    const actions =
+      isParty && ((!isActive && p.currentHp > 0) || (onHeal && needsCare)) ? (
+        <>
+          {!isActive && p.currentHp > 0 ? (
+            <button type="button" className="pkr-btn-primary" onClick={() => onSwitch(p.id)} aria-label={`Make ${displayName} your lead`}>
+              Lead
+            </button>
+          ) : null}
+          {onHeal && needsCare ? (
+            <button
+              type="button"
+              className="pkr-btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!healItem || healBlocked}
+              title={healBlocked ? 'Finish the trainer battle first' : healItem ? undefined : p.currentHp <= 0 ? 'No Revives in your bag' : 'No potions in your bag'}
+              onClick={() => onHeal(p.id)}
+              aria-label={healItem ? `Use ${ITEM_BY_ID.get(healItem)?.name} on ${displayName}` : `Heal ${displayName}`}
+            >
+              {p.currentHp <= 0 ? 'Revive' : 'Heal'}
+              {healItem && healItem !== 'revive' ? ` · ${ITEM_BY_ID.get(healItem)?.name}` : ''}
+            </button>
+          ) : null}
+        </>
+      ) : undefined;
+
     return (
       <PartyPokemonCard
         key={p.id}
+        actions={actions}
         rootURL={rootURL}
         pokemon={p}
         variant={isParty ? 'party' : 'storage'}
@@ -519,13 +616,13 @@ export function PartyScreen({
                 >
                   <div
                     id="pkr-replace-move-title"
-                    className="pkr-pixel-title text-[6px] font-black uppercase leading-snug tracking-wide"
+                    className="pkr-pixel-title pkr-fine font-black uppercase leading-snug tracking-wide"
                   >
                     Replace a move?
                   </div>
                 </div>
-                <p className="text-[7px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
-                  Teach <span style={{ color: '#fde68a' }}>{replaceNewMove.name}</span> — tap a slot to overwrite (moveset is full).
+                <p className="pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-muted)' }}>
+                  Teach <span style={{ color: 'var(--pkr-ink-gold)' }}>{replaceNewMove.name}</span> — tap a slot to overwrite (moveset is full).
                 </p>
                 <div
                   className="mt-2 flex min-h-0 flex-1 flex-col rounded border p-1"
@@ -556,32 +653,32 @@ export function PartyScreen({
                           }}
                         >
                           <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-[6px] font-black uppercase tabular-nums" style={{ color: '#c3cde3' }}>
+                            <span className="pkr-fine font-black uppercase tabular-nums" style={{ color: 'var(--pkr-ink-muted)' }}>
                               Slot {idx + 1}
                             </span>
                             {m ? (
                               <span
-                                className="rounded border px-1 py-px text-[6px] font-black uppercase"
+                                className="rounded border px-1 py-px pkr-fine font-black uppercase"
                                 style={typePillStyle(m.type)}
                               >
                                 {m.type}
                               </span>
                             ) : null}
-                            <span className="min-w-0 flex-1 truncate text-[7px] font-black" style={{ color: '#e2e8f0' }}>
+                            <span className="min-w-0 flex-1 truncate pkr-fine font-black" style={{ color: 'var(--pkr-ink-text)' }}>
                               {label}
                             </span>
                             {m && m.power > 0 ? (
-                              <span className="shrink-0 text-[6px] font-bold tabular-nums" style={{ color: '#c3cde3' }}>
+                              <span className="shrink-0 pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-muted)' }}>
                                 Pow {m.power}
                               </span>
                             ) : m ? (
-                              <span className="shrink-0 text-[6px] font-bold uppercase" style={{ color: '#c3cde3' }}>
+                              <span className="shrink-0 pkr-fine font-bold uppercase" style={{ color: 'var(--pkr-ink-muted)' }}>
                                 Status
                               </span>
                             ) : null}
                           </div>
                           {m ? (
-                            <p className="text-[6px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+                            <p className="pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
                               {moveUiDescription(mid)}
                             </p>
                           ) : null}
@@ -592,7 +689,7 @@ export function PartyScreen({
                 </div>
                 <button
                   type="button"
-                  className="mt-3 w-full pkr-btn-secondary text-[7px] font-black uppercase tracking-wide"
+                  className="mt-3 w-full pkr-btn-secondary pkr-fine font-black uppercase tracking-wide"
                   onClick={() => setMoveReplacePrompt(null)}
                 >
                   Cancel
@@ -609,7 +706,7 @@ export function PartyScreen({
       {replaceMovePortal}
 
       <section className="pkr-collection-tools" aria-label="Collection filters">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or Pokédex #" aria-label="Search Pokemon" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" aria-label="Search Pokémon by name or Pokédex number" />
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} aria-label="Sort Pokemon">
           <option value="level">Level</option><option value="power">Battle power</option><option value="iv">IV rating</option><option value="species">Species</option>
         </select>
@@ -637,10 +734,10 @@ export function PartyScreen({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div id="pkr-release-title" className="pkr-pixel-title text-[8px] font-black uppercase leading-snug" style={{ color: '#fecaca' }}>
+            <div id="pkr-release-title" className="pkr-pixel-title pkr-fine font-black uppercase leading-snug" style={{ color: '#fecaca' }}>
               Release Pokémon?
             </div>
-            <p className="mt-2 text-[10px] font-semibold leading-snug" style={{ color: '#e2e8f0' }}>
+            <p className="mt-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-text)' }}>
               <span className="font-black text-amber-200">{releaseTarget.name}</span> will be gone forever. This cannot be undone.
             </p>
             <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:flex-row-reverse sm:flex-wrap sm:justify-start sm:gap-2">
@@ -680,10 +777,10 @@ export function PartyScreen({
             style={{ borderColor: 'var(--pkr-panel-border)', background: 'var(--pkr-sidebar-gradient)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[11px] font-black" style={{ color: 'var(--pkr-pill-active-text)' }}>
+            <div className="pkr-fine font-black" style={{ color: 'var(--pkr-pill-active-text)' }}>
               Party is full — who should return to storage?
             </div>
-            <div className="mt-1 text-[9px] font-semibold" style={{ color: 'var(--pkr-accent-muted)' }}>
+            <div className="mt-1 pkr-fine font-semibold" style={{ color: 'var(--pkr-accent-muted)' }}>
               <span className="font-bold text-amber-200">{incomingReplace.nickname || incomingReplace.name}</span> will join your party.
             </div>
             <div className="mt-2 space-y-1">
@@ -703,15 +800,15 @@ export function PartyScreen({
                   >
                     <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum, m.shiny === true)} alt={dn} size={48} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[10px] font-bold" style={{ color: '#f1f5f9' }}>
+                      <div className="truncate pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
                         {dn}
                       </div>
-                      <div className="text-[8px] font-semibold" style={{ color: '#c3cde3' }}>
+                      <div className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
                         Lv{m.level}
                       </div>
                     </div>
                     {m.id === activeId ? (
-                      <span className="shrink-0 rounded px-1 py-px text-[7px] font-black uppercase" style={{ background: 'var(--pkr-accent)', color: '#0f172a' }}>
+                      <span className="shrink-0 rounded px-1 py-px pkr-fine font-black uppercase" style={{ background: 'var(--pkr-accent)', color: '#0f172a' }}>
                         Lead
                       </span>
                     ) : null}
@@ -719,7 +816,7 @@ export function PartyScreen({
                 );
               })}
             </div>
-            <button type="button" className="mt-2 w-full pkr-btn-secondary text-[10px]" onClick={() => setReplaceStorageId(null)}>
+            <button type="button" className="mt-2 w-full pkr-btn-secondary pkr-fine" onClick={() => setReplaceStorageId(null)}>
               Cancel
             </button>
           </div>
@@ -727,9 +824,9 @@ export function PartyScreen({
       ) : null}
 
       <Panel title={`Party · ${party.length}/6`} icon={<GameIcon name="party" size={14} />}>
-        <p className="mb-2 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <p className="mb-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           Select a Pokémon to manage it. Your{' '}
-          <span style={{ color: '#fbbf24' }}>Lead</span> is your active battler.
+          <span style={{ color: 'var(--pkr-ink-gold-strong)' }}>Lead</span> is your active battler.
         </p>
         <div className="space-y-2">{visibleParty.length ? visibleParty.map((p) => renderPokemon(p, true)) : <div className="pkr-empty-filter">No party Pokémon match these filters.</div>}</div>
       </Panel>
@@ -738,16 +835,16 @@ export function PartyScreen({
         <section className="space-y-2">
           <button type="button" className="pkr-storage-toggle" onClick={() => setShowStorage(!showStorage)} aria-expanded={showStorage}>
             <span className="flex items-center gap-2">
-              <GameIcon name="box" size={14} style={{ color: '#c3cde3' }} />
-              <span style={{ color: '#e2e8f0' }}>PC storage</span>
+              <GameIcon name="box" size={14} style={{ color: 'var(--pkr-ink-muted)' }} />
+              <span style={{ color: 'var(--pkr-ink-text)' }}>PC storage</span>
             </span>
-            <span className="tabular-nums text-[10px] font-black" style={{ color: '#c3cde3' }}>
+            <span className="tabular-nums pkr-fine font-black" style={{ color: 'var(--pkr-ink-muted)' }}>
               {storage.length} · {showStorage ? 'hide' : 'show'}
             </span>
           </button>
           {showStorage ? (
             <div className="pkr-bag-shelf space-y-2">
-              <p className="px-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+              <p className="px-0.5 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
                 Not in your party — use “To party” to swap or add.
               </p>
               {visibleStorage.length ? visibleStorage.map((p) => renderPokemon(p, false)) : <div className="pkr-empty-filter">No stored Pokémon match these filters.</div>}

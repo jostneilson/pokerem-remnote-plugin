@@ -23,12 +23,17 @@ export const TYPE_COLORS: Record<PokemonType, { bg: string; border: string }> = 
   Fairy:    { bg: '#F0B6BC', border: '#905F63' },
 };
 
+export const TYPE_LABEL_OUTLINE = '-1px 0 0 rgba(0,0,0,0.6), 1px 0 0 rgba(0,0,0,0.6), 0 -1px 0 rgba(0,0,0,0.6), 0 1px 0 rgba(0,0,0,0.6)';
+
 export function typePillStyle(t: PokemonType | undefined): CSSProperties {
   const c = t ? TYPE_COLORS[t] : undefined;
+  const darkInk = t === 'Electric' || t === 'Ice' || t === 'Ground' || t === 'Steel' || t === 'Fairy' || t === 'Normal';
   return {
     backgroundColor: c?.bg ?? '#718096',
     borderColor: c?.border ?? '#4A5568',
-    color: (t === 'Electric' || t === 'Ice' || t === 'Ground' || t === 'Steel' || t === 'Fairy' || t === 'Normal') ? '#1a1a1a' : '#fff',
+    color: darkInk ? '#1a1a1a' : '#fff',
+    // White labels get a 1px dark outline, as in the main games, so they stay legible on light types.
+    textShadow: darkInk ? undefined : TYPE_LABEL_OUTLINE,
   };
 }
 

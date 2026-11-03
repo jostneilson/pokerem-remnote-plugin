@@ -8,6 +8,7 @@ import {
   pokemonCenterCost,
   pokemonCenterHeal,
   quickBuyBalls,
+  QUICK_BALL_COUNT,
   quickHealLead,
   quickReviveLead,
   switchActivePokemon,
@@ -81,7 +82,7 @@ export function QuickCarePanel({
         ) : null}
         {needBalls ? (
           <button type="button" className="pkr-btn-primary" disabled={busy || coins < ballPrice} onClick={() => onApply(quickBuyBalls)}>
-            Buy Poké Balls ₽{ballPrice} each
+            Buy {QUICK_BALL_COUNT} Poké Balls · ₽{(ballPrice * QUICK_BALL_COUNT).toLocaleString()}
           </button>
         ) : null}
       </div>

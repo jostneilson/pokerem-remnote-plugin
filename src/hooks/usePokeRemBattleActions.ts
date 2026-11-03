@@ -6,7 +6,7 @@ import type { PokeRemGameState } from '../game/state/model';
 import { withSyncedGameWrite } from '../game/state/syncedGameWriteLock';
 import { planAutoAttack } from '../game/engine/autoAttack';
 import { BRAND } from '../ui/theme/gameTheme';
-import { nextCatchBallForBag } from '../game/engine/encounters';
+import { recommendedBall, type CatchBall } from '../game/engine/encounters';
 import {
   applyCombatTurn,
   catchEncounter,
@@ -127,9 +127,14 @@ export function usePokeRemBattleActions(
     }
   }, [applyBattleAction]);
 
-  const makeCatch = useCallback(() => {
+  /** Throw `ball`, or the recommended one (cheapest with a reasonable chance) when none is given. */
+  const makeCatch = useCallback((ball?: CatchBall) => {
     stopAutoAttack();
-    void applyBattleAction('catch', (s) => catchEncounter(s, nextCatchBallForBag(s.bag)));
+    void applyBattleAction('catch', (s) => {
+      if (!s.currentEncounter) return s;
+      const lead = s.party.find((p) => p.id === s.activePokemonId);
+      return catchEncounter(s, ball ?? recommendedBall(s.bag, s.currentEncounter, lead));
+    });
   }, [applyBattleAction, stopAutoAttack]);
 
   const makeFightMove = useCallback(

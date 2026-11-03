@@ -202,7 +202,7 @@ const ICONS: Record<string, (size: number) => JSX.Element> = {
         fontSize="7"
         fontWeight="700"
         fill="currentColor"
-        fontFamily="ui-sans-serif, system-ui, sans-serif"
+        fontFamily="var(--pkr-font-body)"
       >
         P
       </text>

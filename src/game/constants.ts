@@ -4,6 +4,12 @@ import type { RNPlugin } from '@remnote/plugin-sdk';
 export const REVIEWS_PER_ENCOUNTER = 3;
 
 /**
+ * Cards reviewed with a wild on screen and no battle action before it wanders off, so ignoring an
+ * encounter never stalls progress. Shinies and legendary events never flee.
+ */
+export const WILD_FLEE_AFTER_CARDS = 12;
+
+/**
  * When the pipeline does not pass a custom value, Route Finds use this many paced reviews
  * (same ticks as wild progress) before a travel discovery roll.
  */
@@ -50,3 +56,6 @@ export async function getSyncedGameRaw(plugin: RNPlugin): Promise<unknown> {
   }
   return cur;
 }
+
+/** Starters begin at Lv5, as in the main series, so the first wild encounters aren't Lv1. */
+export const STARTER_LEVEL = 5;

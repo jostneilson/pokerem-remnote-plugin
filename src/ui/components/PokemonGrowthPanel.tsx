@@ -33,21 +33,21 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
 
   return (
     <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
-      <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+      <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
         Growth &amp; moves
       </div>
 
       <div
-        className="rounded-md border border-white/5 px-2 py-1.5 text-[9px] font-semibold leading-snug"
-        style={{ background: 'rgba(0,0,0,0.15)', color: '#cbd5e1' }}
+        className="rounded-md border border-white/5 px-2 py-1.5 pkr-fine font-semibold leading-snug"
+        style={{ background: 'rgba(0,0,0,0.15)', color: 'var(--pkr-ink-soft)' }}
       >
-        <span style={{ color: '#e2e8f0' }}>Lv{p.level}</span>
-        <span style={{ color: '#64748b' }}> · </span>
+        <span style={{ color: 'var(--pkr-ink-text)' }}>Lv{p.level}</span>
+        <span style={{ color: 'var(--pkr-ink-dim)' }}> · </span>
         {needXp > 0 ? (
           <>
-            <span style={{ color: '#fde68a' }}>{needXp} XP</span>
-            <span style={{ color: '#64748b' }}> to Lv{p.level + 1}</span>
-            <span className="block text-[8px] font-bold" style={{ color: '#64748b' }}>
+            <span style={{ color: 'var(--pkr-ink-gold)' }}>{needXp} XP</span>
+            <span style={{ color: 'var(--pkr-ink-dim)' }}> to Lv{p.level + 1}</span>
+            <span className="block pkr-fine font-bold" style={{ color: 'var(--pkr-ink-dim)' }}>
               ({p.totalXp} / {nextLevelTotal} XP toward next level)
             </span>
           </>
@@ -58,7 +58,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
 
       {evoNext ? (
         <div
-          className="flex items-start gap-1.5 rounded-md border px-2 py-1.5 text-[9px] font-semibold leading-snug"
+          className="flex items-start gap-1.5 rounded-md border px-2 py-1.5 pkr-fine font-semibold leading-snug"
           style={{
             borderColor: 'rgba(192,132,252,0.4)',
             background: 'rgba(88,28,135,0.22)',
@@ -68,18 +68,18 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
           <GameIcon name="dna" size={12} className="mt-0.5 shrink-0" style={{ color: '#d8b4fe' }} />
           <span>
             Evolves into <strong style={{ color: '#faf5ff' }}>{evoNext.intoName}</strong> at level{' '}
-            <strong style={{ color: '#fde68a' }}>{evoNext.minLevel}</strong>.
+            <strong style={{ color: 'var(--pkr-ink-gold)' }}>{evoNext.minLevel}</strong>.
           </span>
         </div>
       ) : null}
 
-      <p className="text-[8px] font-semibold leading-snug" style={{ color: '#64748b' }}>
+      <p className="pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-dim)' }}>
         New moves from level-ups join your moveset; with four moves already known, the oldest slot is replaced. In Party you can re-equip from moves unlocked on this level-up path at your current level (or swap slots when full).
       </p>
 
       <div className="max-h-[min(40vh,220px)] space-y-1 overflow-y-auto pr-0.5">
         {pastRows.length > 0 ? (
-          <div className="text-[7px] font-black uppercase tracking-wide" style={{ color: '#64748b' }}>
+          <div className="pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-dim)' }}>
             Reached
           </div>
         ) : null}
@@ -94,26 +94,26 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
               style={{ background: 'rgba(0,0,0,0.12)' }}
             >
               <span
-                className="shrink-0 rounded px-1 py-px text-[8px] font-black tabular-nums"
+                className="shrink-0 rounded px-1 py-px pkr-fine font-black tabular-nums"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
-                  color: '#c3cde3',
+                  color: 'var(--pkr-ink-muted)',
                 }}
               >
                 L{row.level}
               </span>
-              <span className="truncate text-[9px] font-bold" style={{ color: '#f1f5f9' }}>
+              <span className="truncate pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
                 {mv.name}
               </span>
-              <span className="rounded border px-1 py-px text-[7px] font-bold uppercase" style={typePillStyle(mv.type)}>
+              <span className="rounded border px-1 py-px pkr-fine font-bold uppercase" style={typePillStyle(mv.type)}>
                 {mv.type}
               </span>
               <span
-                className="ml-auto shrink-0 rounded-full px-1.5 py-px text-[7px] font-black uppercase"
+                className="ml-auto shrink-0 rounded-full px-1.5 py-px pkr-fine font-black uppercase"
                 style={
                   st === 'known'
-                    ? { background: 'rgba(6,78,59,0.45)', color: '#6ee7b7' }
-                    : { background: 'rgba(255,255,255,0.06)', color: '#c3cde3' }
+                    ? { background: 'rgba(6,78,59,0.45)', color: 'var(--pkr-ink-success)' }
+                    : { background: 'rgba(255,255,255,0.06)', color: 'var(--pkr-ink-muted)' }
                 }
               >
                 {st === 'known' ? 'Known' : 'Passed'}
@@ -123,7 +123,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
         })}
 
         {upcomingShown.length > 0 ? (
-          <div className="mt-1 text-[7px] font-black uppercase tracking-wide" style={{ color: '#64748b' }}>
+          <div className="mt-1 pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-dim)' }}>
             Upcoming
           </div>
         ) : null}
@@ -137,19 +137,19 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
               style={{ background: 'rgba(120,53,15,0.15)' }}
             >
               <span
-                className="shrink-0 rounded px-1 py-px text-[8px] font-black tabular-nums"
-                style={{ background: 'rgba(251,191,36,0.15)', color: '#fde68a' }}
+                className="shrink-0 rounded px-1 py-px pkr-fine font-black tabular-nums"
+                style={{ background: 'rgba(251,191,36,0.15)', color: 'var(--pkr-ink-gold)' }}
               >
                 L{row.level}
               </span>
-              <span className="truncate text-[9px] font-bold" style={{ color: '#fef3c7' }}>
+              <span className="truncate pkr-fine font-bold" style={{ color: '#fef3c7' }}>
                 {mv.name}
               </span>
-              <span className="rounded border px-1 py-px text-[7px] font-bold uppercase" style={typePillStyle(mv.type)}>
+              <span className="rounded border px-1 py-px pkr-fine font-bold uppercase" style={typePillStyle(mv.type)}>
                 {mv.type}
               </span>
               <span
-                className="ml-auto shrink-0 rounded-full px-1.5 py-px text-[7px] font-black uppercase"
+                className="ml-auto shrink-0 rounded-full px-1.5 py-px pkr-fine font-black uppercase"
                 style={{ background: 'rgba(251,191,36,0.2)', color: '#fcd34d' }}
               >
                 Next
@@ -158,12 +158,12 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
           );
         })}
         {upcomingHidden > 0 ? (
-          <p className="py-0.5 text-center text-[8px] font-semibold" style={{ color: '#64748b' }}>
+          <p className="py-0.5 text-center pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-dim)' }}>
             +{upcomingHidden} more later learn…
           </p>
         ) : null}
         {milestones.length === 0 ? (
-          <p className="text-[9px] font-semibold" style={{ color: '#64748b' }}>
+          <p className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-dim)' }}>
             No learnset data for this species.
           </p>
         ) : null}

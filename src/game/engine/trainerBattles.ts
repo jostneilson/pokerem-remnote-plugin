@@ -1,10 +1,10 @@
-import { SPECIES_BY_DEX, SPECIES_LIST, STARTER_DEX_ALL } from '../data/species';
+import { SPECIES_BY_DEX } from '../data/species';
 import type { PokemonType } from '../data/species';
-import { getEffectiveness } from '../data/typeChart';
-import { computeCatchChance } from './encounters';
+import { catchTypeBonus, computeCatchChance } from './encounters';
+import { encounterBaseLevel, pickEverydaySpecies } from './speciesPool';
 import { battleStats, rollIVs } from './pokemonStats';
-import { movesetForBattle, getInitialMoves } from './moveLearn';
 import { MOVES } from '../data/moves';
+import { optimalMoveset } from './movesetOptimizer';
 import type {
   EncounterPokemon,
   OwnedPokemon,
@@ -127,7 +127,7 @@ const STANDARD_ARCHETYPES: TrainerArchetype[] = [
   },
   {
     id: 'rocket_grunt',
-    className: 'Team Rocket Grunt',
+    className: 'Team Rocket',
     themeTypes: ['Poison', 'Dark'],
     taunts: ['Hand over your rare candies!', 'Team Rocket always wins!'],
     defeatLines: ['Rocket retreats!', 'You\u2019ll regret this!'],
@@ -196,15 +196,6 @@ const ELITE_ARCHETYPES: TrainerArchetype[] = [
   },
 ];
 
-/** Rounded mean party level — same convention as wild encounters. */
-function averagePartyLevel(party: OwnedPokemon[]): number {
-  if (party.length === 0) return 5;
-  const sum = party.reduce((acc, p) => acc + (typeof p.level === 'number' && p.level > 0 ? p.level : 1), 0);
-  return Math.max(1, Math.min(MAX_ENEMY_LEVEL, Math.round(sum / party.length)));
-}
-
-const starterSet = new Set(STARTER_DEX_ALL as readonly number[]);
-
 function pickArchetype(tier: TrainerTier, rng: () => number): TrainerArchetype {
   const pool = tier === 'elite' ? ELITE_ARCHETYPES : STANDARD_ARCHETYPES;
   return pool[Math.floor(rng() * pool.length)] ?? pool[0]!;
@@ -226,7 +217,8 @@ function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): Train
   const lv = Math.max(1, Math.min(MAX_ENEMY_LEVEL, Math.floor(level)));
   const ivs = rollIVs(rng);
   const maxHp = battleStats({ dexNum, level: lv, ivs }).hp;
-  const moves = getInitialMoves(dexNum, lv);
+  // Trainers field the same best-four picks a player's Pokémon get.
+  const moves = optimalMoveset({ dexNum, level: lv, types: species.types, ivs });
   // Prefer at least one damaging move so trainer fights actually progress.
   const hasDamaging = moves.some((m) => (MOVES[m]?.power ?? 0) > 0);
   let finalMoves = moves;
@@ -246,40 +238,6 @@ function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): Train
   };
 }
 
-function eligibleSpeciesPool(
-  archetype: TrainerArchetype,
-  enabledGens: number[],
-  tier: TrainerTier,
-): number[] {
-  const genSet = new Set(enabledGens);
-  const themeSet = new Set(archetype.themeTypes);
-  const out: number[] = [];
-  for (const s of SPECIES_LIST) {
-    if (!genSet.has(s.generation)) continue;
-    if (starterSet.has(s.dexNum)) continue;
-    if (themeSet.size > 0) {
-      if (!s.types.some((t) => themeSet.has(t))) continue;
-    }
-    if (tier === 'standard') {
-      if (s.tier !== 'Common' && s.tier !== 'Baby') continue;
-    } else {
-      // Elite teams can include rarer mons but never legendaries / mythicals (kept distinct from wild legendaries).
-      if (s.tier === 'Legendary' || s.tier === 'Mythical') continue;
-    }
-    out.push(s.dexNum);
-  }
-  if (out.length === 0) {
-    // Fall back to enabled-gen non-starter Common species so generation always resolves.
-    for (const s of SPECIES_LIST) {
-      if (!genSet.has(s.generation)) continue;
-      if (starterSet.has(s.dexNum)) continue;
-      if (s.tier !== 'Common') continue;
-      out.push(s.dexNum);
-    }
-  }
-  return out;
-}
-
 interface GenerateTrainerOpts {
   tier: TrainerTier;
   enabledGens: number[];
@@ -292,26 +250,27 @@ export function generateTrainer({ tier, enabledGens, averageLevel, rng }: Genera
   enemies: TrainerEnemyMon[];
 } {
   const archetype = pickArchetype(tier, rng);
-  const pool = eligibleSpeciesPool(archetype, enabledGens.length > 0 ? enabledGens : [1], tier);
-  if (pool.length === 0) {
-    // Last-resort: use a Pidgey at base level so this never throws.
-    pool.push(16);
-  }
-
+  const gens = enabledGens.length > 0 ? enabledGens : [1];
   const baseLevel = Math.max(2, averageLevel + (tier === 'elite' ? 3 : 0));
   const enemies: TrainerEnemyMon[] = [];
+  const used = new Set<number>();
   for (let i = 0; i < 3; i++) {
     const skew =
       tier === 'elite'
         ? Math.floor(rng() * 3) // 0..2
         : Math.floor(rng() * 3) - 1; // -1..1
-    const lv = Math.max(2, Math.min(MAX_ENEMY_LEVEL, baseLevel + skew));
-    let dexNum = pool[Math.floor(rng() * pool.length)]!;
-    // Avoid all-same teams when the pool is large enough.
-    if (pool.length > 3 && enemies.some((e) => e.dexNum === dexNum)) {
-      const filtered = pool.filter((d) => !enemies.some((e) => e.dexNum === d));
-      if (filtered.length > 0) dexNum = filtered[Math.floor(rng() * filtered.length)]!;
-    }
+    // The ace (last slot) is a level above the rest, as in the main series.
+    const lv = Math.max(2, Math.min(MAX_ENEMY_LEVEL, baseLevel + skew + (i === 2 ? 1 : 0)));
+    // Same species rules as the wild: nothing below the level it evolves at, rarer species less often.
+    const dexNum = pickEverydaySpecies({
+      level: lv,
+      enabledGens: gens,
+      rng,
+      requireTypes: archetype.themeTypes,
+      exclude: used,
+      includeStarters: false,
+    });
+    used.add(dexNum);
     const built = buildEnemyForDex(dexNum, { level: lv, rng });
     if (built) enemies.push(built);
   }
@@ -386,17 +345,8 @@ export function trainerCatchChance(
   const ballBonus = ball === 'ultra-ball' ? 0.4 : ball === 'great-ball' ? 0.2 : 0;
   const tierBonus = TRAINER_CATCH_BONUS[tier];
   const baseCatchRate = SPECIES_BY_DEX.get(enemy.dexNum)?.baseCatchRate;
-  let typeBonus = 0;
-  if (active && enemy.types.length > 0) {
-    for (const aType of active.types) {
-      if (getEffectiveness(aType, enemy.types) >= 2) {
-        typeBonus = 0.1;
-        break;
-      }
-    }
-  }
   const hpRatio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
-  return computeCatchChance(ballBonus + tierBonus + typeBonus, baseCatchRate, hpRatio);
+  return computeCatchChance(ballBonus + tierBonus + catchTypeBonus(active, enemy.types), baseCatchRate, hpRatio);
 }
 
 /** Convert a trainer enemy slot into a spawnable {@link EncounterPokemon} after a successful catch. */
@@ -412,9 +362,9 @@ export function trainerEnemyAsEncounter(enemy: TrainerEnemyMon): EncounterPokemo
   };
 }
 
-/** Average level helper exported so reducers can call without re-importing encounters. */
+/** Party level trainer teams scale from — the same rule as wild encounters. */
 export function averageOwnedPartyLevel(party: OwnedPokemon[]): number {
-  return averagePartyLevel(party);
+  return Math.min(MAX_ENEMY_LEVEL, encounterBaseLevel(party));
 }
 
 /**

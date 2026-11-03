@@ -30,6 +30,9 @@ interface Props {
   onDismissCatchOffer: () => void;
   onBuyBall: (id: 'poke-ball' | 'great-ball' | 'ultra-ball', price: number) => void;
   onClose: () => void;
+  /** Heal at the Center and fight the same trainer again (post-loss only). */
+  onRematch?: () => void;
+  rematchCost?: number;
   ballPrices: BallPrice[];
 }
 
@@ -39,14 +42,14 @@ const TIER_ACCENT: Record<
 > = {
   standard: {
     glow: 'rgba(96,165,250,0.45)',
-    ribbon: 'linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%)',
+    ribbon: 'linear-gradient(180deg, #2b3561 0%, #1c2341 100%)',
     label: 'Trainer',
     accent: '#93c5fd',
     pillFill: 'linear-gradient(180deg,#93c5fd 0%,#3b82f6 55%,#1e3a8a 100%)',
   },
   elite: {
     glow: 'rgba(192,132,252,0.55)',
-    ribbon: 'linear-gradient(180deg, #6d28d9 0%, #4c1d95 100%)',
+    ribbon: 'linear-gradient(180deg, #3a2a63 0%, #231a3e 100%)',
     label: 'Elite Trainer',
     accent: '#c084fc',
     pillFill: 'linear-gradient(180deg,#e9d5ff 0%,#a855f7 55%,#6d28d9 100%)',
@@ -126,8 +129,8 @@ function LineupIcon({
       {defeated ? (
         <span
           aria-hidden
-          className="absolute inset-0 grid place-items-center text-[7px] font-black"
-          style={{ color: '#fca5a5', textShadow: '1px 1px 0 rgba(0,0,0,0.8)' }}
+          className="absolute inset-0 grid place-items-center pkr-fine font-black"
+          style={{ color: 'var(--pkr-ink-danger)', textShadow: '1px 1px 0 rgba(0,0,0,0.8)' }}
         >
           ×
         </span>
@@ -185,8 +188,8 @@ function LineupStrip({
 
       <span
         aria-hidden
-        className="pkr-pixel-title text-[8px] font-black"
-        style={{ color: '#fde68a', textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}
+        className="pkr-pixel-title pkr-fine font-black"
+        style={{ color: 'var(--pkr-ink-gold)', textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}
       >
         VS
       </span>
@@ -213,7 +216,7 @@ function LineupStrip({
           {Array.from({ length: Math.max(0, 3 - selectedMons.length) }).map((_, i) => (
             <div
               key={`empty-${i}`}
-              className="grid place-items-center rounded-full text-[9px]"
+              className="grid place-items-center rounded-full pkr-fine"
               style={{
                 width: 40,
                 height: 40,
@@ -243,7 +246,7 @@ function TrainerHudPlate({
   const ratio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute right-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-right"
+      className="pkr-battle-hud pkr-battle-hud--compact absolute left-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
       style={{
         borderColor: `${accent}55`,
         boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px ${glow}`,
@@ -253,17 +256,17 @@ function TrainerHudPlate({
         Trainer
       </div>
       <div
-        className="line-clamp-1 text-[8px] font-black leading-tight sm:text-[9px]"
+        className="line-clamp-1 pkr-fine font-black leading-tight"
         style={{ color: 'white' }}
       >
         {enemy.name}{' '}
-        <span className="whitespace-nowrap font-bold" style={{ color: '#fca5a5' }}>
+        <span className="whitespace-nowrap font-bold" style={{ color: 'var(--pkr-ink-danger)' }}>
           Lv{enemy.level}
         </span>
       </div>
       <div className="mt-0.5 flex flex-row-reverse items-center gap-1">
         <span
-          className="shrink-0 text-[7px] font-bold tabular-nums leading-none sm:text-[8px]"
+          className="shrink-0 pkr-fine font-bold tabular-nums leading-none"
           style={{ color: hpColorTokens(ratio).text }}
         >
           {Math.max(0, Math.floor(enemy.currentHp))}/{Math.floor(enemy.maxHp)}
@@ -280,7 +283,7 @@ function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
   const ratio = mon.maxHp > 0 ? mon.currentHp / mon.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute left-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
+      className="pkr-battle-hud pkr-battle-hud--compact absolute bottom-1.5 right-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
       style={{
         borderColor: 'rgba(96,165,250,0.45)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px rgba(96,165,250,0.25)',
@@ -290,7 +293,7 @@ function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
         You
       </div>
       <div
-        className="line-clamp-1 text-[8px] font-black leading-tight sm:text-[9px]"
+        className="line-clamp-1 pkr-fine font-black leading-tight"
         style={{ color: 'white' }}
       >
         {mon.nickname || mon.name}{' '}
@@ -303,7 +306,7 @@ function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
           <HpMeter hp={mon.currentHp} max={mon.maxHp} height={4} />
         </div>
         <span
-          className="shrink-0 text-[7px] font-bold tabular-nums leading-none sm:text-[8px]"
+          className="shrink-0 pkr-fine font-bold tabular-nums leading-none"
           style={{ color: hpColorTokens(ratio).text }}
         >
           {Math.max(0, Math.floor(mon.currentHp))}/{Math.floor(mon.maxHp)}
@@ -348,17 +351,17 @@ function EnemyCard({
         {isKO ? (
           <div
             aria-hidden
-            className="absolute inset-0 flex items-center justify-center text-[10px] font-black"
-            style={{ color: '#fca5a5', textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}
+            className="absolute inset-0 flex items-center justify-center pkr-fine font-black"
+            style={{ color: 'var(--pkr-ink-danger)', textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}
           >
             KO
           </div>
         ) : null}
       </div>
-      <div className="text-[10px] font-bold text-center" style={{ color: '#f8fafc' }}>
+      <div className="pkr-fine font-bold text-center" style={{ color: 'var(--pkr-ink-bright)' }}>
         {enemy.name}
       </div>
-      <div className="text-[9px]" style={{ color: '#cbd5e1' }}>
+      <div className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
         Lv {enemy.level}
       </div>
       <div className="w-full">
@@ -406,21 +409,21 @@ function PartyPickRow({
       />
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold" style={{ color: '#f1f5f9' }}>
+          <span className="pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
             {mon.nickname || mon.name}
           </span>
-          <span className="text-[10px]" style={{ color: '#cbd5e1' }}>
+          <span className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
             Lv {mon.level}
           </span>
         </div>
         <HpMeter hp={mon.currentHp} max={mon.maxHp} />
-        <div className="text-[9px]" style={{ color: fainted ? '#fca5a5' : '#c3cde3' }}>
+        <div className="pkr-fine" style={{ color: fainted ? '#fca5a5' : '#c3cde3' }}>
           {fainted ? 'Fainted — heal in Bag before selecting' : `${mon.currentHp} / ${mon.maxHp} HP`}
         </div>
       </div>
       <div
         aria-hidden
-        className="grid h-6 w-6 place-items-center rounded-full text-[10px] font-black"
+        className="grid h-6 w-6 place-items-center rounded-full pkr-fine font-black"
         style={{
           background: selected ? '#fde68a' : 'rgba(148,163,184,0.25)',
           color: selected ? '#1e1b4b' : '#c3cde3',
@@ -447,36 +450,38 @@ function TrainerHeader({
       className={`flex flex-col gap-1 rounded-md ${battle.tier === 'elite' ? 'pkr-trainer-elite' : ''}`}
       style={{
         background: accent.ribbon,
-        boxShadow: `0 0 18px ${accent.glow}`,
-        border: '1px solid rgba(255,255,255,0.15)',
+        // Palette panel with the tier colour as a left stripe and edge, instead of a glossy colour block.
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 0 rgba(0,0,0,0.35), 0 0 10px ${accent.glow.replace(/[\d.]+\)$/, '0.18)')}`,
+        border: `2px solid ${accent.accent}73`,
+        borderLeft: `5px solid ${accent.accent}`,
         padding: compact ? '8px 10px' : '12px',
       }}
     >
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#fde68a' }}>
+          <div className="pkr-fine font-bold uppercase tracking-widest" style={{ color: accent.accent }}>
             {accent.label}
           </div>
-          <div className={`font-black ${compact ? 'text-[11px]' : 'text-[12px]'}`} style={{ color: '#f8fafc' }}>
+          <div className={`font-black ${compact ? 'pkr-fine' : 'text-[12px]'}`} style={{ color: 'var(--pkr-ink-bright)' }}>
             {battle.trainer.className}
             {battle.trainer.displayName ? ` ${battle.trainer.displayName}` : ''}
           </div>
         </div>
-        <div className="text-right text-[9px]" style={{ color: '#e0e7ff' }}>
+        <div className="text-right pkr-fine" style={{ color: '#e0e7ff' }}>
           Trainer wins
           <br />
-          <span className="text-[12px] font-black" style={{ color: '#fde68a' }}>
+          <span className="text-[12px] font-black" style={{ color: 'var(--pkr-ink-gold)' }}>
             {state.trainerBattleStats?.totalWon ?? 0}
           </span>
         </div>
       </div>
       {!compact && (battle.phase === 'team_select' || battle.phase === 'active') ? (
-        <p className="text-[10px] italic" style={{ color: '#e0e7ff' }}>
+        <p className="pkr-fine italic" style={{ color: '#e0e7ff' }}>
           “{battle.trainer.taunt}”
         </p>
       ) : null}
       {battle.lastLog ? (
-        <p className="text-[10px] font-semibold" style={{ color: '#fde68a' }}>
+        <p className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-gold)' }}>
           {battle.lastLog}
         </p>
       ) : null}
@@ -495,11 +500,20 @@ export function TrainerBattleSurface({
   onDismissCatchOffer,
   onBuyBall,
   onClose,
+  onRematch,
+  rematchCost = 0,
   ballPrices,
 }: Props) {
   const {state, phase: motionPhase, animating} = useTrainerPresentation(committedState, reducedMotion);
   const battle = state.currentTrainerBattle;
-  const [picked, setPicked] = useState<string[]>([]);
+  // Your three strongest healthy Pokémon start selected, so locking in is one tap.
+  const [picked, setPicked] = useState<string[]>(() =>
+    committedState.party
+      .filter((p) => p.currentHp > 0)
+      .sort((a, b) => b.level - a.level || b.currentHp - a.currentHp)
+      .slice(0, 3)
+      .map((p) => p.id)
+  );
   const [chosenCatchIndex, setChosenCatchIndex] = useState<number | null>(null);
   const [catchBall, setCatchBall] = useState<'poke-ball' | 'great-ball' | 'ultra-ball'>('poke-ball');
 
@@ -523,7 +537,6 @@ export function TrainerBattleSurface({
       });
     };
     const canLock = picked.length > 0 && picked.length >= Math.min(3, battleReadyParty.length);
-    const autoFillNeeded = picked.length < 3 && battleReadyParty.length >= 3;
 
     return (
       <div className="flex flex-col gap-3 p-2">
@@ -544,14 +557,14 @@ export function TrainerBattleSurface({
 
         <div className="rounded-md border p-2" style={{ borderColor: 'rgba(148,163,184,0.35)' }}>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#e2e8f0' }}>
+            <span className="pkr-fine font-black uppercase tracking-wider" style={{ color: 'var(--pkr-ink-text)' }}>
               Pick {Math.min(3, battleReadyParty.length) || 3} Pokémon
             </span>
-            <span className="text-[10px]" style={{ color: '#c3cde3' }}>
+            <span className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
               {picked.length}/{Math.min(3, battleReadyParty.length) || 3} selected
             </span>
           </div>
-          <p className="mb-2 text-[10px]" style={{ color: '#cbd5e1' }}>
+          <p className="mb-2 pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
             Locked in once the battle starts. No switching, healing, or items mid-battle.
           </p>
           <div className="flex flex-col gap-1.5">
@@ -570,7 +583,7 @@ export function TrainerBattleSurface({
         </div>
 
         {battleReadyParty.length === 0 ? (
-          <p className="rounded-md p-2 text-center text-[10px] font-bold" style={{ background: 'rgba(127,29,29,0.4)', color: '#fecaca' }}>
+          <p className="rounded-md p-2 text-center pkr-fine font-bold" style={{ background: 'rgba(127,29,29,0.4)', color: '#fecaca' }}>
             All your Pokémon are fainted. Return to studying, then revive one in Bag before the next challenge.
           </p>
         ) : null}
@@ -652,7 +665,7 @@ export function TrainerBattleSurface({
           {moves.length === 0 ? (
             <button
               type="button"
-              className="pkr-game-btn col-span-2 rounded-md py-2 text-[11px] font-black"
+              className="pkr-game-btn col-span-2 rounded-md py-2 pkr-fine font-black"
               disabled={busy || animating}
               onClick={() => onCombatTurn()}
             >
@@ -670,10 +683,10 @@ export function TrainerBattleSurface({
                   onClick={() => onCombatTurn(mid)}
                   title={m?.name ?? mid}
                 >
-                  <div className="text-[10px] font-black" style={{ color: '#f1f5f9' }}>
+                  <div className="pkr-fine font-black" style={{ color: '#f1f5f9' }}>
                     {m?.name ?? mid}
                   </div>
-                  <div className="text-[9px]" style={{ color: '#c3cde3' }}>
+                  <div className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
                     {m ? `${m.type} · ${m.power > 0 ? `${m.power} PWR` : 'Status'}` : ''}
                   </div>
                 </button>
@@ -683,7 +696,7 @@ export function TrainerBattleSurface({
         </div>
 
         <div className="pkr-trainer-log" role="status" aria-live="polite"><span key={battle.feedbackSeq}>{animating ? 'Exchanging attacks…' : battle.lastLog || 'Choose a move. Your team is ready.'}</span></div>
-        <p className="text-center text-[9px] italic" style={{ color: '#c3cde3' }}>
+        <p className="text-center pkr-fine italic" style={{ color: 'var(--pkr-ink-muted)' }}>
           No switching, healing, or items during a trainer battle.
         </p>
       </div>
@@ -725,11 +738,11 @@ export function TrainerBattleSurface({
               border: '1px solid rgba(253,224,71,0.5)',
             }}
           >
-            <div className="text-[12px] font-black" style={{ color: '#fde68a' }}>
+            <div className="text-[12px] font-black" style={{ color: 'var(--pkr-ink-gold)' }}>
               {reward.headline}
             </div>
-            <div className="flex flex-wrap gap-2 text-[10px]" style={{ color: '#f8fafc' }}>
-              <span className="rounded bg-black/30 px-2 py-1">+{reward.coins} ¢</span>
+            <div className="flex flex-wrap gap-2 pkr-fine" style={{ color: 'var(--pkr-ink-bright)' }}>
+              <span className="rounded bg-black/30 px-2 py-1">+₽{reward.coins}</span>
               <span className="rounded bg-black/30 px-2 py-1">+{reward.trainerXp} TR XP</span>
               {Object.entries(reward.items).map(([id, qty]) => (
                 <span key={id} className="rounded bg-black/30 px-2 py-1">
@@ -737,7 +750,7 @@ export function TrainerBattleSurface({
                 </span>
               ))}
               {reward.xpDoublerTier ? (
-                <span className="rounded bg-yellow-500/20 px-2 py-1 font-black" style={{ color: '#fde68a' }}>
+                <span className="rounded bg-yellow-500/20 px-2 py-1 font-black" style={{ color: 'var(--pkr-ink-gold)' }}>
                   +1× XP Doubler ({reward.xpDoublerTier})
                 </span>
               ) : null}
@@ -752,16 +765,16 @@ export function TrainerBattleSurface({
           >
             <div className="flex items-center justify-between">
               <span
-                className="text-[10px] font-black uppercase tracking-wider"
-                style={{ color: '#e2e8f0' }}
+                className="pkr-fine font-black uppercase tracking-wider"
+                style={{ color: 'var(--pkr-ink-text)' }}
               >
                 Catch one Pokémon
               </span>
-              <span className="text-[9px] font-bold tabular-nums" style={{ color: '#fde68a' }}>
-                Coins: {currency}¢
+              <span className="pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-gold)' }}>
+                Coins: ₽{currency}
               </span>
             </div>
-            <p className="text-[10px]" style={{ color: '#c3cde3' }}>
+            <p className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
               Keep throwing balls until you catch one, run out of balls, or walk away.
             </p>
 
@@ -783,10 +796,10 @@ export function TrainerBattleSurface({
                     size={48}
                     reducedMotion={reducedMotion}
                   />
-                  <span className="text-[10px] font-bold" style={{ color: '#f8fafc' }}>
+                  <span className="pkr-fine font-bold" style={{ color: 'var(--pkr-ink-bright)' }}>
                     {e.name}
                   </span>
-                  <span className="text-[9px]" style={{ color: '#cbd5e1' }}>
+                  <span className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
                     Lv {e.level}
                   </span>
                 </button>
@@ -805,7 +818,7 @@ export function TrainerBattleSurface({
                     type="button"
                     disabled={count <= 0 || !unlocked}
                     onClick={() => setCatchBall(b)}
-                    className="pkr-game-btn flex items-center gap-1 rounded-md p-1.5 text-[10px] font-bold"
+                    className="pkr-game-btn flex items-center gap-1 rounded-md p-1.5 pkr-fine font-bold"
                     style={{
                       background: selected ? 'rgba(253,224,71,0.2)' : 'rgba(15,23,42,0.4)',
                       border: selected ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
@@ -820,12 +833,12 @@ export function TrainerBattleSurface({
                       alt={b}
                       style={{ imageRendering: 'pixelated' }}
                     />
-                    <span style={{ color: '#f8fafc' }}>×{count}</span>
+                    <span style={{ color: 'var(--pkr-ink-bright)' }}>×{count}</span>
                   </button>
                 );
               })}
               {previewChance != null && catchBallCount > 0 ? (
-                <span className="ml-auto text-[10px] font-black" style={{ color: '#fde68a' }}>
+                <span className="ml-auto pkr-fine font-black" style={{ color: 'var(--pkr-ink-gold)' }}>
                   ~{previewChance}% chance
                 </span>
               ) : null}
@@ -840,8 +853,8 @@ export function TrainerBattleSurface({
               }}
             >
               <span
-                className="text-[8px] font-black uppercase tracking-widest"
-                style={{ color: '#c3cde3' }}
+                className="pkr-fine font-black uppercase tracking-widest"
+                style={{ color: 'var(--pkr-ink-muted)' }}
               >
                 Buy
               </span>
@@ -854,7 +867,7 @@ export function TrainerBattleSurface({
                     type="button"
                     disabled={disabled}
                     onClick={() => onBuyBall(b.id, b.price)}
-                    className="pkr-game-btn flex items-center gap-1 rounded-md p-1 text-[9px] font-bold"
+                    className="pkr-game-btn flex items-center gap-1 rounded-md p-1 pkr-fine font-bold"
                     style={{
                       background: disabled ? 'rgba(71,85,105,0.3)' : 'rgba(15,23,42,0.6)',
                       border: '1px solid rgba(148,163,184,0.35)',
@@ -864,8 +877,8 @@ export function TrainerBattleSurface({
                       !b.unlocked
                         ? 'Locked — level up trainer to unlock'
                         : !canAfford
-                        ? `Need ${b.price}¢ (have ${currency}¢)`
-                        : `Buy ${b.id.replace(/-/g, ' ')} for ${b.price}¢`
+                        ? `Need ₽${b.price} (have ₽${currency})`
+                        : `Buy ${b.id.replace(/-/g, ' ')} for ₽${b.price}`
                     }
                   >
                     <img
@@ -875,7 +888,7 @@ export function TrainerBattleSurface({
                       alt={b.id}
                       style={{ imageRendering: 'pixelated', opacity: disabled ? 0.6 : 1 }}
                     />
-                    <span style={{ color: '#fde68a' }}>{b.price}¢</span>
+                    <span style={{ color: 'var(--pkr-ink-gold)' }}>₽{b.price}</span>
                   </button>
                 );
               })}
@@ -885,7 +898,7 @@ export function TrainerBattleSurface({
             <div className="flex gap-2">
               <button
                 type="button"
-                className="pkr-btn-gold flex-1 rounded-md py-2 text-[11px] font-black"
+                className="pkr-btn-gold flex-1 rounded-md py-2 pkr-fine font-black"
                 disabled={chosenCatchIndex == null || catchBallCount <= 0}
                 onClick={() => {
                   if (chosenCatchIndex == null) return;
@@ -900,7 +913,7 @@ export function TrainerBattleSurface({
               </button>
               <button
                 type="button"
-                className="pkr-game-btn shrink-0 rounded-md px-3 py-2 text-[10px] font-bold"
+                className="pkr-game-btn shrink-0 rounded-md px-3 py-2 pkr-fine font-bold"
                 onClick={onDismissCatchOffer}
                 title="Give up the catch attempt and return to studying"
               >
@@ -910,7 +923,7 @@ export function TrainerBattleSurface({
 
             {noMoreTries ? (
               <p
-                className="rounded-md p-2 text-center text-[9px] font-bold"
+                className="rounded-md p-2 text-center pkr-fine font-bold"
                 style={{ background: 'rgba(127,29,29,0.35)', color: '#fecaca' }}
               >
                 Out of balls and coins — the trainer's Pokémon got away. Walk away to end the battle.
@@ -938,16 +951,27 @@ export function TrainerBattleSurface({
         className="flex flex-col items-center gap-2 rounded-md p-3 text-center"
         style={{ background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(248,113,113,0.4)' }}
       >
-        <div className="text-[12px] font-black" style={{ color: '#fca5a5' }}>
+        <div className="text-[12px] font-black" style={{ color: 'var(--pkr-ink-danger)' }}>
           Defeated by {battle.trainer.className}
         </div>
-        <p className="text-[10px]" style={{ color: '#cbd5e1' }}>
+        <p className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
           “{battle.trainer.victoryLine}”
         </p>
-        <p className="text-[10px]" style={{ color: '#c3cde3' }}>
-          Heal up your party in Bag and try again next time. Your collection and progress are safe.
+        <p className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
+          Heal up and try again. Your collection and progress are safe.
         </p>
       </div>
+      {onRematch ? (
+        <button
+          type="button"
+          className="pkr-btn-primary w-full rounded-md py-2 pkr-fine font-black"
+          disabled={(state.currency ?? 0) < rematchCost}
+          title={(state.currency ?? 0) < rematchCost ? 'Not enough coins to heal for a rematch' : undefined}
+          onClick={onRematch}
+        >
+          {rematchCost > 0 ? `Heal & rematch · ₽${rematchCost.toLocaleString()}` : 'Rematch'}
+        </button>
+      ) : null}
       <button
         type="button"
         className="pkr-btn-gold w-full rounded-md py-2 text-[12px] font-black"

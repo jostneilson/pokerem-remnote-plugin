@@ -5,7 +5,7 @@ export type StudyDifficultyPreset = 'easy' | 'medium' | 'hard' | 'custom';
 /** Presets tune how many reviews you need per wild encounter vs how much trainer XP each review grants. */
 export const STUDY_PRESET_DEFAULTS: Record<Exclude<StudyDifficultyPreset, 'custom'>, { reviews: number; weight: number }> = {
   /** More wild encounters per study session; slightly higher XP per review. */
-  easy: { reviews: 3, weight: 1.12 },
+  easy: { reviews: 2, weight: 1.12 },
   /** Balanced — matches classic pacing. */
   medium: { reviews: REVIEWS_PER_ENCOUNTER, weight: 1 },
   /** Fewer wilds per study block; lower XP per review — you need more flashcards overall to progress. */

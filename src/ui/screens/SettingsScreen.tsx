@@ -17,7 +17,6 @@ interface SettingsState {
   autoClearLog: boolean;
   reducedMotion: boolean;
   encounterPacing: string;
-  reviewProgress: string;
   featureQueueStrip: boolean;
   featureEncounterFloatingPopup: boolean;
   showDailyHeaderStats: boolean;
@@ -50,7 +49,6 @@ export function SettingsScreen({
     autoClearLog: true,
     reducedMotion: false,
     encounterPacing: 'every_review',
-    reviewProgress: 'full',
     featureQueueStrip: true,
     featureEncounterFloatingPopup: true,
     showDailyHeaderStats: true,
@@ -64,11 +62,10 @@ export function SettingsScreen({
 
   useEffect(() => {
     (async () => {
-      const [acl, rm, ep, rq, fq, ff, dh] = await Promise.all([
+      const [acl, rm, ep, fq, ff, dh] = await Promise.all([
         plugin.settings.getSetting<boolean>('pokerem.autoClearLog'),
         plugin.settings.getSetting<boolean>('pokerem.reducedMotion'),
         plugin.settings.getSetting<string>('pokerem.encounterPacing'),
-        plugin.settings.getSetting<string>('pokerem.reviewProgress'),
         plugin.settings.getSetting<boolean>('pokerem.feature.queueStrip'),
         plugin.settings.getSetting<boolean>('pokerem.feature.encounterFloatingPopup'),
         plugin.settings.getSetting<boolean>('pokerem.ui.showDailyHeaderStats'),
@@ -77,7 +74,6 @@ export function SettingsScreen({
         autoClearLog: acl ?? true,
         reducedMotion: rm ?? false,
         encounterPacing: ep || 'every_review',
-        reviewProgress: rq || 'full',
         featureQueueStrip: fq !== false,
         featureEncounterFloatingPopup: ff !== false,
         showDailyHeaderStats: dh !== false,
@@ -105,7 +101,7 @@ export function SettingsScreen({
   if (!loaded) {
     return (
       <Panel title="Settings" icon={<GameIcon name="gear" size={14} />}>
-        <p className="text-xs font-semibold" style={{ color: '#c3cde3' }}>
+        <p className="pkr-copy font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
           Loading…
         </p>
       </Panel>
@@ -114,8 +110,6 @@ export function SettingsScreen({
 
   const pacingLabel =
     settings.encounterPacing === 'every_2_reviews' ? 'Every 2 reviews' : 'Every review';
-  const rewardLabel =
-    settings.reviewProgress === 'half' ? '50%' : settings.reviewProgress === 'light' ? '75%' : '100%';
 
   const battleActions = [
     {
@@ -145,16 +139,16 @@ export function SettingsScreen({
         <button type="button" className="pkr-game-btn w-full p-3 text-left" aria-pressed={compact} onClick={onToggleCompact}>
           Compact view: {compact ? 'On' : 'Off'}
         </button>
-        <p className="mt-2 text-sm">Hide the wild arena for more study space. Battle controls stay available.</p>
+        <p className="mt-2 pkr-lead">Hide the wild arena for more study space. Battle controls stay available.</p>
       </Panel> : null}
       <div className="pkr-settings-hero">
-        <div className="pkr-pixel-title text-[6px] font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+        <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
           Configuration
         </div>
-        <h1 className="mt-1 text-sm font-black tracking-tight" style={{ color: '#f8fafc' }}>
+        <h1 className="mt-1 pkr-lead font-black tracking-tight" style={{ color: 'var(--pkr-ink-bright)' }}>
           Settings
         </h1>
-        <p className="mt-1 max-w-xl text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
+        <p className="mt-1 max-w-xl pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-muted)' }}>
           Control how {BRAND.wordmark} reacts while you review. Most options are edited in RemNote&apos;s plugin settings; this screen shows
           current values and explains how things fit together.
         </p>
@@ -165,33 +159,33 @@ export function SettingsScreen({
       </div>
 
       <Panel collapsible title="Recommended workflow" icon={<GameIcon name="book" size={14} />}>
-        <ol className="pkr-settings-workflow-list space-y-2 text-[10px] font-semibold leading-snug" style={{ color: '#cbd5e1' }}>
+        <ol className="pkr-settings-workflow-list space-y-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-soft)' }}>
           <li>
-            <span className="font-black text-amber-200">1.</span> Open the <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong>{' '}
+            <span className="font-black text-amber-200">1.</span> Open the <strong style={{ color: 'var(--pkr-ink-text)' }}>{BRAND.wordmark}</strong>{' '}
             sidebar tab while studying (or use the queue strip if your layout shows it).
           </li>
           <li>
             <span className="font-black text-amber-200">2.</span> Review flashcards as usual — coins, trainer XP, wild progress, and (when you
-            hit milestones) claim achievement rewards on the Progress tab (see Behavior below).
+            hit milestones) claim achievement rewards on the Trainer screen (see Behavior below).
           </li>
           <li>
-            <span className="font-black text-amber-200">3.</span> When a wild appears, use the <strong style={{ color: '#e2e8f0' }}>Catch</strong>,{' '}
-            <strong style={{ color: '#e2e8f0' }}>Fight</strong>, and <strong style={{ color: '#e2e8f0' }}>Run</strong> buttons in the sidebar (or
+            <span className="font-black text-amber-200">3.</span> When a wild appears, use the <strong style={{ color: 'var(--pkr-ink-text)' }}>Catch</strong>,{' '}
+            <strong style={{ color: 'var(--pkr-ink-text)' }}>Fight</strong>, and <strong style={{ color: 'var(--pkr-ink-text)' }}>Run</strong> buttons in the sidebar (or
             the queue strip when it&apos;s visible).
           </li>
           <li>
             <span className="font-black text-amber-200">4.</span> From anywhere in the queue, you can also run{' '}
-            <strong style={{ color: '#fde68a' }}>RemNote commands</strong> ({brandCommandCaps('Catch')} / {brandCommandCaps('Fight')} /{' '}
+            <strong style={{ color: 'var(--pkr-ink-gold)' }}>RemNote commands</strong> ({brandCommandCaps('Catch')} / {brandCommandCaps('Fight')} /{' '}
             {brandCommandCaps('Run')}) or use the queue menu — no need to focus the plugin first.
           </li>
         </ol>
       </Panel>
 
       <Panel collapsible title="Battle controls" icon={<GameIcon name="gear" size={14} />}>
-        <p className="mb-3 text-[10px] font-semibold leading-relaxed" style={{ color: '#c3cde3' }}>
-          Wild encounters are meant to be handled with <strong style={{ color: '#e2e8f0' }}>on-screen buttons</strong> in the sidebar (and the
-          queue strip when RemNote shows it), plus <strong style={{ color: '#e2e8f0' }}>RemNote commands</strong> and the review{' '}
-          <strong style={{ color: '#e2e8f0' }}>queue menu</strong> when you want the same actions without clicking the plugin.
+        <p className="mb-3 pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-muted)' }}>
+          Wild encounters are meant to be handled with <strong style={{ color: 'var(--pkr-ink-text)' }}>on-screen buttons</strong> in the sidebar (and the
+          queue strip when RemNote shows it), plus <strong style={{ color: 'var(--pkr-ink-text)' }}>RemNote commands</strong> and the review{' '}
+          <strong style={{ color: 'var(--pkr-ink-text)' }}>queue menu</strong> when you want the same actions without clicking the plugin.
         </p>
 
         <div className="pkr-settings-keymap">
@@ -201,13 +195,13 @@ export function SettingsScreen({
                 <GameIcon name={row.icon} size={18} style={{ color: row.action === 'Catch' ? '#451a03' : row.action === 'Fight' ? '#fff' : '#042f2e' }} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-black" style={{ color: '#f1f5f9' }}>
+                <div className="pkr-fine font-black" style={{ color: '#f1f5f9' }}>
                   {row.action}
                 </div>
-                <div className="text-[8px] font-semibold leading-tight" style={{ color: '#c3cde3' }}>
+                <div className="pkr-fine font-semibold leading-tight" style={{ color: 'var(--pkr-ink-muted)' }}>
                   {row.line}
                 </div>
-                <div className="mt-1.5 text-[8px] font-bold" style={{ color: '#a5b4fc' }}>
+                <div className="mt-1.5 pkr-fine font-bold" style={{ color: '#a5b4fc' }}>
                   Command palette: <span style={{ color: '#e0e7ff' }}>{row.cmd}</span>
                 </div>
               </div>
@@ -215,38 +209,37 @@ export function SettingsScreen({
           ))}
         </div>
 
-        <p className="mt-3 text-[9px] leading-relaxed" style={{ color: '#c3cde3' }}>
-          Feature toggles and study pacing live in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-3 pkr-fine leading-relaxed" style={{ color: 'var(--pkr-ink-muted)' }}>
+          Feature toggles and study pacing live in <strong style={{ color: 'var(--pkr-ink-muted)' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
       <Panel collapsible title="Behavior" icon={<GameIcon name="shield" size={14} />}>
         <div className="space-y-2">
           <StatChip label="Auto-clear battle log" value={settings.autoClearLog ? 'On' : 'Off'} on={settings.autoClearLog} />
-          <p className="text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
+          <p className="pkr-fine leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
             Clears the battle log after each completed card when no encounter is active (matches plugin setting).
           </p>
-          <StatChip label="Wild encounter pacing" value={pacingLabel} variant="info" />
-          <StatChip label="Review rewards intensity" value={rewardLabel} variant="info" />
-          <p className="text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
-            Scales Pokécoins, trainer XP, and (on pacing ticks) progress toward wild Pokémon. RemNote does not expose per-card grades to
-            plugins yet — this knob stands in for study intensity.
+          <StatChip label="Extra wild slowdown" value={pacingLabel} variant="info" />
+          <p className="pkr-fine leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
+            Study difficulty (below) sets how many reviews bring a wild Pokémon and how much each card is worth. The RemNote setting
+            &ldquo;Extra wild slowdown&rdquo; can halve encounters on top of that.
           </p>
           <StatChip label="Reduced motion" value={settings.reducedMotion ? 'On' : 'Off'} on={settings.reducedMotion} />
         </div>
-        <p className="mt-2 text-[9px]" style={{ color: '#c3cde3' }}>
-          Change in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-2 pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
+          Change in <strong style={{ color: 'var(--pkr-ink-muted)' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
       {studyProfile && onConfigureStudy ? (
-        <Panel collapsible title="Study difficulty" icon={<GameIcon name="book" size={14} style={{ color: '#fde68a' }} />}>
-          <p className="mb-2 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
-            When configured here, your save uses these values for <strong style={{ color: '#e2e8f0' }}>reviews per wild</strong> and{' '}
-            <strong style={{ color: '#e2e8f0' }}>card XP intensity</strong> instead of RemNote&apos;s encounter rate / review intensity
+        <Panel collapsible title="Study difficulty" icon={<GameIcon name="book" size={14} style={{ color: 'var(--pkr-ink-gold)' }} />}>
+          <p className="mb-2 pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-soft)' }}>
+            When configured here, your save uses these values for <strong style={{ color: 'var(--pkr-ink-text)' }}>reviews per wild</strong> and{' '}
+            <strong style={{ color: 'var(--pkr-ink-text)' }}>card XP intensity</strong> instead of RemNote&apos;s encounter rate / review intensity
             plugin settings. This matches the first-run picker and stays synced with your KB.
           </p>
-          <div className="mb-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-[9px] font-bold" style={{ color: '#c3cde3' }}>
+          <div className="mb-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
             Current:{' '}
             <span className="text-amber-200">
               {studyProfile.configured
@@ -268,11 +261,11 @@ export function SettingsScreen({
               <button
                 key={preset}
                 type="button"
-                className="rounded-lg border-2 px-2.5 py-1.5 text-[9px] font-black uppercase"
+                className="rounded-lg border-2 px-2.5 py-1.5 pkr-fine font-black uppercase"
                 style={{
                   borderColor: 'rgba(251,191,36,0.4)',
                   background: 'rgba(251,191,36,0.08)',
-                  color: '#fde68a',
+                  color: 'var(--pkr-ink-gold)',
                 }}
                 onClick={() => onConfigureStudy(preset)}
               >
@@ -280,7 +273,7 @@ export function SettingsScreen({
               </button>
             ))}
           </div>
-          <p className="mb-1 mt-3 text-[9px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+          <p className="mb-1 mt-3 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
             Custom
           </p>
           <form
@@ -295,7 +288,7 @@ export function SettingsScreen({
               onConfigureStudy('custom', { reviews, weight });
             }}
           >
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#c3cde3' }}>
+            <label className="flex flex-col pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
               Reviews / wild
               <input
                 name="reviews"
@@ -303,10 +296,10 @@ export function SettingsScreen({
                 min={2}
                 max={15}
                 defaultValue={studyProfile.reviews || STUDY_PRESET_DEFAULTS.medium.reviews}
-                className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 text-[11px] font-bold text-slate-100"
+                className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 pkr-fine font-bold text-slate-100"
               />
             </label>
-            <label className="flex flex-col text-[8px] font-bold" style={{ color: '#c3cde3' }}>
+            <label className="flex flex-col pkr-fine font-bold" style={{ color: 'var(--pkr-ink-muted)' }}>
               Card XP (0.5–1.5)
               <input
                 name="weight"
@@ -315,12 +308,12 @@ export function SettingsScreen({
                 max={1.5}
                 step={0.05}
                 defaultValue={studyProfile.weight || 1}
-                className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 text-[11px] font-bold text-slate-100"
+                className="mt-0.5 w-20 rounded border border-white/15 bg-black/30 px-1.5 py-1 pkr-fine font-bold text-slate-100"
               />
             </label>
             <button
               type="submit"
-              className="rounded-lg border-2 px-2.5 py-1.5 text-[9px] font-black uppercase"
+              className="rounded-lg border-2 px-2.5 py-1.5 pkr-fine font-black uppercase"
               style={{
                 borderColor: 'rgba(167,139,250,0.5)',
                 background: 'rgba(109,40,217,0.25)',
@@ -334,73 +327,73 @@ export function SettingsScreen({
       ) : null}
 
       <Panel collapsible title="Customize" icon={<GameIcon name="diamond" size={14} />}>
-        <p className="mb-2 text-[9px] leading-snug" style={{ color: '#c3cde3' }}>
+        <p className="mb-2 pkr-fine leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           Feature toggles are read from RemNote. Some changes may need a plugin reload depending on your app version.
         </p>
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+        <p className="mb-1 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
           Queue
         </p>
         <BoolRow label="Queue toolbar strip" on={settings.featureQueueStrip} />
-        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+        <p className="mb-1 mt-3 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
           Popups
         </p>
         <BoolRow label="Floating encounter popup" on={settings.featureEncounterFloatingPopup} />
-        <p className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: '#c3cde3' }}>
+        <p className="mb-1 mt-3 pkr-fine font-bold uppercase tracking-wide" style={{ color: 'var(--pkr-ink-muted)' }}>
           Appearance
         </p>
         <BoolRow label="Daily stats in battle header" on={settings.showDailyHeaderStats} />
-        <p className="mt-2 text-[9px]" style={{ color: '#c3cde3' }}>
-          Edit in <strong style={{ color: '#c3cde3' }}>{REMNOTE_SETTINGS_PATH}</strong>.
+        <p className="mt-2 pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
+          Edit in <strong style={{ color: 'var(--pkr-ink-muted)' }}>{REMNOTE_SETTINGS_PATH}</strong>.
         </p>
       </Panel>
 
       <details className="pkr-settings-troubleshoot group rounded-lg border-2 border-white/10 bg-black/20">
-        <summary className="cursor-pointer list-none px-3 py-2.5 text-[10px] font-black uppercase tracking-wide outline-none transition-colors group-open:border-b group-open:border-white/10" style={{ color: '#c3cde3' }}>
+        <summary className="cursor-pointer list-none px-3 py-2.5 pkr-fine font-black uppercase tracking-wide outline-none transition-colors group-open:border-b group-open:border-white/10" style={{ color: 'var(--pkr-ink-muted)' }}>
           <span className="inline-flex items-center gap-2">
             <GameIcon name="gear" size={12} />
             Troubleshooting & help
-            <span className="text-[9px] font-bold normal-case opacity-70">(tap to expand)</span>
+            <span className="pkr-fine font-bold normal-case opacity-70">(tap to expand)</span>
           </span>
         </summary>
-        <div className="space-y-3 px-3 pb-3 pt-1 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
+        <div className="space-y-3 px-3 pb-3 pt-1 pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-soft)' }}>
           <section>
-            <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
+            <h3 className="mb-1 pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-gold)' }}>
               Battle actions from the palette
             </h3>
-            <ul className="list-disc space-y-1 pl-4" style={{ color: '#c3cde3' }}>
+            <ul className="list-disc space-y-1 pl-4" style={{ color: 'var(--pkr-ink-muted)' }}>
               <li>
-                Open the command palette and run <strong style={{ color: '#e2e8f0' }}>{brandCommandCaps('Catch')}</strong>,{' '}
-                <strong style={{ color: '#e2e8f0' }}>{brandCommandCaps('Fight')}</strong>, or{' '}
-                <strong style={{ color: '#e2e8f0' }}>{brandCommandCaps('Run')}</strong> — they work even when the card editor has focus.
+                Open the command palette and run <strong style={{ color: 'var(--pkr-ink-text)' }}>{brandCommandCaps('Catch')}</strong>,{' '}
+                <strong style={{ color: 'var(--pkr-ink-text)' }}>{brandCommandCaps('Fight')}</strong>, or{' '}
+                <strong style={{ color: 'var(--pkr-ink-text)' }}>{brandCommandCaps('Run')}</strong> — they work even when the card editor has focus.
               </li>
               <li>Or use the review queue menu entries with the same names when a wild encounter is active.</li>
               <li>You can always use the Catch / Fight / Run buttons in the {BRAND.wordmark} sidebar.</li>
             </ul>
           </section>
           <section>
-            <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
+            <h3 className="mb-1 pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-gold)' }}>
               Save, sync, and odd states
             </h3>
-            <ul className="list-disc space-y-1 pl-4" style={{ color: '#c3cde3' }}>
+            <ul className="list-disc space-y-1 pl-4" style={{ color: 'var(--pkr-ink-muted)' }}>
               <li>
                 Party Pokémon art loads from the network when online. Offline or blocked CDNs may show placeholders — gameplay still runs;
-                see credits in <strong style={{ color: '#e2e8f0' }}>ATTRIBUTION.md</strong> in the repo.
+                see credits in <strong style={{ color: 'var(--pkr-ink-text)' }}>ATTRIBUTION.md</strong> in the repo.
               </li>
               <li>
                 RemNote may take a moment to sync plugin storage across devices. If two clients edit at once, the last write wins — avoid
                 split-brain play on the same KB.
               </li>
               <li>
-                If storage is empty or unreadable, {BRAND.wordmark} starts a fresh game. Use <strong style={{ color: '#e2e8f0' }}>Export save</strong>{' '}
+                If storage is empty or unreadable, {BRAND.wordmark} starts a fresh game. Use <strong style={{ color: 'var(--pkr-ink-text)' }}>Export save</strong>{' '}
                 before experiments so you can compare or restore manually if needed.
               </li>
             </ul>
           </section>
           <section>
-            <h3 className="mb-1 text-[9px] font-black uppercase tracking-wide" style={{ color: '#fde68a' }}>
+            <h3 className="mb-1 pkr-fine font-black uppercase tracking-wide" style={{ color: 'var(--pkr-ink-gold)' }}>
               Platform notes
             </h3>
-            <p style={{ color: '#c3cde3' }}>
+            <p style={{ color: 'var(--pkr-ink-muted)' }}>
               Browser embedding and RemNote updates can change layout, focus, and which widgets mount (e.g. queue strip). The sidebar tab is
               the most reliable surface; we don&apos;t guarantee identical behavior on every OS and app version.
             </p>
@@ -409,20 +402,20 @@ export function SettingsScreen({
       </details>
 
       <Panel title="Your data & backup" icon={<GameIcon name="box" size={14} />}>
-        <p className="mb-2 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
-          Your {BRAND.wordmark} progress is stored in RemNote&apos;s <strong style={{ color: '#e2e8f0' }}>synced plugin storage</strong> under
-          the key <code className="rounded bg-black/35 px-1 py-px text-[9px]" style={{ color: '#a5b4fc' }}>{STORAGE_KEY}</code>. If your
+        <p className="mb-2 pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-soft)' }}>
+          Your {BRAND.wordmark} progress is stored in RemNote&apos;s <strong style={{ color: 'var(--pkr-ink-text)' }}>synced plugin storage</strong> under
+          the key <code className="rounded bg-black/35 px-1 py-px pkr-fine" style={{ color: '#a5b4fc' }}>{STORAGE_KEY}</code>. If your
           knowledge base syncs to RemNote Cloud, that data is included in your usual backup story — check your RemNote account / export habits
           for the full picture.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <p className="mb-3 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           The button below downloads a JSON snapshot you can keep on disk. It does not replace RemNote sync; it&apos;s an extra safety copy and
           a way to inspect or archive your save.
         </p>
         <button
           type="button"
           disabled={exportBusy}
-          className="pkr-btn-secondary w-full px-3 py-2 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-50"
+          className="pkr-btn-secondary w-full px-3 py-2 pkr-fine font-black disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => {
             setExportBusy(true);
             void (async () => {
@@ -440,19 +433,19 @@ export function SettingsScreen({
         </button>
       </Panel>
 
-      <Panel collapsible title="Restart progress" icon={<GameIcon name="flame" size={14} style={{ color: '#fca5a5' }} />}>
-        <p className="mb-2 text-[10px] font-semibold leading-relaxed" style={{ color: '#cbd5e1' }}>
-          Start completely over in <strong style={{ color: '#e2e8f0' }}>this knowledge base</strong>: your party, bag, Pokédex counts,
-          Pokécoins, trainer XP, claimed rewards, achievements, streaks, and any active wild encounter are cleared from synced storage.
+      <Panel collapsible title="Restart progress" icon={<GameIcon name="flame" size={14} style={{ color: 'var(--pkr-ink-danger)' }} />}>
+        <p className="mb-2 pkr-fine font-semibold leading-relaxed" style={{ color: 'var(--pkr-ink-soft)' }}>
+          Start completely over in <strong style={{ color: 'var(--pkr-ink-text)' }}>this knowledge base</strong>: your party, bag, Pokédex counts,
+          Poké Dollars, trainer XP, claimed rewards, achievements, streaks, and any active wild encounter are cleared from synced storage.
         </p>
-        <p className="mb-3 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+        <p className="mb-3 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
           Export a JSON backup above first if you might want this data later. Plugin preferences (pacing, toggles) are{' '}
-          <strong style={{ color: '#c3cde3' }}>not</strong> reset.
+          <strong style={{ color: 'var(--pkr-ink-muted)' }}>not</strong> reset.
         </p>
         <button
           type="button"
           disabled={resetBusy}
-          className="pkr-btn-destructive w-full px-3 py-2 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-50"
+          className="pkr-btn-destructive w-full px-3 py-2 pkr-fine font-black disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => {
             setResetAcknowledged(false);
             setResetModalOpen(true);
@@ -490,16 +483,16 @@ export function SettingsScreen({
           >
             <div
               id="pkr-reset-title"
-              className="pkr-pixel-title text-[8px] font-black uppercase leading-snug"
+              className="pkr-pixel-title pkr-fine font-black uppercase leading-snug"
               style={{ color: '#fecaca' }}
             >
               Erase all {BRAND.wordmark} data?
             </div>
-            <p className="mt-2 text-[10px] font-semibold leading-snug" style={{ color: '#e2e8f0' }}>
+            <p className="mt-2 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-text)' }}>
               This removes your save from RemNote&apos;s synced plugin storage for this KB. You will pick a starter again.{' '}
-              <strong style={{ color: '#fde68a' }}>This cannot be undone</strong> unless you kept a backup.
+              <strong style={{ color: 'var(--pkr-ink-gold)' }}>This cannot be undone</strong> unless you kept a backup.
             </p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[9px] font-semibold leading-snug" style={{ color: '#c3cde3' }}>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>
               <li>Party, storage, and nicknames</li>
               <li>Bag, shop purchases history counters, coins</li>
               <li>Dex, trainer rank / XP, daily recap stats</li>
@@ -513,7 +506,7 @@ export function SettingsScreen({
                 disabled={resetBusy}
                 onChange={(e) => setResetAcknowledged(e.target.checked)}
               />
-              <span className="text-[9px] font-semibold leading-snug" style={{ color: '#e2e8f0' }}>
+              <span className="pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-text)' }}>
                 I understand my game data in this knowledge base will be permanently deleted.
               </span>
             </label>
@@ -568,12 +561,12 @@ export function SettingsScreen({
 
       <Panel collapsible title="Support PokéRem" icon={<GameIcon name="coin" size={14} />}><DonateSupportCard /></Panel>
       <Panel collapsible title="About" icon={<GameIcon name="pokeball" size={14} />}>
-        <div className="space-y-1.5 text-[10px] font-semibold" style={{ color: '#c3cde3' }}>
+        <div className="space-y-1.5 pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
           <p>
-            <strong style={{ color: '#e2e8f0' }}>{BRAND.wordmark}</strong> v{POKEREM_VERSION}
+            <strong style={{ color: 'var(--pkr-ink-text)' }}>{BRAND.wordmark}</strong> v{POKEREM_VERSION}
           </p>
-          <p style={{ color: '#cbd5e1' }}>
-            By <strong style={{ color: '#e2e8f0' }}>{POKEREM_AUTHOR}</strong>
+          <p style={{ color: 'var(--pkr-ink-soft)' }}>
+            By <strong style={{ color: 'var(--pkr-ink-text)' }}>{POKEREM_AUTHOR}</strong>
           </p>
           <p>Pokémon study companion for RemNote.</p>
           <p>Sprites via PokéAPI / project assets.</p>
@@ -597,17 +590,17 @@ function StatChip({
   const isInfo = variant === 'info';
   return (
     <div className="flex items-center justify-between rounded-md border border-white/5 px-2 py-1.5" style={{ background: 'rgba(0,0,0,0.15)' }}>
-      <span className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>
+      <span className="pkr-copy font-semibold" style={{ color: 'var(--pkr-ink-text)' }}>
         {label}
       </span>
       <span
-        className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums"
+        className="rounded-full px-2 py-0.5 pkr-fine font-bold tabular-nums"
         style={
           isInfo
             ? { background: 'rgba(30,58,138,0.35)', color: '#93c5fd' }
             : on
-              ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' }
-              : { background: 'rgba(255,255,255,0.05)', color: '#c3cde3' }
+              ? { background: 'rgba(6,78,59,0.4)', color: 'var(--pkr-ink-success)' }
+              : { background: 'rgba(255,255,255,0.05)', color: 'var(--pkr-ink-muted)' }
         }
       >
         {value}
@@ -666,10 +659,9 @@ function DonateSupportCard() {
 
         <div className="min-w-0 flex-1">
           <div
-            className="pkr-pixel-title font-black uppercase leading-none"
+            className="pkr-pixel-title font-black uppercase"
             style={{
               color: '#78350f',
-              fontSize: 6,
               letterSpacing: '0.22em',
               textShadow: '1px 1px 0 rgba(255,247,214,0.6)',
             }}
@@ -677,10 +669,9 @@ function DonateSupportCard() {
             Support the project
           </div>
           <div
-            className="pkr-pixel-title mt-1.5 leading-[1.25]"
+            className="pkr-pixel-title mt-1.5"
             style={{
               color: '#1c1917',
-              fontSize: 9,
               letterSpacing: '0.01em',
               textShadow: '1px 1px 0 rgba(255,247,214,0.5)',
             }}
@@ -688,10 +679,9 @@ function DonateSupportCard() {
             Support on Ko-fi
           </div>
           <div
-            className="pkr-pixel-title mt-1.5 leading-[1.5]"
+            className="pkr-pixel-title mt-1.5"
             style={{
               color: '#3f2d10',
-              fontSize: 7,
               letterSpacing: 0,
               textShadow: '1px 1px 0 rgba(255,247,214,0.4)',
             }}
@@ -705,15 +695,13 @@ function DonateSupportCard() {
           className="pkr-pixel-title shrink-0 uppercase"
           style={{
             background: 'linear-gradient(180deg, #1c1917 0%, #0c0a09 100%)',
-            color: '#fde68a',
+            color: 'var(--pkr-ink-gold)',
             border: '2px solid #451a03',
             borderRadius: 4,
             boxShadow:
               'inset 0 1px 0 rgba(253,224,71,0.2), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 0 #451a03',
             padding: '7px 9px',
-            fontSize: 7,
             letterSpacing: '0.18em',
-            lineHeight: 1,
             textShadow: '1px 1px 0 rgba(0,0,0,0.6)',
           }}
         >
@@ -735,7 +723,6 @@ function DonateSupportCard() {
             className="pkr-pixel-title flex items-center gap-1.5"
             style={{
               color: '#1c1917',
-              fontSize: 6,
               letterSpacing: '0.08em',
               textShadow: '1px 1px 0 rgba(253,224,71,0.3)',
             }}
@@ -743,13 +730,13 @@ function DonateSupportCard() {
             <span
               className="grid place-items-center"
               style={{
-                width: 13,
-                height: 13,
+                width: 16,
+                height: 16,
                 background: '#1c1917',
-                color: '#fde68a',
+                color: 'var(--pkr-ink-gold)',
                 border: '1.5px solid #451a03',
                 borderRadius: '50%',
-                fontSize: 6,
+                fontSize: 'var(--pkr-text-micro)',
                 lineHeight: 1,
                 boxShadow: 'inset 0 1px 0 rgba(253,224,71,0.3)',
               }}
@@ -762,7 +749,6 @@ function DonateSupportCard() {
             className="pkr-pixel-title"
             style={{
               color: '#3f2d10',
-              fontSize: 6,
               letterSpacing: '0.04em',
               textShadow: '1px 1px 0 rgba(253,224,71,0.25)',
             }}
@@ -778,13 +764,13 @@ function DonateSupportCard() {
 function BoolRow({ label, on }: { label: string; on: boolean }) {
   return (
     <div className="flex items-center justify-between rounded-md border border-white/5 px-2 py-1.5" style={{ background: 'rgba(0,0,0,0.12)' }}>
-      <span className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>
+      <span className="pkr-copy font-semibold" style={{ color: 'var(--pkr-ink-text)' }}>
         {label}
       </span>
       <span
-        className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums"
+        className="rounded-full px-2 py-0.5 pkr-fine font-bold tabular-nums"
         style={
-          on ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' } : { background: 'rgba(255,255,255,0.05)', color: '#c3cde3' }
+          on ? { background: 'rgba(6,78,59,0.4)', color: 'var(--pkr-ink-success)' } : { background: 'rgba(255,255,255,0.05)', color: 'var(--pkr-ink-muted)' }
         }
       >
         {on ? 'On' : 'Off'}

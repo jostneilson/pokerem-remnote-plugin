@@ -37,17 +37,17 @@ export const cls = {
   btnSecondary: 'pkr-btn-secondary',
 
   btnBuy:
-    'rounded-lg border-2 border-amber-600 bg-gradient-to-b px-3 py-1.5 text-[11px] font-bold shadow-sm transition-colors active:translate-y-px disabled:opacity-40',
+    'rounded-lg border-2 border-amber-600 bg-gradient-to-b px-3 py-1.5 pkr-fine font-bold shadow-sm transition-colors active:translate-y-px disabled:opacity-40',
 
   btnBuyText: '',
   btnBuyDisabled: 'pkr-btn-secondary opacity-40',
 
   currencyBar: 'pkr-currency-bar',
 
-  badge: 'rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums',
+  badge: 'rounded-full px-2 py-0.5 pkr-fine font-bold tabular-nums',
   badgeGreen: '',
   badgeGrey: '',
-  badgeRed: 'rounded-full px-2 py-0.5 text-[7px] font-black uppercase',
+  badgeRed: 'rounded-full px-2 py-0.5 pkr-fine font-black uppercase',
 
   statRowEven: '',
   statRowOdd: '',

@@ -19,6 +19,7 @@ export function PartyPokemonCard({
   onToggle,
   detail,
   onToggleFavorite,
+  actions,
 }: {
   rootURL: string | undefined;
   pokemon: OwnedPokemon;
@@ -28,6 +29,8 @@ export function PartyPokemonCard({
   onToggle: () => void;
   detail?: ReactNode;
   onToggleFavorite?: () => void;
+  /** One-tap actions pinned under the card (Lead, Heal), visible without expanding it. */
+  actions?: ReactNode;
 }) {
   const displayName = p.nickname || p.name;
   const isParty = variant === 'party';
@@ -46,7 +49,7 @@ export function PartyPokemonCard({
         </div>
         <div className="min-w-0 flex-1 py-0.5">
           <div className="pkr-party-card__titlerow flex items-baseline justify-between gap-1">
-            <span className="truncate text-xs font-black" style={{ color: '#e2e8f0' }}>
+            <span className="truncate pkr-copy font-black" style={{ color: 'var(--pkr-ink-text)' }}>
               {displayName}
             </span>
             <span className="flex shrink-0 flex-wrap items-center justify-end gap-0.5">
@@ -54,7 +57,7 @@ export function PartyPokemonCard({
               {p.shiny ? <span className="pkr-classification-badge pkr-classification-badge--shiny">Shiny</span> : null}
               {checkLevelEvolution(p) ? (
                 <span
-                  className="flex items-center gap-0.5 rounded px-1 py-px text-[7px] font-black uppercase"
+                  className="flex items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase"
                   style={{
                     background: 'rgba(168,85,247,0.28)',
                     color: '#f3e8ff',
@@ -67,11 +70,11 @@ export function PartyPokemonCard({
                 </span>
               ) : null}
               <span
-                className="rounded px-1.5 py-0.5 text-[10px] font-bold"
+                className="rounded px-1.5 py-0.5 pkr-fine font-bold"
                 style={{
                   border: '1px solid rgba(255,255,255,0.1)',
                   background: 'rgba(0,0,0,0.35)',
-                  color: '#fbbf24',
+                  color: 'var(--pkr-ink-gold-strong)',
                 }}
               >
                 Lv{p.level}
@@ -81,7 +84,7 @@ export function PartyPokemonCard({
           <div className="mt-1.5 space-y-1">
             {p.currentHp <= 0 ? (
               <div
-                className="rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wide"
+                className="rounded border px-1.5 py-0.5 pkr-fine font-black uppercase tracking-wide"
                 style={{
                   borderColor: 'rgba(248,113,113,0.45)',
                   background: 'rgba(127,29,29,0.35)',
@@ -96,13 +99,13 @@ export function PartyPokemonCard({
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-0.5">
             {p.types.map((t) => (
-              <span key={t} className="rounded border px-1 py-px text-[7px] font-bold uppercase" style={typePillStyle(t)}>
+              <span key={t} className="rounded border px-1 py-px pkr-fine font-bold uppercase" style={typePillStyle(t)}>
                 {t}
               </span>
             ))}
             {isParty && isActive ? (
               <span
-                className="ml-auto rounded-full px-2 py-0.5 text-[7px] font-black uppercase"
+                className="ml-auto rounded-full px-2 py-0.5 pkr-fine font-black uppercase"
                 style={{
                   background: '#dc2626',
                   color: 'white',
@@ -114,8 +117,8 @@ export function PartyPokemonCard({
             ) : null}
             {!isParty ? (
               <span
-                className="ml-auto rounded px-1.5 py-px text-[6px] font-black uppercase tracking-wide"
-                style={{ color: '#c3cde3', border: '1px solid rgba(148,163,184,0.25)' }}
+                className="ml-auto rounded px-1.5 py-px pkr-fine font-black uppercase tracking-wide"
+                style={{ color: 'var(--pkr-ink-muted)', border: '1px solid rgba(148,163,184,0.25)' }}
               >
                 Storage
               </span>
@@ -124,6 +127,7 @@ export function PartyPokemonCard({
           <PokemonAppraisal pokemon={p} compact />
         </div>
       </button>
+      {actions ? <div className="pkr-party-card__actions">{actions}</div> : null}
       {isExpanded && detail ? <div className="pkr-party-card__detail">{detail}</div> : null}
     </div>
   );

@@ -2,7 +2,6 @@ import { battleStats } from './pokemonStats';
 import type { OwnedPokemon } from '../state/model';
 import { EVOLUTION_FROM } from '../data/evolutions';
 import { SPECIES_BY_DEX } from '../data/species';
-import { maxHpFor } from './progression';
 
 /** Next species-form unlocked purely by level (if any), strictly after current level. */
 export function nextFutureLevelEvolution(mon: OwnedPokemon): { minLevel: number; intoName: string } | null {

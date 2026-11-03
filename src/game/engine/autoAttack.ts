@@ -8,7 +8,7 @@ export function planAutoAttack(state: PokeRemGameState): { moveId?: string; mess
   const lead = state.party.find(p => p.id === state.activePokemonId) ?? state.party[0];
   if (state.currentTrainerBattle || !wild || wild.currentHp <= 0) return { message: 'Encounter ended.' };
   if (!lead || lead.currentHp <= 0) return { message: 'Your lead fainted. Auto attack stopped.' };
-  if (wild.condition?.ailment || (wild.condition?.confusion??0)>0) return {message:'Status damage could knock out this Pokémon. Catch manually.'};
+  // Sleep, paralysis and poison no longer stop auto attack: protected turns can't knock the wild out.
   const moves = movesetForBattle(lead).filter(moveId => moveId !== 'struggle').map(moveId => ({ moveId, ceiling: damageCeiling(lead, wild, moveId, true) }));
   moves.sort((a, b) => b.ceiling - a.ceiling);
   const best = moves[0];

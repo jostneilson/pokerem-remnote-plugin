@@ -5,17 +5,22 @@ interface Props {
   onDismiss: () => void;
 }
 
+// Highlights for the next release. Shown once per version (bump POKEREM_VERSION when publishing).
 const RELEASE_ENTRIES = [
-  { title: '1.4.1 fix', body: 'Your game saves again. Starters, reviews, battles and purchases were failing to save in 1.4.0. Your progress was kept safe.' },
-  { title: 'Fairer battles', body: 'Fights are shorter and winnable at the same level. Pokémon with no attacks now use Struggle.' },
-  { title: 'Appraise and power up', body: 'Open a Pokémon in Party to see its IV stars and spend coins to level it up. Defeating Pokémon now pays far more than catching.' },
-  { title: 'Stone evolution', body: 'Select a Pokémon in Party, choose a compatible stone, and confirm. Nine stone types are available.' },
-  { title: 'Keep your team going', body: 'Revives stay stocked at 200 coins and appear more often in route finds.' },
-  { title: 'True shinies', body: 'Rare wild Pokémon now use their actual shiny sprites, with a gold star celebration. Slower encounters get higher shiny odds.' },
-  { title: 'Arcade revival', body: 'Crisp pixel lettering, framed menus, and responsive game controls.' },
-  { title: 'More room to play', body: 'Play keeps the arena. Bag now brings your items and Shop together. Party and Dex get the full panel.' },
-  { title: 'Auto attack', body: 'Weaken wild Pokémon automatically, then stop before knockout range and choose Catch. Compact view now lives in Settings.' },
-  { title: 'Find what matters', body: 'Fold away extra stats and browse your collection with simpler filters.' },
+  { title: 'Wilds that make sense', body: 'Wild Pokémon now appear at believable levels for their evolution stage, near your team’s strength, and each battle scene favours its own types. Legendaries are rare events once your team is strong.' },
+  { title: 'Pick your ball', body: 'Catch shows your odds for every ball you carry and suggests the cheapest good one. Sleep and paralysis make catching easier.' },
+  { title: 'Shinies and HUNDOs', body: 'A gentle pity means every regular studier meets a shiny. Shiny legendaries are always caught by the first ball, and a quarter of Galarian birds are shiny. Perfect-IV Pokémon earn four stars and a HUNDO badge.' },
+  { title: 'Best moves, automatically', body: 'Every Pokémon now keeps its strongest four moves, weighing power, accuracy, same-type bonus, its better attacking stat and type coverage, and re-picks whenever a new move unlocks. Teach a move by hand to take control, or turn Auto best moves back on in Party.' },
+  { title: 'Smarter foes', body: 'Wild and trainer Pokémon use their best moves. Fights are shorter, trainer knockouts pay more, and you can heal and rematch after a loss.' },
+  { title: 'Quests and badges', body: 'Three daily and two weekly quests, eight gym badges, and new goals for shinies, perfect IVs and type specialists. Your Pokédex now counts your starter and every evolution.' },
+  { title: 'One-tap care', body: 'Lead and Heal buttons sit on every party card, Bag items can go to any Pokémon, the shop sells ×5 and ×10, and rewards have Claim all.' },
+  { title: 'Battle from the queue', body: 'Catch, Fight, Auto and Run right from the queue strip or popup, no sidebar needed. Wild Pokémon you ignore wander off after a while, except shinies and legendaries.' },
+  { title: 'Shinies feel special', body: 'A shiny gets its own gold star wipe, sparkles, gold plates and a SHINY CAUGHT! card. Every shiny you catch goes in the new Shiny Case in the Dex.' },
+  { title: 'Battle results and shortcuts', body: 'After each win a result card fills your XP bar and shows new levels and moves. Move tiles show type effectiveness, and C, F, A, R and 1–4 work from the keyboard.' },
+  { title: 'New ways to spend', body: 'The Move Tutor teaches moves early, route tickets send your next wilds to a place you pick, and trainer card styles dress up your license.' },
+  { title: 'Evolution, in full', body: 'Every evolution now plays in the panel: the glowing silhouette, the flash, and your new Pokémon.' },
+  { title: 'Studying never gets stuck', body: 'If your lead faints, a teammate steps in. A team that is fully down rests while you study. Catches with a full party and trainer challenges you skip no longer pause your wild Pokémon.' },
+  { title: 'Trainer screen', body: 'Rewards and Progress are now one Trainer screen in the Menu, with your quests, badges and stats together.' },
 ];
 
 export function WhatsNewCard({ seenVersion, onDismiss }: Props) {
@@ -27,7 +32,7 @@ export function WhatsNewCard({ seenVersion, onDismiss }: Props) {
         <button type="button" className="pkr-btn-secondary" onClick={onDismiss} aria-label="Dismiss release highlights">Got it</button>
       </div>
       <details className="pkr-release-details">
-        <summary>Saving is fixed · see what’s new</summary>
+        <summary>See what’s new</summary>
         <div className="pkr-release-entries">
           {RELEASE_ENTRIES.map((entry) => (
             <p key={entry.title}><strong>{entry.title}</strong><br />{entry.body}</p>
