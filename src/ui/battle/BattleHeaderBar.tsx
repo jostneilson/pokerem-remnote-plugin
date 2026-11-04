@@ -1,4 +1,5 @@
 import { Coins } from '../components/Coins';
+import { useCoinTick } from '../components/LuckyChip';
 import type { PokeRemGameState } from '../../game/state/model';
 import { trainerXpProgress } from '../../game/engine/trainerLevel';
 import { StatHoverTip } from './StatHoverTip';
@@ -23,6 +24,7 @@ export function BattleHeaderBar({
 }) {
   const trainerProg = trainerXpProgress(state.trainerXp ?? 0);
   const trainerLv = state.trainerLevel ?? 1;
+  const coinTick = useCoinTick(state.currency ?? 0);
   return (
     // min-w-0 + overflow so wide viewports do not force this row wider than the sidebar column
     <div
@@ -119,7 +121,7 @@ export function BattleHeaderBar({
       )}
       <StatHoverTip label="Poké Dollars (₽) — currency for the Shop (balls, potions, and more). Earned from reviews and battle actions.">
         <span
-          className="flex items-center gap-0.5 shrink-0 pkr-fine font-bold tabular-nums"
+          className={`flex items-center gap-0.5 shrink-0 pkr-fine font-bold tabular-nums ${coinTick}`}
           style={{ color: '#fcd34d' }}
         >
           <GameIcon name="coin" size={11} />

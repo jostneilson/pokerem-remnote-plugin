@@ -92,6 +92,8 @@ export interface EncounterPokemon {
   shiny?: boolean;
   /** The Rocket Leader's prize: never flees, can't be knocked out (SPEC Appendix S). */
   pendingPrize?: boolean;
+  /** Bounty (₽) paid on top when this wild is defeated or caught (~1 in 40 wilds). */
+  bounty?: number;
 }
 
 export interface BattleResult {
@@ -112,6 +114,8 @@ export interface BattleResult {
   evolvedInto?: string;
   shiny?: boolean;
   perfectIvs?: boolean;
+  /** Bounty included in `coins`. */
+  bounty?: number;
 }
 
 export interface ShinyLogEntry {

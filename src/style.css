@@ -4283,3 +4283,12 @@ body,:host { font-family:var(--pkr-font-body); }
   flex: 1;
   min-height: 36px;
 }
+
+/* 1.6.0 lucky card chip + coin tick (U13) */
+.pkr-lucky-chip{display:inline-block;margin:0 0 6px;padding:3px 8px;border:2px solid #b7791f;background:linear-gradient(180deg,#fde68a,#f2b632);color:#3b2300;font-size:var(--pkr-text-fine,12px);font-weight:900;box-shadow:2px 2px 0 #050714;animation:pkr-lucky-in 2.5s ease-out both}
+@keyframes pkr-lucky-in{0%{opacity:0;transform:translateY(4px)}10%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+.pkr-coin-tick--0{animation:pkr-coin-tick-a .45s ease-out}.pkr-coin-tick--1{animation:pkr-coin-tick-b .45s ease-out}
+@keyframes pkr-coin-tick-a{0%{transform:scale(1)}40%{transform:scale(1.18);filter:brightness(1.4)}100%{transform:scale(1)}}
+@keyframes pkr-coin-tick-b{0%{transform:scale(1)}40%{transform:scale(1.18);filter:brightness(1.4)}100%{transform:scale(1)}}
+.pkr-bounty-chip{display:inline-block;padding:1px 5px;border:1px solid #b7791f;background:#3c2b0b;color:#ffe08a;font-size:11px;font-weight:900;letter-spacing:.5px}
+@media (prefers-reduced-motion:reduce){.pkr-lucky-chip{animation:none}.pkr-coin-tick--0,.pkr-coin-tick--1{animation:none}}

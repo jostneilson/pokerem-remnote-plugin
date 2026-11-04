@@ -1,3 +1,4 @@
+import { formatCoins } from '../format/coins';
 import { catchBlockedByStorage } from '../../game/engine/capacity';
 import {
   useEffect,
@@ -32,6 +33,7 @@ import { speciesLabel } from '../components/SpeciesBadge';
 import { AchievementFanfare } from '../components/AchievementFanfare';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
 import { RocketRadarChip } from '../components/RocketRadarChip';
+import { LuckyChip } from '../components/LuckyChip';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 import { BRAND } from '../theme/gameTheme';
 import { BattleField } from './BattleField';
@@ -336,6 +338,11 @@ export function BattleReviewSurface({
                 Prize
               </span>
             ) : null}
+            {fieldWild.bounty ? (
+              <span className="pkr-bounty-chip" title="Bounty: paid when you defeat or catch it">
+                BOUNTY {formatCoins(fieldWild.bounty)}
+              </span>
+            ) : null}
             {fieldWild.tier && fieldWild.tier !== 'Common' ? (
               <span
                 className="pkr-hud-badge"
@@ -482,6 +489,7 @@ export function BattleReviewSurface({
           borderTopWidth: 2,
         }}
       >
+        <LuckyChip reward={state.lastStudyReward} />
         <BattleMessageStack
           state={state}
           rootURL={rootURL}

@@ -69,6 +69,11 @@ export function BattleResultCard({
             {result.xp > 0 ? `${result.monName} +${result.xp} XP · ` : ''}
             <Coins value={result.coins} prefix="+" />
           </div>
+          {result.bounty ? (
+            <div className="pkr-result-sub">
+              Bounty paid: <Coins value={result.bounty} prefix="+" />
+            </div>
+          ) : null}
         </div>
       </div>
       {!isCatch ? (

@@ -265,13 +265,15 @@ export function battleResult(
     evolvedInto,
     shiny: enc.shiny === true || undefined,
     perfectIvs: kind === 'catch' && isPerfectIVs(after.ivs) ? true : undefined,
+    ...(enc.bounty ? { bounty: enc.bounty } : {}),
   };
 }
 
 export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeRemGameState {
   const mon = ownedFromEncounter(enc);
+  const coins = catchCoins(enc.level, enc.dexNum) + (enc.bounty ?? 0);
   const caughtInfo = {
-    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, catchCoins(enc.level, enc.dexNum)),
+    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, coins),
     shinyLog: enc.shiny
       ? [
           ...(base.shinyLog ?? []),
@@ -294,8 +296,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
   const rewards = {
     ...caughtInfo,
     totalCaught: (base.totalCaught ?? 0) + 1,
-    currency: (base.currency ?? 0) + catchCoins(enc.level, enc.dexNum),
-    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + catchCoins(enc.level, enc.dexNum),
+    currency: (base.currency ?? 0) + coins,
+    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + coins,
     dailyStats: { ...ds, catches: ds.catches + 1 },
   };
 

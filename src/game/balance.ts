@@ -23,6 +23,12 @@ export const BALANCE = {
     /** Ultra Beast ×3, Legendary ×5, Mythical ×6 on both defeat and catch coins. */
     tierMult: { Ultra: 3, Legendary: 5, Mythical: 6 } as Partial<Record<string, number>>
   },
+  /** ~1 in 40 wilds carries a bounty of ₽1.5–4k, paid on defeat or catch (SPEC B2; chance tunable 1/60–1/25). */
+  bounty: {
+    chance: 1 / 40,
+    min: 1500,
+    max: 4000
+  },
   /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */
   quests: {
     scale: 1,
@@ -103,4 +109,11 @@ export function questCoins(period: 'daily' | 'weekly', listed: number): number {
   const q = BALANCE.quests;
   const [min, max] = period === 'daily' ? [q.dailyMin, q.dailyMax] : [q.weeklyMin, q.weeklyMax];
   return Math.round(Math.max(min, Math.min(max, listed)) * q.scale);
+}
+
+/** Roll a bounty for a new wild (rounded to ₽100), or undefined. */
+export function rollBounty(rng: () => number = Math.random): number | undefined {
+  const b = BALANCE.bounty;
+  if (rng() >= b.chance) return undefined;
+  return Math.round((b.min + rng() * (b.max - b.min)) / 100) * 100;
 }

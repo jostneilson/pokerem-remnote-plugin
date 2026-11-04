@@ -1,3 +1,4 @@
+import { rollBounty } from '../../balance';
 import { BALANCE } from '../../balance';
 import { scaledXp, studyXpBase } from '../../engine/xpShare';
 import type { ItemId } from '../../data/items';
@@ -266,13 +267,15 @@ export function onQueueCardComplete(
             routeTicket:
               ticket.remaining > 1 ? { ...ticket, remaining: ticket.remaining - 1 } : null,
           };
-        const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
+        const spawned = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
           collectionDex: next.collectionDex ?? {},
           pacing: { reviewsPerEncounter: effectiveRate, modulo, unitsPerReview: wildRouteUnits },
           sceneIndex: bgNext,
           encountersSinceShiny: next.encountersSinceShiny ?? 0,
           team: next.team,
         });
+        const bounty = rollBounty();
+        const enc = bounty ? { ...spawned, bounty } : spawned;
         const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
         const narr = `Wild ${enc.name}${tierLabel} appeared!`;
         const ds = next.dailyStats!;

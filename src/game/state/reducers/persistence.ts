@@ -493,6 +493,7 @@ function normalizeEncounter(raw: unknown): EncounterPokemon | null {
     ivs: ivsFor({ dexNum, ivs: e.ivs as any }),
     condition: e.condition as any,
     ...(e.pendingPrize === true ? { pendingPrize: true } : {}),
+    ...(typeof e.bounty === 'number' && Number.isFinite(e.bounty) && e.bounty > 0 ? { bounty: Math.min(100000, Math.floor(e.bounty)) } : {}),
   });
 }
 

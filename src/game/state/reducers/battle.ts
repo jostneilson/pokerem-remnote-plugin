@@ -340,7 +340,8 @@ export function defeatEncounter(
   if (leveledUp) trainerXpGain += TRAINER_XP_SOURCES.levelUp;
   if (evolvedMon) trainerXpGain += TRAINER_XP_SOURCES.evolution;
 
-  const defeatCoins = defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum);
+  const defeatCoins =
+    defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) + (state.currentEncounter.bounty ?? 0);
   const typeBoost = applyTypeShareXpBoost(
     party,
     state.storagePokemon,
