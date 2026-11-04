@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import type { CSSProperties } from 'react';
 import type {
   BattleOutcomeKind,
   CombatStrikeSnapshot,
@@ -38,6 +39,7 @@ export function BattleField({
   height,
   layoutW,
   spriteSize,
+  hud,
   fieldWild,
   linger,
   hasEncounter,
@@ -61,6 +63,8 @@ export function BattleField({
   height: number;
   layoutW: number;
   spriteSize: number;
+  /** A17: your lead's feet (px from the field top) and the info-box tops, while a wild is out. */
+  hud?: { allyFeet: number; allySprite: number; foeTop: number; allyTop: number };
   /** The wild on the field: the live encounter, or the one held for a KO / faint finish. */
   fieldWild: EncounterPokemon | null;
   linger: BattleLinger | null;
@@ -102,7 +106,7 @@ export function BattleField({
   return (
     <div
       className={`pkr-battle-field pkr-wild-field relative w-full overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]${fieldWild?.shiny ? ' pkr-battle-field--shiny' : ''}`}
-      style={{ height: `${height}px` }}
+      style={{ height: `${height}px`, ...(hud ? ({ '--pkr-hud-foe-top': `${hud.foeTop}px`, '--pkr-hud-ally-top': `${hud.allyTop}px` } as CSSProperties) : {}) }}
     >
       <div className="pointer-events-none absolute inset-0 z-0">
         {blend && !reducedMotion ? (
@@ -291,7 +295,7 @@ export function BattleField({
         className="absolute z-10"
         style={{
           left: '24%',
-          top: hasEncounter ? '93%' : '89%',
+          top: hasEncounter ? (hud ? `${hud.allyFeet}px` : '93%') : '89%',
           translate: '-50% -100%',
           transform: `translate(${Math.round((spriteOff.playerX * layoutW) / 400)}px,${Math.round((spriteOff.playerY * layoutW) / 400)}px)`,
         }}
@@ -303,7 +307,7 @@ export function BattleField({
             src={backSpriteUrl(rootURL, active.dexNum, active.shiny === true)}
             alt={active.name}
             grounded
-            size={Math.round(spriteSize * 1.3)}
+            size={hud && hasEncounter ? hud.allySprite : Math.round(spriteSize * 1.3)}
             shiny={active.shiny === true}
             reducedMotion={reducedMotion}
           />

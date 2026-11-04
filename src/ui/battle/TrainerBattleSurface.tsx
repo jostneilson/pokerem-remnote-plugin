@@ -263,24 +263,33 @@ function LineupStrip({
 
 function TrainerHudPlate({
   enemy,
+  team,
   accent,
   glow,
 }: {
   enemy: TrainerEnemyMon;
+  /** The trainer's whole team, for the team-ball pips (A17). */
+  team: TrainerEnemyMon[];
   accent: string;
   glow: string;
 }) {
   const ratio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute left-1.5 top-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
+      className="pkr-battle-hud pkr-battle-hud--compact pkr-hud-at-foe pkr-hud-trainer absolute z-[25] px-2 py-1.5 text-left"
       style={{
         borderColor: `${accent}55`,
+        ['--pkr-hud-notch' as string]: `${accent}aa`,
         boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px ${glow}`,
       }}
     >
-      <div className="pkr-battle-hud-role mb-0.5" style={{ color: accent }}>
+      <div className="pkr-battle-hud-role mb-0.5 flex items-center gap-1" style={{ color: accent }}>
         Trainer
+        <span className="pkr-team-pips" aria-label={`${team.filter((m) => !m.defeated && m.currentHp > 0).length} of ${team.length} left`}>
+          {team.map((m, i) => (
+            <i key={i} className={m.defeated || m.currentHp <= 0 ? 'pkr-team-pip pkr-team-pip--out' : 'pkr-team-pip'} />
+          ))}
+        </span>
       </div>
       <div
         className="line-clamp-1 pkr-fine font-black leading-tight"
@@ -307,13 +316,14 @@ function TrainerHudPlate({
   );
 }
 
-function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
+function PlayerHudPlate({ mon, buddy = false }: { mon: OwnedPokemon; buddy?: boolean }) {
   const ratio = mon.maxHp > 0 ? mon.currentHp / mon.maxHp : 0;
   return (
     <div
-      className="pkr-battle-hud pkr-battle-hud--compact absolute bottom-1.5 right-1.5 z-[25] max-w-[49%] px-2 py-1.5 text-left"
+      className="pkr-battle-hud pkr-battle-hud--compact pkr-hud-at-ally pkr-hud-trainer absolute z-[25] px-2 py-1.5 text-left"
       style={{
         borderColor: 'rgba(96,165,250,0.45)',
+        ['--pkr-hud-notch' as string]: 'rgba(96,165,250,0.7)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.45), 0 0 12px rgba(96,165,250,0.25)',
       }}
     >
@@ -324,7 +334,8 @@ function PlayerHudPlate({ mon }: { mon: OwnedPokemon }) {
         className="line-clamp-1 pkr-fine font-black leading-tight"
         style={{ color: 'white' }}
       >
-        {mon.nickname || mon.name}{' '}
+        {mon.nickname || mon.name}
+        {buddy ? <span className="pkr-hud-buddy" title="Your Buddy" aria-label="Buddy"> ♥</span> : null}{' '}
         <span className="whitespace-nowrap font-bold" style={{ color: '#a5b4fc' }}>
           Lv{mon.level}
         </span>
@@ -692,7 +703,7 @@ export function TrainerBattleSurface({
 
           {/* Enemy sprite (upper-right) */}
           {enemy && !(enemy.defeated || enemy.currentHp <= 0) ? (
-            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute left-[74%] top-[64%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
+            <div style={{translate:'-50% -100%'}} className={`pkr-trainer-foe-sprite pointer-events-none absolute left-[74%] top-[64%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
               <PokemonSprite
                 src={frontSpriteUrl(rootURL, enemy.dexNum, enemy.shiny === true)}
                 alt={enemy.name}
@@ -705,7 +716,7 @@ export function TrainerBattleSurface({
 
           {/* Player sprite (lower-left, back-facing) */}
           {activeMon && activeMon.currentHp > 0 ? (
-            <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute top-[93%] left-[24%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
+            <div style={{translate:'-50% -100%', top: 'var(--pkr-ally-feet)'}} className={`pkr-trainer-ally-sprite pointer-events-none absolute left-[24%] z-[6] ${motionPhase === 'player' ? 'pkr-trainer-player-strike' : ''}`}>
               <PokemonSprite
                 src={backSpriteUrl(rootURL, activeMon.dexNum, activeMon.shiny === true)}
                 alt={activeMon.name}
@@ -720,11 +731,12 @@ export function TrainerBattleSurface({
           {enemy ? (
             <TrainerHudPlate
               enemy={enemy}
+              team={battle.enemies}
               accent={accentFor(battle).accent}
               glow={accentFor(battle).glow}
             />
           ) : null}
-          {activeMon ? <PlayerHudPlate mon={activeMon} /> : null}
+          {activeMon ? <PlayerHudPlate mon={activeMon} buddy={!!state.starterId && activeMon.id === state.starterId} /> : null}
         </div>
 
         {/* Moves grid — same cartridge feel as normal battle */}

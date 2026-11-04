@@ -1,4 +1,5 @@
 import { formatCoins } from '../format/coins';
+import { battleHudLayout } from './hudLayout';
 import { catchBlockedByStorage } from '../../game/engine/capacity';
 import {
   useEffect,
@@ -223,7 +224,10 @@ export function BattleReviewSurface({
   const layoutW = Math.max(260, frameW);
   const typeIconSize = Math.min(18, Math.max(12, Math.round(layoutW * 0.045)));
   const battleHeight = Math.max(190, Math.min(270, Math.round(layoutW * 0.58)));
-  const spriteSize = Math.max(90, Math.min(142, Math.round(layoutW * 0.3)));
+  const baseSprite = Math.max(90, Math.min(142, Math.round(layoutW * 0.3)));
+  // A17: each info box sits with its own Pokémon (foe box above the foe, yours under your lead).
+  const hudLayout = battleHudLayout({ layoutW, height: battleHeight, foeFeetShare: 0.58, foeSprite: baseSprite, allySprite: baseSprite * 1.3 });
+  const spriteSize = hudLayout.spriteSize;
   /** Corner HUD width — tied to the measured column. Half the field keeps each plate clear of the opposite sprite. */
   const hudPanelMaxPx = Math.min(190, Math.max(120, Math.round(layoutW * 0.5)));
 
@@ -327,7 +331,8 @@ export function BattleReviewSurface({
       <BattleHudPlate
         {...hudChrome}
         idPrefix="w"
-        className={`left-1 top-1 sm:left-1.5${battleLinger ? ' pointer-events-none opacity-90' : ''}${fieldWild.shiny ? ' pkr-battle-hud--shiny' : ''}`}
+        className={`pkr-hud-at-foe${battleLinger ? ' pointer-events-none opacity-90' : ''}${fieldWild.shiny ? ' pkr-battle-hud--shiny' : ''}`}
+        tight={hudLayout.tight}
         interactive={!battleLinger}
         header={
           <div className="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5">
@@ -377,7 +382,9 @@ export function BattleReviewSurface({
     <BattleHudPlate
       {...hudChrome}
       idPrefix="p"
-      className={fieldWild ? 'bottom-1 right-1 sm:right-1.5' : 'left-1 top-1 sm:left-1.5'}
+      className={fieldWild ? 'pkr-hud-at-ally' : 'left-1 top-1 sm:left-1.5'}
+      tight={!!fieldWild && hudLayout.tight}
+      buddy={!!state.starterId && active.id === state.starterId}
       header={
         !inBattleField ? (
           <div className="mb-0.5 pkr-fine font-bold leading-none" style={{ color: '#a5b4fc' }}>
@@ -463,6 +470,7 @@ export function BattleReviewSurface({
         height={battleHeight}
         layoutW={layoutW}
         spriteSize={spriteSize}
+        hud={fieldWild ? hudLayout : undefined}
         fieldWild={fieldWild}
         linger={battleLinger}
         hasEncounter={hasEncounter}
