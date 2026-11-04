@@ -83,3 +83,16 @@ describe('v5 canonical move mechanics', () => {
     expect(result.log).toContain('try Catch');
   });
 });
+
+describe('buddy accuracy (SPEC L16)', () => {
+  it('halves the miss chance of your starter', () => {
+    const p = { dexNum: 4, level: 20, types: ['Fire'], currentHp: 80, maxHp: 80, name: 'Charmander' } as Fighter;
+    const w = { dexNum: 19, level: 20, types: ['Normal'], currentHp: 80, maxHp: 80, name: 'Rattata' } as Fighter;
+    // Hypnosis is 60% accurate: a roll of 0.75 misses normally (miss 40%) but hits for a buddy (miss 20%).
+    const roll = () => 0.75;
+    const plain = resolveExchange(p, w, 'hypnosis', 'splash', 'k1', roll);
+    const buddy = resolveExchange({ ...p, isBuddy: true }, w, 'hypnosis', 'splash', 'k2', roll);
+    expect(plain.log).toContain('The attack missed!');
+    expect(buddy.log).not.toContain('The attack missed!');
+  });
+});

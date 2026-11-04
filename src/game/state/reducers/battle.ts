@@ -7,7 +7,7 @@ import { CURRENCY_REWARDS } from '../../engine/shop';
 import { getEffectiveness } from '../../data/typeChart';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../../engine/combatXp';
 import { TRAINER_XP_SOURCES } from '../../engine/trainerLevel';
-import { scaledXp, splitKnockoutXp } from '../../engine/xpShare';
+import { isBuddy, scaledXp, splitKnockoutXp } from '../../engine/xpShare';
 import { rollPostBattleScrap } from '../../engine/routeFinds';
 import { moveDisplayName } from '../../engine/combatExchange';
 import { chooseFoeMove } from '../../engine/foeAi';
@@ -170,7 +170,7 @@ function applyCombatTurnInner(
   );
   const key = `wild:${enc.dexNum}:${enc.level}:${state.battleSceneIndex}:${state.totalCaught}:${state.totalDefeated}:${state.totalRuns}`;
   const exchange = resolveExchange(
-    active,
+    { ...active, isBuddy: isBuddy(state, active) },
     enc,
     chosen,
     wildMove,

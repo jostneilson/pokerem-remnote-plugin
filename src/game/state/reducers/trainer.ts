@@ -4,7 +4,7 @@ import { ITEM_BY_ID, type ItemId } from '../../data/items';
 import { dedupeMoveIds, getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../../engine/combatXp';
 import { xpDoublerItemForTier } from '../../engine/xpDoublers';
-import { scaledXp, splitKnockoutXp } from '../../engine/xpShare';
+import { isBuddy, scaledXp, splitKnockoutXp } from '../../engine/xpShare';
 import { BALANCE } from '../../balance';
 import {
   averageOwnedPartyLevel,
@@ -194,7 +194,7 @@ export function applyTrainerCombatTurn(state: PokeRemGameState, moveId?: string)
     battle.tier === 'elite' ? 'elite' : 'trainer'
   );
   const exchange = resolveExchange(
-    active,
+    { ...active, isBuddy: isBuddy(state, active) },
     enemy,
     chosen,
     wMoveId,
