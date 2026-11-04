@@ -18,6 +18,7 @@ import {
   parseGameState,
   runFromEncounter
 } from './state/store';
+import { applyTypeShareXpBoost } from './state/reducers/core';
 import type { PokeRemGameState } from './state/model';
 
 function startedState(): PokeRemGameState {
@@ -140,4 +141,24 @@ describe('XP Doublers', () => {
     expect(s.xpBoosterActive ?? null).toBeNull();
     expect(s.xpBoosterQueue ?? []).toHaveLength(0);
   });
+
+  it('doubles type-share XP too (every XP source)', () => {
+    const s0 = startedState();
+    const lead = s0.party[0]!;
+    const buddyFree = { ...s0, starterId: undefined };
+    const fireMate = { ...lead, id: 'pk_9_mate', dexNum: 4, types: ['Fire' as const], level: lead.level, totalXp: lead.totalXp };
+    const gain = (doubled: boolean) => {
+      const st = {
+        ...buddyFree,
+        party: [lead],
+        storagePokemon: [fireMate],
+        xpBoosterActive: doubled ? { tier: 'common' as const, cardsRemaining: 10, cardsTotal: 25 } : null
+      } as PokeRemGameState;
+      const out = applyTypeShareXpBoost(st.party, st.storagePokemon, ['Fire'], lead.id, 30, st);
+      return out.storagePokemon[0]!.totalXp - fireMate.totalXp;
+    };
+    expect(gain(false)).toBeGreaterThan(0);
+    expect(gain(true)).toBe(gain(false) * 2);
+  });
 });
+

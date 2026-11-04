@@ -255,7 +255,8 @@ export function applyTrainerCombatTurn(state: PokeRemGameState, moveId?: string)
       next.storagePokemon,
       enemy.types,
       active.id,
-      enemy.level
+      enemy.level,
+      state
     );
     next = { ...next, party: boost.party, storagePokemon: boost.storagePokemon };
     return advanceEnemyOrFinish(next, updated);

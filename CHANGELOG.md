@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **XP Share.** Every party Pokémon now earns study XP on every card (your lead a little more), and a knockout's XP is split: 60% to your lead, the rest shared by the bench. Your whole team grows together.
+- **Catch-up boost.** A party member behind the rest earns up to ×2 XP until it catches up, shown by a small "▲ catch-up" tag on its card.
+- **Your starter is your Buddy.** It misses half as often and earns 15% more XP, with a ♥ Buddy badge. Existing saves pick your original starter automatically, and evolving keeps the bonus.
+
 ### Fixed
 
 - **The battle arena no longer changes on every card.** An old save migration was re-running on every read and stepping the arena along. You now stay in an area for 5–8 wild encounters, and the arena only moves on between encounters, with a small "→ area name" note and no shake.
-- **XP Doublers (and any other tap) can't be lost any more.** The sidebar, queue strip and popup now send their actions to one place that saves them in order with your card reviews, so a review can no longer overwrite a doubler you just switched on.
+- **XP Doublers (and any other tap) can't be lost any more.** The sidebar, queue strip and popup now send their actions to one place that saves them in order with your card reviews, so a review can no longer overwrite a doubler you just switched on. A doubler now doubles every kind of Pokémon XP, including the type-match bonus, and its chip shows the cards left and how many are queued.
 - **Mewtwo, Lugia, Rayquaza and 24 other headline legendaries and mythicals** were tagged as common, so they missed their "(Legendary)" label and bonus XP. They're tagged correctly now.
 - **A shiny no longer runs away when your lead faints.** It waits for your next Pokémon, just like a shiny legendary.
 - **Status conditions help when catching a trainer's Pokémon**, the same as with wild ones.

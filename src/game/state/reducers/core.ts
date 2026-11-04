@@ -1,3 +1,4 @@
+import { scaledXp } from '../../engine/xpShare';
 import { BALANCE, catchCoins } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
 import { isPerfectIVs, rollIVs, battleStats } from '../../engine/pokemonStats';
@@ -296,7 +297,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
       pre.storagePokemon,
       enc.types,
       mon.id,
-      enc.level
+      enc.level,
+      base
     );
     return withTouch(
       addTrainerXp(
@@ -324,7 +326,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
     withRoster.storagePokemon,
     enc.types,
     mon.id,
-    enc.level
+    enc.level,
+    base
   );
   return withTouch(
     addTrainerXp(
@@ -392,7 +395,9 @@ export function applyTypeShareXpBoost(
   storagePokemon: OwnedPokemon[],
   targetTypes: PokemonType[],
   excludeId?: string,
-  targetLevel: number = 5
+  targetLevel: number = 5,
+  /** For the doubler, catch-up and buddy multipliers (every XP source gets them). */
+  state?: PokeRemGameState
 ): TypeShareXpResult {
   if (!targetTypes || targetTypes.length === 0) {
     return { party, storagePokemon, boostedCount: 0 };
@@ -402,13 +407,15 @@ export function applyTypeShareXpBoost(
   const partyBoost = Math.max(b.typeSharePartyBase, b.typeSharePartyBase + Math.floor(targetLevel * b.typeSharePartyPerLevel));
   const storageBoost = Math.max(b.typeShareStorageBase, b.typeShareStorageBase + Math.floor(targetLevel * b.typeShareStoragePerLevel));
   let boostedCount = 0;
+  const xpFor = (mon: OwnedPokemon, boost: number) =>
+    state ? scaledXp(state, mon, boost * b.typeShareMult) : Math.round(boost * b.typeShareMult);
 
   const nextParty = party.map((mon) => {
     if (mon.id === excludeId) return mon;
     const shares = mon.types && mon.types.some((t) => typeSet.has(t));
     if (!shares) return mon;
     boostedCount++;
-    return growPokemonWithXp(mon, partyBoost).pokemon;
+    return growPokemonWithXp(mon, xpFor(mon, partyBoost)).pokemon;
   });
 
   const nextStorage = storagePokemon.map((mon) => {
@@ -416,7 +423,7 @@ export function applyTypeShareXpBoost(
     const shares = mon.types && mon.types.some((t) => typeSet.has(t));
     if (!shares) return mon;
     boostedCount++;
-    return growPokemonWithXp(mon, storageBoost).pokemon;
+    return growPokemonWithXp(mon, xpFor(mon, storageBoost)).pokemon;
   });
 
   return { party: nextParty, storagePokemon: nextStorage, boostedCount };

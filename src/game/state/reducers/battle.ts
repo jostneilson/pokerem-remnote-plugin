@@ -341,7 +341,8 @@ export function defeatEncounter(
     state.storagePokemon,
     state.currentEncounter.types,
     state.activePokemonId,
-    state.currentEncounter.level
+    state.currentEncounter.level,
+    state
   );
 
   let afterDefeat: PokeRemGameState = {

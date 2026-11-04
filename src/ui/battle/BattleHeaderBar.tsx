@@ -84,7 +84,7 @@ export function BattleHeaderBar({
       </StatHoverTip>
       {state.xpBoosterActive ? (
         <StatHoverTip
-          label={`XP Doubler active — all Pokémon gain x2 XP for the next ${state.xpBoosterActive.cardsRemaining} reviewed card(s).${
+          label={`XP Doubler active — every Pokémon gains ×2 XP from every source for the next ${state.xpBoosterActive.cardsRemaining} reviewed card(s).${
             (state.xpBoosterQueue?.length ?? 0) > 0
               ? ` Queued: ${state.xpBoosterQueue?.length}.`
               : ''
@@ -99,7 +99,8 @@ export function BattleHeaderBar({
               color: '#fef3c7',
             }}
           >
-            x2 XP · {state.xpBoosterActive.cardsRemaining}
+            ×2 · {state.xpBoosterActive.cardsRemaining} {state.xpBoosterActive.cardsRemaining === 1 ? 'card' : 'cards'} left
+            {(state.xpBoosterQueue?.length ?? 0) > 0 ? ` · +${state.xpBoosterQueue!.length} queued` : ''}
           </span>
         </StatHoverTip>
       ) : null}
