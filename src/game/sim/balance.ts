@@ -10,6 +10,7 @@ import { recommendedBall, wildCatchChancePreview } from '../engine/encounters';
 import { GALARIAN_BIRDS } from '../engine/rarity';
 import { isEventSpecies } from '../engine/speciesPool';
 import { seededRng } from './simulate';
+import { catchBlockedByStorage, storageCap } from '../engine/capacity';
 
 export type PolicyId = 'keep-team' | 'swap-in' | 'collector' | 'fighter' | 'farmer' | 'idle';
 export const POLICIES: PolicyId[] = ['keep-team', 'swap-in', 'collector', 'fighter', 'farmer', 'idle'];
@@ -95,11 +96,6 @@ function partyLevels(s: PokeRemGameState) {
     top: Math.max(0, ...lv),
     bottom: lv.length ? Math.min(...lv) : 0
   };
-}
-
-function storageCap(s: PokeRemGameState): number {
-  const fn = (store as unknown as { storageCapacity?: (s: PokeRemGameState) => number }).storageCapacity;
-  return typeof fn === 'function' ? fn(s) : Number.POSITIVE_INFINITY;
 }
 
 /** Transfer when the build has it (1.6.0 T4.1), else release (pays nothing). */
@@ -221,9 +217,8 @@ export function runBalance(policy: PolicyId, pacing: PacingId, seed: number, cfg
         const uncaught = (s.collectionDex[wild.dexNum] ?? 0) === 0;
         const special = wild.shiny === true || isEventSpecies(wild.dexNum);
         const wantCatch =
-          special ||
-          (p === 'collector' || p === 'farmer') ||
-          ((p === 'swap-in' || p === 'keep-team') && uncaught);
+          !catchBlockedByStorage(s, wild) &&
+          (special || p === 'collector' || p === 'farmer' || ((p === 'swap-in' || p === 'keep-team') && uncaught));
         const ball = recommendedBall(s.bag, wild, lead);
         if (wantCatch && (s.bag[ball] ?? 0) <= 0) step('other', (x) => store.buyItem(x, 'poke-ball', 5));
         const chance = wildCatchChancePreview(wild, lead, recommendedBall(s.bag, wild, lead));

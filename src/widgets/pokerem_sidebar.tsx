@@ -63,6 +63,7 @@ import {
   acknowledgeWhatsNew,
 } from '../game/state/store';
 import type { PokeRemGameState, SectionTab } from '../game/state/model';
+import type { GridFlag } from '../game/engine/collectionGrid';
 import { StarterPickerScreen } from '../ui/screens/StarterPickerScreen';
 import { StudyDifficultyScreen } from '../ui/screens/StudyDifficultyScreen';
 import { StatusScreen } from '../ui/screens/StatusScreen';
@@ -107,6 +108,8 @@ function PokeRemSidebar() {
   neutralizeBrokenRegisterCSS(plugin);
   const [state, setState] = useState<PokeRemGameState>(() => createInitialStateV3());
   const [showSettings, setShowSettings] = useState(false);
+  /** Opens the Party screen's View all grid (full-storage Catch → duplicates). */
+  const [viewAllRequest, setViewAllRequest] = useState<{ key: number; flags: GridFlag[] } | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -398,6 +401,7 @@ function PokeRemSidebar() {
                 <PartyScreen
                   rootURL={plugin.rootURL}
                   storageCap={storageCap(state)}
+                  viewAllRequest={viewAllRequest}
                   party={state.party}
                   starterId={state.starterId}
                   gameState={state}
@@ -590,6 +594,10 @@ function PokeRemSidebar() {
                 onToggleAutoAttack={() => battle.autoAttacking ? battle.stopAutoAttack() : void battle.startAutoAttack(state)}
                 onFightMove={(id) => battle.makeFightMove(id)}
                 onRun={battle.makeRun}
+                onOpenStorageTransfer={() => {
+                  setViewAllRequest({ key: Date.now(), flags: ['duplicates'] });
+                  void dispatch(gameCommand('setTab', 'party'));
+                }}
                 encounterRate={effectiveEncounterRate}
                 currency={state.currency}
                 reducedMotion={reducedMotion}

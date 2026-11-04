@@ -1,3 +1,4 @@
+import { catchBlockedByStorage } from '../../game/engine/capacity';
 import {
   useEffect,
   useLayoutEffect,
@@ -72,6 +73,7 @@ export function BattleReviewSurface({
   onCatch,
   onFightMove,
   onRun,
+  onOpenStorageTransfer,
   encounterRate,
   currency,
   reducedMotion,
@@ -119,6 +121,8 @@ export function BattleReviewSurface({
   onCatch: (ball?: CatchBall) => void;
   onFightMove: (moveId: string) => void;
   onRun: (giveUpPrize?: boolean) => void;
+  /** Open the View all grid filtered to duplicates (full-storage Catch). */
+  onOpenStorageTransfer?: () => void;
   encounterRate?: number;
   currency?: number;
   reducedMotion?: boolean;
@@ -540,6 +544,7 @@ export function BattleReviewSurface({
                 onRun={onRun}
                 onToggleAutoAttack={onToggleAutoAttack}
                 onCatchScope={onCatchScope}
+                onStorageFull={wild && onOpenStorageTransfer && catchBlockedByStorage(state, wild) ? onOpenStorageTransfer : undefined}
               />
             )
           ) : leadFaintedNoEncounter ? (

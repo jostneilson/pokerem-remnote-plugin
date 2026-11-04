@@ -1,3 +1,4 @@
+import { STORAGE_FULL_MESSAGE, catchBlockedByStorage } from '../../engine/capacity';
 import { BALANCE, defeatCoins as defeatCoinsFor } from '../../balance';
 import { resolveExchange, WILD_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { isGuaranteedCatch, wildCatchChancePreview } from '../../engine/encounters';
@@ -44,6 +45,9 @@ function catchEncounterInner(
   ball: 'poke-ball' | 'great-ball' | 'ultra-ball'
 ): PokeRemGameState {
   if (!state.currentEncounter) return state;
+  if (catchBlockedByStorage(state, state.currentEncounter)) {
+    return withTouch({ ...state, ...bumpBattleOutcome(state, 'none', STORAGE_FULL_MESSAGE) });
+  }
   const count = state.bag[ball] ?? 0;
   if (count <= 0) {
     return withTouch({

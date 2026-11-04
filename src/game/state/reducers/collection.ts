@@ -28,16 +28,11 @@ import { bumpBattleOutcome, uid } from './persistence';
 export function claimQuest(state: PokeRemGameState, questId: string): PokeRemGameState {
   const view = questViews(state).find((q) => q.id === questId);
   if (!view || !view.done || view.claimed || !state.quests) return state;
-  const bag = { ...state.bag };
-  for (const [id, n] of Object.entries(view.items ?? {})) {
-    if (n && n > 0 && ITEM_BY_ID.has(id as ItemId))
-      bag[id as ItemId] = (bag[id as ItemId] ?? 0) + n;
-  }
+  const withItems = addBagQuantities(state, (view.items ?? {}) as Partial<Record<ItemId, number>>);
   return withTouch({
-    ...state,
-    bag,
-    currency: (state.currency ?? 0) + view.coins,
-    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + view.coins,
+    ...withItems,
+    currency: (withItems.currency ?? 0) + view.coins,
+    totalCurrencyEarned: (withItems.totalCurrencyEarned ?? 0) + view.coins,
     quests: { ...state.quests, claimed: [...state.quests.claimed, questId] },
   });
 }
@@ -393,13 +388,7 @@ export function claimTrainerReward(state: PokeRemGameState, level: number): Poke
   if (claimed.includes(level)) return state;
 
   let next = { ...state, claimedRewardLevels: [...claimed, level] };
-  if (reward.items) {
-    const bag = { ...next.bag };
-    for (const [itemId, qty] of Object.entries(reward.items)) {
-      bag[itemId as keyof typeof bag] = ((bag as any)[itemId] ?? 0) + (qty as number);
-    }
-    next = { ...next, bag };
-  }
+  if (reward.items) next = addBagQuantities(next, reward.items as Partial<Record<ItemId, number>>);
   if (reward.trainerRankTitle) {
     next = { ...next, trainerRank: reward.trainerRankTitle };
   }

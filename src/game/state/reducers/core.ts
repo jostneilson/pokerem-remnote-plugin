@@ -1,4 +1,4 @@
-import { capacityGain } from '../../engine/capacity';
+import { capacityGain, fitFoundItems } from '../../engine/capacity';
 import { scaledXp } from '../../engine/xpShare';
 import { BALANCE, catchCoins } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
@@ -55,14 +55,15 @@ export function addBagQuantities(
 ): PokeRemGameState {
   const keys = Object.keys(delta);
   if (keys.length === 0) return state;
-  const bag = { ...state.bag };
-  for (const [id, q] of Object.entries(delta)) {
-    if (typeof q !== 'number' || !Number.isFinite(q) || q <= 0) continue;
-    const itemId = id as ItemId;
-    if (!ITEM_BY_ID.has(itemId)) continue;
-    bag[itemId] = (bag[itemId] ?? 0) + Math.floor(q);
-  }
-  return { ...state, bag };
+  // Items that don't fit a full bag become coins (SPEC L14).
+  const fit = fitFoundItems(state, delta);
+  if (fit.coins <= 0) return { ...state, bag: fit.bag };
+  return {
+    ...state,
+    bag: fit.bag,
+    currency: (state.currency ?? 0) + fit.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + fit.coins,
+  };
 }
 
 /** "Storage +10 · Bag +20" when reaching `lv` grows capacity (SPEC U6). */

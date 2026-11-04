@@ -37,7 +37,10 @@ export function BattleCommandMenu({
   onRun,
   onToggleAutoAttack,
   onCatchScope,
+  onStorageFull,
 }: {
+  /** Set when storage is full and this wild can't go over the cap: Catch opens the transfer grid instead. */
+  onStorageFull?: () => void;
   rootURL: string | undefined;
   active: OwnedPokemon;
   wild: EncounterPokemon | null;
@@ -85,10 +88,12 @@ export function BattleCommandMenu({
       <div className="flex min-h-[58px] flex-row items-stretch gap-2">
         <button
           type="button"
-          disabled={!canCatch || battleBusy}
-          onClick={() => onThrow(suggestedBall)}
+          disabled={onStorageFull ? battleBusy : !canCatch || battleBusy}
+          onClick={() => (onStorageFull ? onStorageFull() : onThrow(suggestedBall))}
           aria-label={
-            suggestedPct != null
+            onStorageFull
+              ? 'Storage full. Open Transfer to make room'
+              : suggestedPct != null
               ? `Catch with ${CATCH_BALL_STOCK.find((b) => b.key === suggestedBall)?.label}, ${suggestedPct}% chance`
               : 'Catch'
           }
@@ -96,9 +101,11 @@ export function BattleCommandMenu({
         >
           <GameIcon name="pokeball" size={15} className="shrink-0" />
           <div className="pkr-cmd__label whitespace-nowrap uppercase leading-none">
-            {busy('catch') ? '…' : 'Catch'}
+            {busy('catch') ? '…' : onStorageFull ? 'Storage full' : 'Catch'}
           </div>
-          {suggestedPct != null ? (
+          {onStorageFull ? (
+            <div className="pkr-catch-odds">· Transfer</div>
+          ) : suggestedPct != null ? (
             <div className="pkr-catch-odds">
               {guaranteedCatch ? 'Sure catch!' : `${suggestedPct}%`}
             </div>

@@ -1,4 +1,7 @@
+import { ITEM_BY_ID, type ItemId } from '../data/items';
+import { SPECIES_BY_DEX } from '../data/species';
 import type { PokeRemGameState } from '../state/model';
+import { isEventSpecies } from './speciesPool';
 
 /*
  * Capacity (SPEC A10, L13). Storage: 60 + 10 per 5 trainer levels + bought slots. Bag: 200 + 20 per 5 trainer
@@ -98,3 +101,51 @@ export function meterLevel(used: number, cap: number): MeterLevel {
   if (used >= cap) return 'full';
   return used >= cap * CAPACITY_WARN_SHARE ? 'warn' : 'ok';
 }
+
+/** Found items that don't fit a full bag turn into coins at this share of the shop price (L14). */
+export const BAG_FULL_COIN_SHARE = 0.5;
+
+/**
+ * Add found items (drops, route finds, rewards) to the bag. Key items always fit; the rest fill the free room
+ * and anything left over becomes ₽ at half the shop price.
+ */
+export function fitFoundItems(
+  state: CapState & Pick<PokeRemGameState, 'bag'>,
+  items: Partial<Record<string, number>>
+): { bag: PokeRemGameState['bag']; coins: number; converted: number } {
+  const bag = { ...state.bag } as Record<string, number>;
+  let room = bagRoom(state);
+  let coins = 0;
+  let converted = 0;
+  for (const [id, raw] of Object.entries(items)) {
+    const qty = typeof raw === 'number' && Number.isFinite(raw) ? Math.floor(raw) : 0;
+    if (qty <= 0 || !ITEM_BY_ID.has(id as ItemId)) continue;
+    const fits = isKeyItem(id) ? qty : Math.min(qty, room);
+    if (!isKeyItem(id)) room -= fits;
+    if (fits > 0) bag[id] = (bag[id] ?? 0) + fits;
+    const over = qty - fits;
+    if (over > 0) {
+      converted += over;
+      coins += Math.round(over * (ITEM_BY_ID.get(id as ItemId)!.price * BAG_FULL_COIN_SHARE));
+    }
+  }
+  return { bag: bag as PokeRemGameState['bag'], coins, converted };
+}
+
+/** Pokémon that always get through a full storage (L9): shiny, legendary-class (incl. Galarian birds), prizes. */
+export function bypassesStorageCap(mon: { dexNum: number; shiny?: boolean; pendingPrize?: boolean; guaranteed?: boolean }): boolean {
+  if (mon.shiny || mon.pendingPrize || mon.guaranteed) return true;
+  if (isEventSpecies(mon.dexNum)) return true;
+  const tier = SPECIES_BY_DEX.get(mon.dexNum)?.tier;
+  return tier === 'Ultra' || tier === 'Legendary' || tier === 'Mythical';
+}
+
+/** A catch would land in a full storage (party full too) and the Pokémon isn't exempt. */
+export function catchBlockedByStorage(
+  state: CapState & Pick<PokeRemGameState, 'party' | 'storagePokemon'>,
+  mon: Parameters<typeof bypassesStorageCap>[0]
+): boolean {
+  return state.party.length >= 6 && storageRoom(state) <= 0 && !bypassesStorageCap(mon);
+}
+
+export const STORAGE_FULL_MESSAGE = 'Storage full: transfer some Pokémon to catch more.';

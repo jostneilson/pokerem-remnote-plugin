@@ -58,7 +58,8 @@ import type {
   XpDoublerEntry,
   XpDoublerTier,
 } from '../model';
-import { BAG_UPGRADE_MAX, STORAGE_UPGRADE_MAX } from '../../engine/capacity';
+import { formatCoins } from '../../../ui/format/coins';
+import { BAG_UPGRADE_MAX, STORAGE_UPGRADE_MAX, fitFoundItems } from '../../engine/capacity';
 
 /** Bought capacity slots: an integer in 0..max; anything else is dropped. */
 function normalizeBonus(raw: unknown, max: number): number | undefined {
@@ -214,13 +215,15 @@ export function applyRouteFindToState(
   state: PokeRemGameState,
   roll: RouteFindRollResult
 ): PokeRemGameState {
-  const bag = { ...state.bag };
-  bag[roll.itemId] = (bag[roll.itemId] ?? 0) + roll.quantity;
+  const fit = fitFoundItems(state, { [roll.itemId]: roll.quantity });
+  const notice = fit.converted > 0 ? { ...roll.notice, subline: `${roll.notice.subline} Bag full → ${formatCoins(fit.coins)}` } : roll.notice;
   return {
     ...state,
-    bag,
+    bag: fit.bag,
+    currency: (state.currency ?? 0) + fit.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + fit.coins,
     routeFindNoticeSeq: (state.routeFindNoticeSeq ?? 0) + 1,
-    routeFindNotice: roll.notice,
+    routeFindNotice: notice,
   };
 }
 

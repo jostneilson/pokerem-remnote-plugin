@@ -23,6 +23,7 @@ import {
 } from '../state/store';
 import { recommendedBall, wildCatchChancePreview } from '../engine/encounters';
 import { REVIEWS_PER_ENCOUNTER } from '../constants';
+import { catchBlockedByStorage } from '../engine/capacity';
 
 /** Small, fast deterministic PRNG (mulberry32). */
 export function seededRng(seed: number): () => number {
@@ -97,7 +98,7 @@ function run(opts: SimOptions): SimResult {
         const lead = activePokemon(s);
         const wild = s.currentEncounter;
         if (!lead || lead.currentHp <= 0 || !wild) break;
-        const wantCatch = (s.collectionDex[wild.dexNum] ?? 0) === 0 || wild.shiny === true;
+        const wantCatch = !catchBlockedByStorage(s, wild) && ((s.collectionDex[wild.dexNum] ?? 0) === 0 || wild.shiny === true);
         if (wantCatch && !['poke-ball', 'great-ball', 'ultra-ball'].some((b) => (s.bag[b as 'poke-ball'] ?? 0) > 0)) s = buyItem(s, 'poke-ball', 5);
         const ball = recommendedBall(s.bag, wild, lead);
         if (wantCatch && (s.bag[ball] ?? 0) > 0 && wildCatchChancePreview(wild, lead, ball) >= catchAt) {

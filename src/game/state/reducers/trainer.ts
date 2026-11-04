@@ -1,3 +1,4 @@
+import { STORAGE_FULL_MESSAGE, catchBlockedByStorage, fitFoundItems } from '../../engine/capacity';
 import { formatCoins } from '../../../ui/format/coins';
 import { resolveExchange, TRAINER_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -428,16 +429,13 @@ export function resolveTrainerBattle(
 
   const avgLevel = averageOwnedPartyLevel(state.party);
   const reward = battle.rocket ? rocketRewards(battle.rocket, avgLevel, rng) : generateTrainerRewards(battle.tier, avgLevel, rng);
-  const bag: Record<ItemId, number> = { ...state.bag };
-  for (const [iid, qty] of Object.entries(reward.items)) {
-    if (!qty || qty <= 0) continue;
-    if (!ITEM_BY_ID.has(iid as ItemId)) continue;
-    bag[iid as ItemId] = (bag[iid as ItemId] ?? 0) + qty;
-  }
+  const found: Partial<Record<string, number>> = { ...reward.items };
   if (reward.xpDoublerTier) {
     const doublerItem = xpDoublerItemForTier(reward.xpDoublerTier);
-    bag[doublerItem] = (bag[doublerItem] ?? 0) + 1;
+    found[doublerItem] = (found[doublerItem] ?? 0) + 1;
   }
+  const fit = fitFoundItems(state, found);
+  const bag = fit.bag;
 
   const newStreak = stats.currentWinStreak + 1;
   const updatedStats: TrainerBattleStats = {
@@ -467,6 +465,7 @@ export function resolveTrainerBattle(
       ? `${reward.xpDoublerTier === 'rare' ? 'Rare' : reward.xpDoublerTier === 'legendary' ? 'Legendary' : 'Common'} XP Doubler`
       : '',
     `+${reward.trainerXp} TR XP`,
+    fit.converted > 0 ? `Bag full → ${formatCoins(fit.coins)}` : '',
   ]
     .filter(Boolean)
     .join(' · ');
@@ -484,8 +483,8 @@ export function resolveTrainerBattle(
       {
         ...state,
         bag,
-        currency: (state.currency ?? 0) + reward.coins,
-        totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + reward.coins,
+        currency: (state.currency ?? 0) + reward.coins + fit.coins,
+        totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + reward.coins + fit.coins,
         currentTrainerBattle: post,
         trainerBattleStats: updatedStats,
         mainNoticeQueue: noticeQueue.slice(-12),
@@ -521,6 +520,9 @@ export function claimTrainerCatch(
   const ballCount = state.bag[ball] ?? 0;
   if (ballCount <= 0) return state;
   const enemy = battle.enemies[enemyIndex]!;
+  if (catchBlockedByStorage(state, enemy)) {
+    return withTouch({ ...state, currentTrainerBattle: { ...battle, feedbackSeq: battle.feedbackSeq + 1, lastLog: STORAGE_FULL_MESSAGE } });
+  }
   const active = activePokemon(state);
   const chance = trainerCatchChance(enemy, active, ball, battle.tier);
   const success = Math.random() < chance;

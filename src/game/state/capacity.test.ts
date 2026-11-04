@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { bagCap, bagCount, capacityGain, storageCap, storageUpgradePrice } from '../engine/capacity';
-import { buyBagUpgrade, buyItem, buyStorageUpgrade, chooseStarter, createInitialStateV4, moveToStorage, parseGameState, quickBuyBalls } from './store';
+import { bagCap, bagCount, capacityGain, fitFoundItems, storageCap, storageUpgradePrice } from '../engine/capacity';
+import { addBagQuantities } from './reducers/core';
+import { applyRouteFindToState } from './reducers/persistence';
+import { buyBagUpgrade, buyItem, buyStorageUpgrade, catchEncounter, chooseStarter, createInitialStateV4, moveToStorage, parseGameState, quickBuyBalls } from './store';
 import type { OwnedPokemon, PokeRemGameState } from './model';
 
 const emptyBag = (s: PokeRemGameState) => Object.fromEntries(Object.keys(s.bag).map((k) => [k, 0])) as PokeRemGameState['bag'];
@@ -55,5 +57,44 @@ describe('capacity caps', () => {
     s = buyBagUpgrade(s);
     expect(s.bagBonus).toBe(50);
     expect(parseGameState(JSON.parse(JSON.stringify({ ...s, storageBonus: 9999, bagBonus: 'x' }))).storageBonus).toBe(200);
+  });
+
+  it('full storage blocks a catch (no ball used) but shinies and legendaries get through', () => {
+    const s0 = started();
+    const lead = s0.party[0]!;
+    const full = {
+      ...s0,
+      party: Array.from({ length: 6 }, (_, i) => ({ ...lead, id: `pk_${i + 1}_p` })),
+      storagePokemon: filler(60, lead),
+      bag: { ...s0.bag, 'poke-ball': 5 },
+      currentEncounter: { dexNum: 16, name: 'Pidgey', level: 3, currentHp: 1, maxHp: 20, types: ['Normal', 'Flying'] }
+    } as PokeRemGameState;
+    const blocked = catchEncounter(full, 'poke-ball');
+    expect(blocked.currentEncounter).not.toBeNull();
+    expect(blocked.bag['poke-ball']).toBe(5);
+    expect(blocked.lastBattleLog).toMatch(/Storage full/);
+    const shiny = catchEncounter({ ...full, currentEncounter: { ...full.currentEncounter!, shiny: true } }, 'poke-ball');
+    expect(shiny.bag['poke-ball']).toBe(4);
+    const legend = catchEncounter({ ...full, currentEncounter: { ...full.currentEncounter!, dexNum: 150, name: 'Mewtwo' } }, 'poke-ball');
+    expect(legend.bag['poke-ball']).toBe(4);
+  });
+
+  it('found items that do not fit become coins at half price; key items always fit', () => {
+    const s0 = started();
+    const s = { ...s0, trainerLevel: 1, bag: { ...emptyBag(s0), 'poke-ball': 198 } };
+    const fit = fitFoundItems(s, { potion: 4, 'fire-stone': 1 });
+    expect(fit.bag.potion).toBe(2);
+    expect(fit.bag['fire-stone']).toBe(1);
+    expect(fit.converted).toBe(2);
+    expect(fit.coins).toBe(150);
+    const claimed = addBagQuantities(s, { potion: 4 });
+    expect(claimed.currency - s.currency).toBe(150);
+    const found = applyRouteFindToState({ ...s, bag: { ...s.bag, 'poke-ball': 200 } }, {
+      itemId: 'potion',
+      quantity: 1,
+      notice: { itemId: 'potion', quantity: 1, headline: 'Found', subline: 'Potion.', source: 'travel' }
+    } as Parameters<typeof applyRouteFindToState>[1]);
+    expect(found.bag.potion).toBe(0);
+    expect(found.routeFindNotice?.subline).toMatch(/Bag full → ₽75/);
   });
 });
