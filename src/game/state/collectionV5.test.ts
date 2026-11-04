@@ -127,7 +127,7 @@ describe('v5 catches, rewards, and study XP', () => {
     expect(rollStudyCashBonus(rng(0, 0.999999))).toEqual({ amount: 25000, tier: 'Jackpot' });
   });
 
-  it('awards lower bench XP and records a compact lead/bench recap once per review', () => {
+  it('XP Share: every member earns study XP (lead x1.2) and the recap is recorded once per review', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
     const party = [owned('lead'), owned('bench-1'), owned('bench-2')];
     const beforeXp = party.map(p => p.totalXp);
@@ -136,9 +136,10 @@ describe('v5 catches, rewards, and study XP', () => {
       currentEncounter: { dexNum: 7, name: 'Squirtle', level: 5, currentHp: 20, maxHp: 20, types: ['Water'] },
     };
     const next = onQueueCardComplete(state);
-    expect(next.party[0]!.totalXp - beforeXp[0]!).toBe(3);
-    expect(next.party[1]!.totalXp - beforeXp[1]!).toBe(1);
-    expect(next.party[2]!.totalXp - beforeXp[2]!).toBe(1);
-    expect(next.lastStudyReward).toMatchObject({ seq: 1, leadXp: 3, benchXp: 2, bonus: 0 });
+    // 1.6 x 1.2 = 1.92 for the lead and 1.6 for the bench, both rounded up by the 0.1 roll.
+    expect(next.party[0]!.totalXp - beforeXp[0]!).toBe(2);
+    expect(next.party[1]!.totalXp - beforeXp[1]!).toBe(2);
+    expect(next.party[2]!.totalXp - beforeXp[2]!).toBe(2);
+    expect(next.lastStudyReward).toMatchObject({ seq: 1, leadXp: 2, benchXp: 4, bonus: 0 });
   });
 });

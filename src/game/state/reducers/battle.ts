@@ -7,7 +7,7 @@ import { CURRENCY_REWARDS } from '../../engine/shop';
 import { getEffectiveness } from '../../data/typeChart';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../../engine/combatXp';
 import { TRAINER_XP_SOURCES } from '../../engine/trainerLevel';
-import { applyXpDoublerMultiplier } from '../../engine/xpDoublers';
+import { scaledXp, splitKnockoutXp } from '../../engine/xpShare';
 import { rollPostBattleScrap } from '../../engine/routeFinds';
 import { moveDisplayName } from '../../engine/combatExchange';
 import { chooseFoeMove } from '../../engine/foeAi';
@@ -179,13 +179,12 @@ function applyCombatTurnInner(
     protectWild,
     WILD_FOE_DAMAGE_SCALE
   );
-  const xp = applyXpDoublerMultiplier(
+  const xp = scaledXp(
     state,
-    Math.round(
-      (xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
-        xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })) *
-        BALANCE.xp.fightMult
-    )
+    active,
+    (xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
+      xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })) *
+      BALANCE.xp.fightMult
   );
   const grown = growPokemonWithXp(active, xp).pokemon;
   const updated = {
@@ -273,14 +272,18 @@ export function defeatEncounter(
       ...bumpBattleOutcome(state, 'defeat', `${wildName} fled — no active lead.`),
     });
   }
-  const xpGain = applyXpDoublerMultiplier(state, computeDefeatXp(state));
+  // XP Share: the lead keeps 60% of the knockout XP, the bench shares the rest.
+  const koShares = splitKnockoutXp(computeDefeatXp(state), state.party, state.activePokemonId);
+  let xpGain = 0;
   let leveledUp = false;
   let evolvedMon: OwnedPokemon | null = null;
   let evolvedFromName = '';
   let leadBefore: OwnedPokemon | null = null;
   let leadAfter: OwnedPokemon | null = null;
   const party = state.party.map((p) => {
-    if (p.id !== state.activePokemonId) return p;
+    const share = koShares.get(p.id) ?? 0;
+    if (p.id !== state.activePokemonId) return share > 0 ? growPokemonWithXp(p, scaledXp(state, p, share)).pokemon : p;
+    xpGain = scaledXp(state, p, share);
     const grown = growPokemonWithXp(p, xpGain);
     // The finishing turn may already have levelled the lead from attack XP; measure the card from before that turn.
     leadBefore = opts?.resultFrom?.id === p.id ? opts.resultFrom : p;

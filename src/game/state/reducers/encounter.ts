@@ -1,4 +1,5 @@
-import { BALANCE, rollStudyXp } from '../../balance';
+import { BALANCE } from '../../balance';
+import { scaledXp, studyXpBase } from '../../engine/xpShare';
 import type { ItemId } from '../../data/items';
 import { recommendedBall, spawnEncounter, wildCatchChancePreview } from '../../engine/encounters';
 import { isEventSpecies } from '../../engine/speciesPool';
@@ -17,7 +18,6 @@ import {
 } from '../../constants';
 import { TRAINER_XP_SOURCES } from '../../engine/trainerLevel';
 import {
-  applyXpDoublerMultiplier,
   makeXpDoublerEntry,
   xpDoublerItemForTier,
   XP_DOUBLER_QUEUE_MAX,
@@ -312,14 +312,6 @@ export function onQueueCardComplete(
   return withTouch(next);
 }
 
-function rollLeadStudyXp(rng: () => number): number {
-  return rollStudyXp(BALANCE.xp.studyLeadRoll, rng);
-}
-
-function rollBenchStudyXp(rng: () => number): number {
-  return rollStudyXp(BALANCE.xp.studyBenchRoll, rng);
-}
-
 function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): PokeRemGameState {
   const aid = state.activePokemonId;
   if (!aid) return state;
@@ -327,9 +319,9 @@ function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): Po
   if (leadIdx < 0) return state;
   let leadXp = 0,
     benchXp = 0;
+  // XP Share: every member earns the same study XP (the lead a little more), boosted for anyone behind.
   const party = state.party.map((p, i) => {
-    const baseDelta = i === leadIdx ? rollLeadStudyXp(rng) : rollBenchStudyXp(rng);
-    const delta = applyXpDoublerMultiplier(state, baseDelta);
+    const delta = scaledXp(state, p, studyXpBase(i === leadIdx), rng);
     if (i === leadIdx) leadXp += delta;
     else benchXp += delta;
     if (delta <= 0) return p;

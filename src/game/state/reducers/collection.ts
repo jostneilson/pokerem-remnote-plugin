@@ -75,6 +75,7 @@ export function chooseStarter(state: PokeRemGameState, dexNum: number): PokeRemG
         : state.whatsNewSeenVersion,
     party: [starter],
     activePokemonId: starter.id,
+    starterId: starter.id,
     selectedTab: 'status',
   });
 }

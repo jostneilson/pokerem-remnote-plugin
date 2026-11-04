@@ -3,7 +3,9 @@ import { resolveExchange, TRAINER_FOE_DAMAGE_SCALE } from '../../engine/moveMech
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
 import { dedupeMoveIds, getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../../engine/combatXp';
-import { applyXpDoublerMultiplier, xpDoublerItemForTier } from '../../engine/xpDoublers';
+import { xpDoublerItemForTier } from '../../engine/xpDoublers';
+import { scaledXp, splitKnockoutXp } from '../../engine/xpShare';
+import { BALANCE } from '../../balance';
 import {
   averageOwnedPartyLevel,
   generateTrainer,
@@ -201,24 +203,26 @@ export function applyTrainerCombatTurn(state: PokeRemGameState, moveId?: string)
     false,
     TRAINER_FOE_DAMAGE_SCALE
   );
-  const koXp =
-    exchange.wild.currentHp <= 0 ? Math.round(knockoutXp(enemy, active) * TRAINER_KO_XP_MULT) : 0;
-  const xp = applyXpDoublerMultiplier(
-    state,
-    xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enemy.types }) +
+  // XP Share: the lead keeps 60% of the knockout XP, the bench shares the rest; hit XP is the lead's.
+  const koShares =
+    exchange.wild.currentHp <= 0
+      ? splitKnockoutXp(Math.round(knockoutXp(enemy, active) * TRAINER_KO_XP_MULT), state.party, active.id)
+      : new Map<string, number>();
+  const hitXp =
+    (xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enemy.types }) +
       xpFromTakingHit({
         damage: exchange.wDamage,
         wildMoveId: wMoveId,
         playerTypes: active.types,
-      }) +
-      koXp
-  );
+      })) *
+    BALANCE.xp.fightMult;
+  const xp = scaledXp(state, active, hitXp + (koShares.get(active.id) ?? 0));
   const grown = growPokemonWithXp(active, xp).pokemon;
-  const party = state.party.map((p, i) =>
-    i === activeIdx
-      ? { ...grown, currentHp: exchange.player.currentHp, condition: exchange.player.condition }
-      : p
-  );
+  const party = state.party.map((p, i) => {
+    if (i === activeIdx) return { ...grown, currentHp: exchange.player.currentHp, condition: exchange.player.condition };
+    const share = koShares.get(p.id) ?? 0;
+    return share > 0 ? growPokemonWithXp(p, scaledXp(state, p, share)).pokemon : p;
+  });
   const enemies = battle.enemies.map((e, i) =>
     i === battle.activeEnemyIndex
       ? {

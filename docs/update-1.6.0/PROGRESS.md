@@ -8,7 +8,7 @@ Update this file before starting and after finishing every task. Commit it with 
 - Last finished: T1.6 (68c4ffc)
 - In progress: T2.1
 - Next exact step: T2.1: XP Share in encounter.ts study XP (equal per member, lead x1.2) and KO split 60/40 in battle.ts defeatEncounter; see SPEC L17
-- Latest checks: 2026-11-04 after Phase 0: tsc clean, vitest 44 files / 270 tests, npm run build OK.
+- Latest checks: 2026-11-04 after Phase 1: tsc clean, vitest 44 files / 279 tests, npm run build OK.
 
 ## Known issues
 

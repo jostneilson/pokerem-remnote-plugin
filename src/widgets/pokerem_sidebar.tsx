@@ -397,6 +397,7 @@ function PokeRemSidebar() {
                 <PartyScreen
                   rootURL={plugin.rootURL}
                   party={state.party}
+                  starterId={state.starterId}
                   bag={state.bag}
                   currency={state.currency}
                   powerUpBlocked={!!state.currentEncounter || !!state.currentTrainerBattle || !!state.pendingCaughtMon}

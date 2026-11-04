@@ -15,14 +15,16 @@ export const BALANCE = {
     run: 25
   },
   xp: {
-    /** Lead study XP per card: 40% / 40% / 20% of these. */
-    studyLeadRoll: [3, 4, 5] as readonly number[],
-    /** Bench study XP per card, same odds. */
-    studyBenchRoll: [1, 2, 3] as readonly number[],
-    /** Multiplier on `knockoutXp`. */
-    knockoutMult: 1,
-    /** Multiplier on combat (per-hit) XP. */
-    fightMult: 1,
+    /** Study XP per card for every party member (XP Share). Tunable 0.6–3. */
+    studyPerCard: 1.6,
+    /** The lead's extra study XP (fixed). */
+    studyLeadMult: 1.2,
+    /** Multiplier on `knockoutXp`. Tunable 0.3–1.2. */
+    knockoutMult: 0.7,
+    /** Multiplier on combat (per-hit) XP. Tunable 0.3–1.2. */
+    fightMult: 0.7,
+    /** Multiplier on type-share XP. Tunable 0.3–1.2. */
+    typeShareMult: 0.8,
     /** Type-share boost on a catch or defeat: party base + per foe level, storage base + per level. */
     typeSharePartyBase: 15,
     typeSharePartyPerLevel: 2,
@@ -45,10 +47,4 @@ export function defeatCoins(level: number): number {
 /** Coins for catching a wild Pokémon. */
 export function catchCoins(level: number): number {
   return BALANCE.coins.catchBase + Math.floor(level * BALANCE.coins.catchPerLevel);
-}
-
-/** One of three values at 40% / 40% / 20%. */
-export function rollStudyXp(roll: readonly number[], rng: () => number): number {
-  const r = rng();
-  return r < 0.4 ? roll[0]! : r < 0.8 ? roll[1]! : roll[2]!;
 }

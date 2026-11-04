@@ -13,6 +13,7 @@ import { Panel } from '../components/Panel';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
+import { catchUpGap } from '../../game/engine/xpShare';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
 import { PokemonAppraisal } from '../components/PokemonAppraisal';
 import { battleStats, isPerfectIVs, ivAverage, ivsFor, powerUpPreview } from '../../game/engine/pokemonStats';
@@ -175,8 +176,11 @@ export function PartyScreen({
   onSwapStorageForParty,
   bag, onEvolve, evolutionBlocked = false, evolutionMessage,
   currency = 0, onPowerUp, onToggleFavorite, powerUpBlocked = false, onBottleCap, onHeal, healBlocked = false, onSetAutoMoves, onTutor,
+  starterId,
 }: {
   rootURL: string | undefined;
+  /** Your original starter (buddy): ♥ badge on its card. */
+  starterId?: string;
   bag?: Record<string, number>;
   onEvolve?: (pokemonId: string, itemId: string) => void;
   evolutionBlocked?: boolean;
@@ -569,6 +573,8 @@ export function PartyScreen({
         onToggle={() => setExpanded(isExpanded ? null : p.id)}
         detail={detail}
         onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(p.id) : undefined}
+        catchUp={isParty && catchUpGap(p, party) > 0}
+        buddy={!!starterId && starterId === p.id}
       />
     );
   }

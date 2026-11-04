@@ -20,6 +20,8 @@ export function PartyPokemonCard({
   detail,
   onToggleFavorite,
   actions,
+  catchUp = false,
+  buddy = false,
 }: {
   rootURL: string | undefined;
   pokemon: OwnedPokemon;
@@ -31,6 +33,10 @@ export function PartyPokemonCard({
   onToggleFavorite?: () => void;
   /** One-tap actions pinned under the card (Lead, Heal), visible without expanding it. */
   actions?: ReactNode;
+  /** Trails the rest of the party, so it earns boosted XP. */
+  catchUp?: boolean;
+  /** Your original starter. */
+  buddy?: boolean;
 }) {
   const displayName = p.nickname || p.name;
   const isParty = variant === 'party';
@@ -55,6 +61,16 @@ export function PartyPokemonCard({
             <span className="flex shrink-0 flex-wrap items-center justify-end gap-0.5">
               {classification !== 'ordinary' ? <span className="pkr-classification-badge">{classification === 'ultra-beast' ? 'Ultra Beast' : classification}</span> : null}
               {p.shiny ? <span className="pkr-classification-badge pkr-classification-badge--shiny">Shiny</span> : null}
+              {buddy ? (
+                <span className="pkr-tag pkr-tag--buddy" title="Your starter: fewer misses and +15% XP">
+                  ♥ Buddy
+                </span>
+              ) : null}
+              {catchUp ? (
+                <span className="pkr-tag pkr-tag--catchup" title="Behind the rest of the party: earns boosted XP">
+                  ▲ catch-up
+                </span>
+              ) : null}
               {checkLevelEvolution(p) ? (
                 <span
                   className="flex items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase"

@@ -1,7 +1,7 @@
 import { battleStats } from './pokemonStats';
 import type { OwnedPokemon } from '../state/model';
-import { EVOLUTION_FROM } from '../data/evolutions';
-import { SPECIES_BY_DEX } from '../data/species';
+import { EVOLUTION_FROM, EVOLUTION_TABLE } from '../data/evolutions';
+import { SPECIES_BY_DEX, STARTER_DEX_ALL } from '../data/species';
 
 /** Next species-form unlocked purely by level (if any), strictly after current level. */
 export function nextFutureLevelEvolution(mon: OwnedPokemon): { minLevel: number; intoName: string } | null {
@@ -84,4 +84,22 @@ export function applyEvolution(mon: OwnedPokemon, result: EvolutionResult): Owne
     maxHp: newMaxHp,
     currentHp: mon.currentHp<=0?0:Math.max(1, Math.round(newMaxHp * hpRatio)),
   };
+}
+
+const PRE_EVOLUTION = new Map<number, number>(EVOLUTION_TABLE.map((e) => [e.toDex, e.fromDex]));
+
+/** The first stage of a species' evolution line. */
+export function baseFormDex(dexNum: number): number {
+  let dex = dexNum;
+  for (let i = 0; i < 4; i++) {
+    const from = PRE_EVOLUTION.get(dex);
+    if (from == null) break;
+    dex = from;
+  }
+  return dex;
+}
+
+/** True for a starter or anything it evolves into. */
+export function isStarterLine(dexNum: number): boolean {
+  return (STARTER_DEX_ALL as readonly number[]).includes(baseFormDex(dexNum));
 }

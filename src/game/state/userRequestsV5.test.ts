@@ -128,7 +128,9 @@ describe('User specific requirements in 1.4.0', () => {
       expect(partyFireXpGain).toBeGreaterThan(0);
       expect(storageFireXpGain).toBeGreaterThan(0);
       expect(partyFireXpGain).toBeGreaterThan(storageFireXpGain);
-      expect(partyWaterXpGain).toBe(0);
+      // XP Share gives the whole bench a knockout share; only same-type members get the type boost on top.
+      expect(partyWaterXpGain).toBeGreaterThan(0);
+      expect(partyFireXpGain).toBeGreaterThan(partyWaterXpGain);
       expect(storageGrassXpGain).toBe(0);
     });
 

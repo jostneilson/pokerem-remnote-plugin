@@ -3922,3 +3922,23 @@ body,:host { font-family:var(--pkr-font-body); }
 /* 1.6.0 — area name chip: shown once in the dialogue area when the arena moves to a new area. */
 .pokerem-sidebar .pkr-area-chip { margin:0 auto 6px; width:fit-content; padding:2px 8px; border:2px solid var(--pkr-arcade-border); background:var(--pkr-arcade-ink); color:var(--pkr-ink-gold); font-size:var(--pkr-text-label); line-height:1.3; animation:pkr-area-chip-fade 3.4s var(--pkr-ease-standard) forwards; }
 @keyframes pkr-area-chip-fade { 0%,80% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
+
+/* Small status tags on Pokémon cards (buddy, catch-up). */
+.pkr-tag {
+  border: 1px solid var(--pkr-border, #65709a);
+  padding: 2px 4px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+.pkr-tag--buddy {
+  border-color: #f08aa8;
+  background: #4a1830;
+  color: #ffe0ea;
+}
+.pkr-tag--catchup {
+  border-color: #6fd38a;
+  background: #143a22;
+  color: #d8ffe2;
+}

@@ -1,6 +1,7 @@
 import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../../data/evolutions';
+import { isStarterLine } from '../../engine/evolution';
 import { ITEM_BY_ID, STARTING_BAG, type ItemId } from '../../data/items';
 import { SPECIES_BY_DEX } from '../../data/species';
 import { ACHIEVEMENT_DEFS, deriveAchievements } from '../../engine/achievements';
@@ -290,6 +291,27 @@ function normalizeCommandNonces(raw: unknown): string[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 40);
   return ids.length ? ids.slice(-RECENT_COMMAND_NONCE_LIMIT) : undefined;
+}
+
+/** Creation time encoded in an owned id (`pk_<ms>_…`); unknown ids sort last. */
+function idTime(id: string): number {
+  const m = /^pk_(\d+)_/.exec(id);
+  return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Your original starter. Keeps a saved id while that Pokémon is still owned; otherwise picks the
+ * earliest-caught owned Pokémon from a starter's evolution line (evolving keeps the id, so it's still there).
+ */
+export function normalizeStarterId(raw: unknown, state: PokeRemGameState): string | undefined {
+  const owned = [...state.party, ...state.storagePokemon];
+  if (typeof raw === 'string' && owned.some((p) => p.id === raw)) return raw;
+  let best: OwnedPokemon | undefined;
+  for (const p of owned) {
+    if (!isStarterLine(p.dexNum)) continue;
+    if (!best || idTime(p.id) < idTime(best.id)) best = p;
+  }
+  return best?.id;
 }
 
 function normalizeTeam(raw: unknown): TeamId | undefined {
@@ -868,6 +890,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     state.selectedTab = 'status';
   }
   state.area = normalizeArea((o as { area?: unknown }).area, state.battleSceneIndex);
+  state.starterId = normalizeStarterId((o as { starterId?: unknown }).starterId, state);
   state.collectionDex = registerOwnedSpecies(state.collectionDex, ownedMons(state));
   state.achievements = deriveAchievements(state);
 
