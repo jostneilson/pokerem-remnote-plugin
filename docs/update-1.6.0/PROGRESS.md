@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T0.1 (hand-off files)
-- In progress: T0.2 (single-writer command channel)
-- Next exact step: read `src/game/queueActions.ts`, `src/widgets/index.tsx`, `pokerem_sidebar.tsx` applyReducer (:297-320) and `usePokeRemBattleActions.ts`; design the command message and route sidebar writes through the index host.
+- Last finished: T0.2 (4d3bb26)
+- In progress: T0.3
+- Next exact step: fix normalizeBattleSceneIndex re-running on every parse (persistence.ts parseGameStateCore) with sceneIndexVersion; then area state in encounter.ts spawn (~255-282).
 - Latest checks: 2026-11-04 baseline tsc clean, vitest 40 files / 251 tests green.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T0.2 | 4d3bb26 | singleWriter.test.ts (7) green; hostsim: starter pick via host in 52ms, doubler kept across 12 overlapping reviews; 41 files/258 tests |
 
 ## Task board
 
@@ -26,8 +27,8 @@ Update this file before starting and after finishing every task. Commit it with 
 | Task | What | Acceptance check |
 |---|---|---|
 | [x] T0.1 (57d9151) | Create the 5 hand-off files from this plan; capture the owner's verbatim text from the transcript. | Files exist; SPEC covers every A/B/C item. |
-| [~] T0.2 | Single-writer command channel: sidebar, popup and strip actions route to the index host. | `singleWriter.test.ts` passes; manual hostsim check that no action is lost. |
-| [ ] T0.3 | Scene migration fix (`sceneIndexVersion`), plus `area` state and the area chip. | `sceneMigration.test.ts`; parse 50× is stable. |
+| [x] T0.2 (4d3bb26) | Single-writer command channel: sidebar, popup and strip actions route to the index host. | `singleWriter.test.ts` passes; manual hostsim check that no action is lost. |
+| [~] T0.3 | Scene migration fix (`sceneIndexVersion`), plus `area` state and the area chip. | `sceneMigration.test.ts`; parse 50× is stable. |
 | [ ] T0.4 | `formatCoins` adopted at every call site. | Unit tests at 999, 1,000, 1,550, 15,200 and 1.2M; grep finds no raw currency renders. |
 | [ ] T0.5 | `balance.ts` and `rarity.ts` holding today's values; no behaviour change. | Existing tests unchanged and green. |
 | [ ] T0.6 | Balance harness with 6 policies, plus a `balance:tune` script producing BALANCE_REPORT. | Report generated. |
