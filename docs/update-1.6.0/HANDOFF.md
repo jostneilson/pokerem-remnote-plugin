@@ -2,6 +2,8 @@
 
 ## LIVE STATE (2026-11-04 continuation; read this first)
 
+- **17:50 local (Claude resumed):** 1.6.1 T6.7 (A17 layout) is committed in `update-1.6.1` as `2af3240` (358 tests pass; boxes measured inside the field at 280/320/400/520 for wild-shiny, bounty, Rocket grunt and Leader). The 1.6.1 Phase 6 board is complete apart from the post-1.6.0 merge and the held-back items in RELEASE_1.6.1.md. Claude is now running the T5.7 money search in `.cache/balance/grid3*`.
+
 - Latest continuation: bounded automatic grid search implemented in `sim/tuning.ts` / `balance-tune.ts --grid=FILE`; fixed keys/ranges rejected, candidate/source-keyed checkpoints, captured coin aliases patched only inside worker memory and restored in finally. Missing metrics forbid recommendations. Added first-shiny/Leader/combat/keep-team capacity measurements. Latest gates: tsc, 54 files / 344 tests, production build pass. No candidate has been applied; the real search and full matrix remain pending.
 
 **1.6.0 ready for owner review; nothing pushed. This is a held candidate, NOT full release acceptance.**

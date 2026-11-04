@@ -51,3 +51,7 @@ also add to the plan to have the battle arena design to be redone so that the po
 "How hard would it be to just fix this aspect fully before releasing" → offered: quest pay grows with trainer level. Owner: "yea do it, but leave the one currently running alone until its finished so the the results can be compared"
 
 "Like i want to release it earlier instead of the initial batch, but i dont want to leave any areas unfinished, i just want to finish up all the unfinished areas and then leave the rest of the update features that haven't been started alone until 1.6.1"
+
+## 2026-11-04, answer to the Codex question about the inherited XP damp / KO floor / lucky odds (3:50 PM, relayed to Claude verbatim)
+
+> Approve the inherited XP/lucky-odds changes
