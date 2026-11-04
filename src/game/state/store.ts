@@ -76,6 +76,8 @@ export {
   pokemonCenterHeal,
   QUICK_BALL_COUNT,
   quickBuyBalls,
+  buyStorageUpgrade,
+  buyBagUpgrade,
 } from './reducers/economy';
 export type { TrainableIv } from './reducers/economy';
 export {

@@ -1,3 +1,4 @@
+import { capacityGain } from '../../engine/capacity';
 import { scaledXp } from '../../engine/xpShare';
 import { BALANCE, catchCoins } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
@@ -64,6 +65,12 @@ export function addBagQuantities(
   return { ...state, bag };
 }
 
+/** "Storage +10 · Bag +20" when reaching `lv` grows capacity (SPEC U6). */
+function capacityLine(lv: number): string | null {
+  const g = capacityGain(lv - 1, lv);
+  return g.storage || g.bag ? `Storage +${g.storage} · Bag +${g.bag}` : null;
+}
+
 function appendMainNoticesIfNeeded(
   state: PokeRemGameState,
   preAch: AchievementState,
@@ -96,7 +103,7 @@ function appendMainNoticesIfNeeded(
         kind: 'trainer_reward',
         id: nid,
         title: `Trainer Lv ${lv} — ${r.title}`,
-        subtitle: r.description,
+        subtitle: capacityLine(lv) ? `${r.description} · ${capacityLine(lv)}` : r.description,
       });
     }
   }

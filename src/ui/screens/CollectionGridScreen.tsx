@@ -13,6 +13,7 @@ import { isPerfectIVs, ivAverage } from '../../game/engine/pokemonStats';
 import type { OwnedPokemon } from '../../game/state/model';
 import { frontSpriteUrl } from '../../game/sprites';
 import { TYPE_COLORS } from '../battle/battleTheme';
+import { CapacityMeter } from '../components/CapacityMeter';
 import { PokemonSprite } from '../components/PokemonSprite';
 
 /*
@@ -187,9 +188,6 @@ export function CollectionGridScreen({
     clearSelection();
   };
 
-  const capText = storageCap !== undefined ? `Storage ${storage.length}/${storageCap}` : `Storage ${storage.length}`;
-  const capFull = storageCap !== undefined && storage.length >= storageCap;
-
   return (
     <div className="pkr-grid-screen">
       <header className="pkr-grid-head">
@@ -197,9 +195,11 @@ export function CollectionGridScreen({
           ←
         </button>
         <h2 className="pkr-grid-title">All Pokémon ({entries.length})</h2>
-        <span className={`pkr-cap-meter${capFull ? ' pkr-cap-meter--full' : ''}`} aria-label={capText}>
-          {capText}
-        </span>
+        {storageCap !== undefined ? (
+          <CapacityMeter label="Storage" used={storage.length} cap={storageCap} />
+        ) : (
+          <span className="pkr-cap-meter">Storage {storage.length}</span>
+        )}
       </header>
 
       <div className="pkr-grid-tools">

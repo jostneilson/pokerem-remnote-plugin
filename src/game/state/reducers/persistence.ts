@@ -58,6 +58,14 @@ import type {
   XpDoublerEntry,
   XpDoublerTier,
 } from '../model';
+import { BAG_UPGRADE_MAX, STORAGE_UPGRADE_MAX } from '../../engine/capacity';
+
+/** Bought capacity slots: an integer in 0..max; anything else is dropped. */
+function normalizeBonus(raw: unknown, max: number): number | undefined {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return undefined;
+  const n = Math.max(0, Math.min(max, Math.floor(raw)));
+  return n > 0 ? n : undefined;
+}
 
 const SPECIES_TYPES = new Set<string>(ALL_TYPES);
 
@@ -908,6 +916,8 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     rocket: normalizeRocketState((o as { rocket?: unknown }).rocket),
     totalTransferred:
       typeof o.totalTransferred === 'number' && Number.isFinite(o.totalTransferred) ? Math.max(0, Math.floor(o.totalTransferred)) : undefined,
+    storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
+    bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {

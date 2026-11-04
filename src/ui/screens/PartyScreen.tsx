@@ -16,6 +16,7 @@ import { PartyPokemonCard } from '../components/PartyPokemonCard';
 import { TransferConfirm } from '../components/TransferConfirm';
 import { UpgradeSheet } from '../components/UpgradeSheet';
 import { CollectionGridScreen } from './CollectionGridScreen';
+import { CapacityMeter } from '../components/CapacityMeter';
 import type { GridFlag } from '../../game/engine/collectionGrid';
 import { transferCoins, transferPreview } from '../../game/engine/transfer';
 import { catchUpGap } from '../../game/engine/xpShare';
@@ -830,6 +831,7 @@ export function PartyScreen({
     <div className="space-y-3">
       {replaceMovePortal}
       <div className="pkr-party-viewall">
+        {storageCap !== undefined ? <CapacityMeter label="Storage" used={storage.length} cap={storageCap} /> : <span />}
         <button type="button" onClick={() => setViewAll({ flags: [] })}>
           View all ({party.length + storage.length})
         </button>

@@ -1,3 +1,4 @@
+import { storageCap } from '../game/engine/capacity';
 import { EvolutionScene, useEvolutionWatcher } from '../ui/battle/EvolutionScene';
 import '../style.css';
 import { SidebarNavigation } from '../ui/components/SidebarNavigation';
@@ -396,6 +397,7 @@ function PokeRemSidebar() {
               {effectiveTab === 'party' ? (
                 <PartyScreen
                   rootURL={plugin.rootURL}
+                  storageCap={storageCap(state)}
                   party={state.party}
                   starterId={state.starterId}
                   gameState={state}
@@ -433,6 +435,8 @@ function PokeRemSidebar() {
                   onBuyRouteTicket={(id) => void dispatch(gameCommand('buyRouteTicket', id))}
                   onBuyCardStyle={(id) => void dispatch(gameCommand('buyCardStyle', id))}
                   onEquipCardStyle={(id) => void dispatch(gameCommand('equipCardStyle', id))}
+                  onBuyStorageUpgrade={() => void dispatch(gameCommand('buyStorageUpgrade'))}
+                  onBuyBagUpgrade={() => void dispatch(gameCommand('buyBagUpgrade'))}
                   rootURL={plugin.rootURL}
                   state={state}
                   onUseItem={(itemId, targetId) =>

@@ -1,3 +1,4 @@
+import { storageRoom } from '../../engine/capacity';
 import { POKEREM_VERSION } from '../../../releaseMeta';
 import { rollIVs, battleStats } from '../../engine/pokemonStats';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -249,6 +250,8 @@ export function moveToStorage(state: PokeRemGameState, pokemonId: string): PokeR
   if (state.party.length <= 1) return state;
   const mon = state.party.find((p) => p.id === pokemonId);
   if (!mon) return state;
+  // Full storage takes no more (over-cap saves keep what they have).
+  if (storageRoom(state) <= 0) return state;
   const remaining = state.party.filter((p) => p.id !== pokemonId);
   let activePokemonId = state.activePokemonId;
   if (pokemonId === state.activePokemonId) {

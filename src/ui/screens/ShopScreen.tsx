@@ -1,3 +1,4 @@
+import { isKeyItem } from '../../game/engine/capacity';
 import { Coins } from '../components/Coins';
 import { coinsSpoken, formatCoins } from '../format/coins';
 import { useEffect, useRef, useState } from 'react';
@@ -13,7 +14,10 @@ export function ShopScreen({
   onBuy,
   reducedMotion,
   bag,
+  bagRoom,
 }: {
+  /** Free bag slots; at 0 non-key items can't be bought. Omit for no cap. */
+  bagRoom?: number;
   rootURL: string | undefined;
   currency: number;
   trainerLevel: number;
@@ -30,8 +34,9 @@ export function ShopScreen({
   const pulseTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => { if (pulseTimer.current) clearTimeout(pulseTimer.current); }, []);
 
+  const roomFor = (si: ShopItem) => (bagRoom === undefined || isKeyItem(si.item.id) ? Infinity : bagRoom);
   const handleBuy = (si: ShopItem, quantity = 1) => {
-    if (currency < si.price * quantity) return;
+    if (currency < si.price * quantity || roomFor(si) < quantity) return;
     onBuy(si.item.id, quantity);
     const key = si.item.id + (si.isDaily ? '-daily' : '');
     if (!reducedMotion) {
@@ -42,7 +47,8 @@ export function ShopScreen({
   };
 
   function renderItem(si: ShopItem) {
-    const canAfford = currency >= si.price;
+    const bagFull = roomFor(si) < 1;
+    const canAfford = currency >= si.price && !bagFull;
     const key = si.item.id + (si.isDaily ? '-daily' : '');
     const pulsing = purchasePulseId === key;
 
@@ -87,7 +93,8 @@ export function ShopScreen({
         <div className="pkr-shop-buy flex shrink-0 flex-col items-stretch gap-1">
         <button
           type="button"
-          aria-label={`Buy ${si.item.name} for ${coinsSpoken(si.price)}${canAfford ? '' : ', insufficient balance'}`}
+          aria-label={`Buy ${si.item.name} for ${coinsSpoken(si.price)}${bagFull ? ', bag full' : canAfford ? '' : ', insufficient balance'}`}
+          title={bagFull ? 'Bag full: use or sell items, or buy a Bag Upgrade' : undefined}
           disabled={!canAfford}
           onClick={() => handleBuy(si)}
           className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 pkr-fine font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-75"
@@ -105,7 +112,7 @@ export function ShopScreen({
                 }
           }
         >
-          <span className="pkr-shop-buy__verb">Buy</span> <span>{formatCoins(si.price)}</span>
+          {bagFull ? <span>Bag full</span> : <><span className="pkr-shop-buy__verb">Buy</span> <span>{formatCoins(si.price)}</span></>}
         </button>
         {si.price < 5000 ? (
           <div className="pkr-shop-multi" role="group" aria-label={`Buy several ${si.item.name}`}>
@@ -114,7 +121,7 @@ export function ShopScreen({
                 key={n}
                 type="button"
                 className="pkr-game-btn"
-                disabled={currency < si.price * n}
+                disabled={currency < si.price * n || roomFor(si) < n}
                 aria-label={`Buy ${n} ${si.item.name} for ${coinsSpoken(si.price * n)}`}
                 onClick={() => handleBuy(si, n)}
               >

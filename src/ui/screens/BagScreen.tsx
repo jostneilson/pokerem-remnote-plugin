@@ -1,3 +1,5 @@
+import { bagCap, bagCount } from '../../game/engine/capacity';
+import { CapacityMeter } from '../components/CapacityMeter';
 import { Coins } from '../components/Coins';
 import { useState } from 'react';
 import { ITEMS, type ItemData, type ItemId } from '../../game/data/items';
@@ -438,13 +440,17 @@ export function BagScreen({
               </div>
             </div>
           </div>
-          <span
-            className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title pkr-fine font-black tabular-nums"
-            style={{ borderColor: 'rgba(148,163,184,0.35)', color: 'var(--pkr-ink-soft)' }}
-            title="Total item count"
-          >
-            {total} pcs
-          </span>
+          {state ? (
+            <CapacityMeter label="Bag" used={bagCount(bag)} cap={bagCap(state)} />
+          ) : (
+            <span
+              className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title pkr-fine font-black tabular-nums"
+              style={{ borderColor: 'rgba(148,163,184,0.35)', color: 'var(--pkr-ink-soft)' }}
+              title="Total item count"
+            >
+              {total} pcs
+            </span>
+          )}
         </div>
       </div>
 
