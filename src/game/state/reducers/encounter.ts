@@ -266,6 +266,7 @@ export function onQueueCardComplete(
           pacing: { reviewsPerEncounter: effectiveRate, modulo, unitsPerReview: wildRouteUnits },
           sceneIndex: bgNext,
           encountersSinceShiny: next.encountersSinceShiny ?? 0,
+          team: next.team,
         });
         const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
         const narr = `Wild ${enc.name}${tierLabel} appeared!`;

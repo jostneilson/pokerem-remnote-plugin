@@ -1,3 +1,4 @@
+import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../../data/evolutions';
 import { ITEM_BY_ID, STARTING_BAG, type ItemId } from '../../data/items';
@@ -289,6 +290,10 @@ function normalizeCommandNonces(raw: unknown): string[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 40);
   return ids.length ? ids.slice(-RECENT_COMMAND_NONCE_LIMIT) : undefined;
+}
+
+function normalizeTeam(raw: unknown): TeamId | undefined {
+  return raw === 'ember' || raw === 'tide' || raw === 'volt' ? raw : undefined;
 }
 
 /** The saved area, or a fresh one in the current scene (older saves, damaged data). */
@@ -854,6 +859,8 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
         ? Math.max(0, Math.floor(o.wildIdleCards))
         : 0,
     area: undefined,
+    team: normalizeTeam((o as { team?: unknown }).team),
+    teamPrompted: (o as { teamPrompted?: unknown }).teamPrompted === true || undefined,
     recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
     schemaVersion: 5,
   };

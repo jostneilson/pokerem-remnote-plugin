@@ -1,7 +1,11 @@
 import {
+  BIRD_CHANCE,
+  BIRD_MIN_REVIEWS,
   EVENT_CHANCE,
   EVENT_MIN_PARTY_LEVEL,
   EVENT_MIN_REVIEWS,
+  pickGalarianBird,
+  type TeamId,
   GALARIAN_BIRDS,
   GALARIAN_BIRD_SHINY_ODDS,
   SHINY_ODDS_POST_DEX_COMPLETE,
@@ -10,11 +14,10 @@ import {
 } from './rarity';
 export * from './rarity';
 import { rollIVs, battleStats } from './pokemonStats';
-import { REVIEWS_PER_ENCOUNTER } from '../constants';
 import { SPECIES_BY_DEX, SPECIES_LIST, type PokemonType } from '../data/species';
 import { getEffectiveness } from '../data/typeChart';
 import { canBeShiny } from '../data/shinyArt';
-import { biomeTypesForScene, encounterBaseLevel, isEventSpecies, MAX_WILD_LEVEL, pickEverydaySpecies } from './speciesPool';
+import { biomeTypesForScene, encounterBaseLevel, isEventSpecies, MAX_WILD_LEVEL, minWildLevel, pickEverydaySpecies } from './speciesPool';
 import type { BattleCondition, EncounterPokemon, OwnedPokemon } from '../state/model';
 
 
@@ -34,7 +37,7 @@ export function encounterShinyOdds(dexNum: number, baseOdds: number, encountersS
 /** Share of everyday encounters drawn from species you haven't caught yet (until the Dex is complete). */
 export const UNCAUGHT_BIAS = 0.7;
 /** Wild battle HP relative to the same Pokémon once caught. */
-export const WILD_HP_SCALE = 0.65;
+export const WILD_HP_SCALE = 0.7;
 
 /**
  * All species obtainable in the enabled generations. Starters count: they turn up in the wild as
@@ -66,10 +69,15 @@ export function isWildDexGenerationComplete(
   return true;
 }
 
+/** Share of everyday wilds near your party's average level; the rest are weaker, natural-level ones. */
+export const WILD_NEAR_SHARE = 0.7;
+
 export type SpawnEncounterOpts = {
   collectionDex?: Record<number, number>;
-  /** Actual cadence; slower encounters receive proportionally higher shiny odds. */
+  /** Actual cadence. Rare odds are per encounter (SPEC L1), so this no longer changes them; kept for callers. */
   pacing?: { reviewsPerEncounter: number; modulo?: number; unitsPerReview?: number };
+  /** Your team, which secretly favours its Galarian bird. */
+  team?: TeamId;
   /** Injected RNG (defaults to `Math.random`) — use for tests. */
   rng?: () => number;
   /** Battle scene the encounter appears in; favours the scene's types. */
@@ -94,34 +102,50 @@ export function spawnEncounter(
   const shinyRoll = rng();
 
   const base = encounterBaseLevel(party);
-  const eventChance = EVENT_CHANCE + Math.min(0.012, Math.max(0, rarityBonus) * 0.002);
+  // `rarityBonus` (faster pacing) no longer raises event odds: rarity is per encounter (SPEC L1).
+  void rarityBonus;
+  const bird = cardsReviewed >= BIRD_MIN_REVIEWS && rng() < BIRD_CHANCE;
   const eventPool =
-    base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < eventChance
-      ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum))
+    !bird && base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < EVENT_CHANCE
+      ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum) && !GALARIAN_BIRDS.has(s.dexNum))
       : [];
 
   let dexNum: number;
   let level: number;
-  if (eventPool.length > 0) {
+  if (bird) {
+    // The birds are every team's mascots, so they appear whichever generations are enabled.
+    dexNum = pickGalarianBird(opts?.team, rng);
+    level = base + 3 + Math.floor(rng() * 3);
+  } else if (eventPool.length > 0) {
     const uncaught = eventPool.filter((s) => (collectionDex[s.dexNum] ?? 0) <= 0);
     const pool = uncaught.length > 0 && rng() < UNCAUGHT_BIAS ? uncaught : eventPool;
     dexNum = pool[Math.floor(rng() * pool.length)]!.dexNum;
     level = base + 3 + Math.floor(rng() * 3);
   } else {
-    level = base + Math.floor(rng() * 3) - 1;
-    level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
-    dexNum = pickEverydaySpecies({
-      level,
-      enabledGens: gens,
-      rng,
-      favourTypes: biomeTypesForScene(opts?.sceneIndex),
-      collectionDex,
-      uncaughtBias: dexComplete ? 0 : UNCAUGHT_BIAS,
-    });
+    // Most wilds are near your party's average (never above it); some are weaker, at a level natural for them.
+    const near = base <= 5 || rng() < WILD_NEAR_SHARE;
+    const pickAt = near ? base : base - 4;
+    const pick = (lv: number) =>
+      pickEverydaySpecies({
+        level: lv,
+        enabledGens: gens,
+        rng,
+        favourTypes: biomeTypesForScene(opts?.sceneIndex),
+        collectionDex,
+        uncaughtBias: dexComplete ? 0 : UNCAUGHT_BIAS,
+      });
+    if (near) {
+      level = Math.max(1, base - Math.floor(rng() * 4));
+      dexNum = pick(level);
+    } else {
+      dexNum = pick(pickAt);
+      const lo = Math.min(pickAt, minWildLevel(dexNum));
+      level = lo + Math.floor(rng() * (pickAt - lo + 1));
+    }
   }
   level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
   const species = SPECIES_BY_DEX.get(dexNum) ?? SPECIES_BY_DEX.get(16)!;
-  const shiny = shinyRoll < encounterShinyOdds(species.dexNum, shinyOddsForPacing(dexComplete, opts?.pacing), opts?.encountersSinceShiny ?? 0);
+  const shiny = shinyRoll < encounterShinyOdds(species.dexNum, dexComplete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE, opts?.encountersSinceShiny ?? 0);
 
   const ivs = rollIVs(rng);
   // Wild Pokémon have a lighter HP pool than owned ones so everyday fights take 2–4 turns.
@@ -214,15 +238,3 @@ export function catchTypeBonus(active: { types: PokemonType[] } | undefined, tar
   return active.types.some((t) => getEffectiveness(t, targetTypes) >= 2) ? CATCH_TYPE_ADVANTAGE_BONUS : 0;
 }
 
-/** Equalizes expected shiny discoveries per completed card against Medium/every-review pacing. */
-export function shinyOddsForPacing(complete: boolean, pacing?: SpawnEncounterOpts['pacing']): number {
-  const base = complete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE;
-  if (!pacing) return base;
-  const positive = (n: number | undefined, fallback: number) => typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : fallback;
-  const threshold = positive(pacing.reviewsPerEncounter, REVIEWS_PER_ENCOUNTER);
-  const modulo = Math.max(1, Math.floor(positive(pacing.modulo, 1)));
-  const units = Math.max(1, Math.floor(positive(pacing.unitsPerReview, 1)));
-  // Progress resets on spawn, so account for threshold rounding rather than fractional encounters.
-  const cardsPerEncounter = Math.ceil(threshold / units) * modulo;
-  return Math.min(1, base * cardsPerEncounter / REVIEWS_PER_ENCOUNTER);
-}

@@ -180,14 +180,18 @@ describe('User specific requirements in 1.4.0', () => {
 
     it('spawns wild Pokemon at levels matching average party level', () => {
       const partyHigh = [makeMon('p1', 1, ['Grass'], 40), makeMon('p2', 4, ['Fire'], 50)];
-      const encHigh = spawnEncounter(partyHigh, 0, [1], 0);
-      expect(encHigh.level).toBeGreaterThanOrEqual(43);
-      expect(encHigh.level).toBeLessThanOrEqual(47);
+      // 1.6.0: the party average (45) is the cap; most wilds are within 3 below it, some weaker.
+      for (let i = 0; i < 200; i++) {
+        const encHigh = spawnEncounter(partyHigh, 0, [1], 0);
+        expect(encHigh.level).toBeLessThanOrEqual(45);
+      }
 
       const partyLow = [makeMon('p1', 1, ['Grass'], 5), makeMon('p2', 4, ['Fire'], 7)];
-      const encLow = spawnEncounter(partyLow, 0, [1], 0);
-      expect(encLow.level).toBeGreaterThanOrEqual(5);
-      expect(encLow.level).toBeLessThanOrEqual(8);
+      for (let i = 0; i < 200; i++) {
+        const encLow = spawnEncounter(partyLow, 0, [1], 0);
+        expect(encLow.level).toBeGreaterThanOrEqual(1);
+        expect(encLow.level).toBeLessThanOrEqual(6);
+      }
     });
   });
 

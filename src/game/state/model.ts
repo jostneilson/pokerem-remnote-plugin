@@ -1,3 +1,4 @@
+import type { TeamId } from '../engine/rarity';
 import type { QuestState } from '../engine/quests';
 import type { ItemId } from '../data/items';
 import type { PokemonType } from '../data/species';
@@ -371,6 +372,10 @@ export interface PokeRemGameState {
   area?: AreaState;
   /** Owned id of the player's original starter (the Buddy; evolution keeps the id). */
   starterId?: string;
+  /** Team Ember, Tide or Volt (SPEC A13). Secretly favours that team's Galarian bird. */
+  team?: TeamId;
+  /** True once the one-time "Choose your team" screen has been answered. */
+  teamPrompted?: boolean;
 }
 
 export interface AreaState {

@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T0.7 (commit '1.6.0 T0.7')
-- In progress: T1.1
-- Next exact step: rarity.ts: per-encounter calibrated odds (p_enc = 3/N cards). Remove shinyOddsForPacing multiplier in encounters.ts; shiny = 1/250 per encounter at any pacing
+- Last finished: T1.4 (commit '1.6.0 T1.1–T1.4')
+- In progress: T1.5
+- Next exact step: legendary-class catch curve in computeCatchChance (encounters.ts ~150) per L6; add status multiplier to trainer catch (trainerBattles.ts ~338)
 - Latest checks: 2026-11-04 after Phase 0: tsc clean, vitest 44 files / 270 tests, npm run build OK.
 
 ## Known issues
@@ -18,6 +18,10 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T1.4 | commit '1.6.0 T1.1–T1.4' | levels: whole-party mean, never above avg, ~70% within 3 below (rarity.test.ts); old tests updated to the new rules |
+| T1.3 | commit '1.6.0 T1.1–T1.4' | rarity.test.ts: per-encounter odds fixed at any pacing, birds 1.2%/enc after 100 cards, team 50/25/25 ±2%, bird shiny 25% ±2%, wild legendaries ≈0.12%; 44 files/275 tests |
+| T1.2 | commit '1.6.0 T1.1–T1.4' | rarity.test.ts: per-encounter odds fixed at any pacing, birds 1.2%/enc after 100 cards, team 50/25/25 ±2%, bird shiny 25% ±2%, wild legendaries ≈0.12%; 44 files/275 tests |
+| T1.1 | commit '1.6.0 T1.1–T1.4' | rarity.test.ts: per-encounter odds fixed at any pacing, birds 1.2%/enc after 100 cards, team 50/25/25 ±2%, bird shiny 25% ±2%, wild legendaries ≈0.12%; 44 files/275 tests |
 | T0.7 | commit '1.6.0 T0.7' | species tier derived from classification (27 fixed); save-1.5.0.json fixture (1,500 cards, 282 in storage, shiny, doublers) round-trips intact; tsc, 44 files/270 tests, build green |
 | T0.6 | commit '1.6.0 T0.6' | harness runs 6 policies × 3 pacings with a sim clock; quick report generated; baseline saved as BALANCE_BASELINE_1.5.0.md |
 | T0.5 | commit '1.6.0 T0.5' | balance.ts + rarity.ts hold today's values; reducers read them; 43 files/266 tests unchanged and green |
@@ -43,11 +47,11 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | What |
 |---|---|
-| [~] T1.1 | Per-encounter calibrated odds; pacing multiplier removed. |
-| [ ] T1.2 | Galarian birds at 1/250 cards, with team weighting. |
-| [ ] T1.3 | Wild legendary rate cut to ~1/2,500 cards; fix the uncaught-bias completeness check. |
-| [ ] T1.4 | Wild level distribution (70/30). |
-| [ ] T1.5 | Legendary catch curve, plus the trainer catch status multiplier. |
+| [x] T1.1 (commit '1.6.0 T1.1–T1.4') | Per-encounter calibrated odds; pacing multiplier removed. |
+| [x] T1.2 (commit '1.6.0 T1.1–T1.4') | Galarian birds at 1/250 cards, with team weighting. |
+| [x] T1.3 (commit '1.6.0 T1.1–T1.4') | Wild legendary rate cut to ~1/2,500 cards; fix the uncaught-bias completeness check. |
+| [x] T1.4 (commit '1.6.0 T1.1–T1.4') | Wild level distribution (70/30). |
+| [~] T1.5 | Legendary catch curve, plus the trainer catch status multiplier. |
 | [ ] T1.6 | Shinies protected after a faint. |
 
 Each task's check: rarity sims within the C2 tolerances, plus unit tests.

@@ -1,3 +1,4 @@
+import { GALARIAN_BIRDS } from '../engine/rarity';
 import { describe, expect, it } from 'vitest';
 import { spawnEncounter, EVENT_MIN_PARTY_LEVEL, EVENT_MIN_REVIEWS } from '../engine/encounters';
 import { isEventSpecies, isStarterSpecies, minWildLevel, SCENE_BIOME_TYPES } from '../engine/speciesPool';
@@ -14,19 +15,22 @@ function roll(n: number, level: number, reviews: number, extra: { sceneIndex?: n
 }
 
 describe('wild encounter generator', () => {
-  it('stays near the party level and never below a species evolution level', () => {
+  it('never above the party average (except events), and never below a species evolution level', () => {
     for (const enc of roll(3000, 18, 5000)) {
-      expect(Math.abs(enc.level - 18)).toBeLessThanOrEqual(5);
+      if (isEventSpecies(enc.dexNum)) expect(enc.level).toBeLessThanOrEqual(23);
+      else expect(enc.level).toBeLessThanOrEqual(18);
       expect(minWildLevel(enc.dexNum)).toBeLessThanOrEqual(enc.level);
     }
   });
 
   it('keeps legendaries out until the player is established, then makes them rare events', () => {
-    expect(roll(3000, EVENT_MIN_PARTY_LEVEL - 1, 9999).some((e) => isEventSpecies(e.dexNum))).toBe(false);
-    expect(roll(3000, 40, EVENT_MIN_REVIEWS - 1).some((e) => isEventSpecies(e.dexNum))).toBe(false);
-    const events = roll(10_000, 40, 5000).filter((e) => isEventSpecies(e.dexNum)).length / 10_000;
-    expect(events).toBeGreaterThan(0.005);
-    expect(events).toBeLessThan(0.025);
+    // Galarian birds are their own roll (see rarity.test.ts); this is about the other legendaries.
+    const legendary = (e: { dexNum: number }) => isEventSpecies(e.dexNum) && !GALARIAN_BIRDS.has(e.dexNum);
+    expect(roll(3000, EVENT_MIN_PARTY_LEVEL - 1, 9999).some(legendary)).toBe(false);
+    expect(roll(3000, 40, EVENT_MIN_REVIEWS - 1).some(legendary)).toBe(false);
+    const events = roll(40_000, 40, 5000).filter(legendary).length / 40_000;
+    expect(events).toBeGreaterThan(0.0006);
+    expect(events).toBeLessThan(0.002);
   });
 
   it('makes other starters obtainable but uncommon', () => {
