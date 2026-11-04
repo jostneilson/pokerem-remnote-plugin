@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T4.1 (c557d21)
-- In progress: T4.2
-- Next exact step: T4.2: PartyPokemonCard three-button row (U1) + Upgrade sheet (U2) + HP + heal button; replace Lead/Heal actions in PartyScreen.tsx ~520-560
+- Last finished: T4.3 (6bcfc3a)
+- In progress: T4.4
+- Next exact step: T4.4: src/ui/screens/CollectionGridScreen.tsx per U4 (windowed grid, sort/filter/search), opened from a 'View all' button in the Party header; then T4.5 select mode + bulk bar (U5)
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,8 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T4.3 | 6bcfc3a | preview: Transfer confirm shows payout + copy; Esc closes; warnings unit-tested |
+| T4.2 | 6bcfc3a | preview 320px: three buttons, + heal, Upgrade sheet opens (Power Up / Tutor) |
 | T4.1 | c557d21 | transfer.test (5): payout, Common<100, XP split, guards, warnings, buddy end; 301 tests |
 | T3.6 | ee5f71d | preview: grunt intro (reduced motion clears at 1s), leader win -> See the Leader's prize, prize PRIZE badge + 2-tap give up; 296 tests, build OK |
 | T3.2 | ee5f71d | Radar chip on Play + Trainer; preview checked |
@@ -100,9 +102,9 @@ Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 | Task | What |
 |---|---|
 | [x] T4.1 (c557d21) | `transferPokemon` reducer, payout and XP. |
-| [~] T4.2 | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
-| [ ] T4.3 | Transfer confirm with warning chips. |
-| [ ] T4.4 | View all grid: sort and filter. |
+| [x] T4.2 (6bcfc3a) | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
+| [x] T4.3 (6bcfc3a) | Transfer confirm with warning chips. |
+| [~] T4.4 | View all grid: sort and filter. |
 | [ ] T4.5 | Multi-select and bulk bar. |
 | [ ] T4.6 | Capacity caps, meters, upgrades, grandfathering. |
 | [ ] T4.7 | Full-storage catch flow and bag-full ₽ conversion. |
