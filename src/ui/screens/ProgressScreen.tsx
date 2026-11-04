@@ -13,6 +13,7 @@ import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { TrainerIdentityCard } from '../components/TrainerIdentityCard';
 import { QuestsPanel } from '../components/QuestsPanel';
+import { RocketRadarChip } from '../components/RocketRadarChip';
 import { TrainerStatsPanels } from './StatusScreen';
 
 const CATEGORY_LABELS: Record<string, { label: string; iconName: 'book' | 'swords' | 'pokeball' | 'coin' | 'flame' | 'calendar' | 'trophy' | 'star' }> = {
@@ -162,6 +163,8 @@ export function ProgressScreen({
       />
 
       {rewards}
+
+      <RocketRadarChip rocket={state.rocket} />
 
       {onClaimQuest && onClaimAllQuests && state.starterChosen ? (
         <QuestsPanel state={state} onClaim={onClaimQuest} onClaimAll={onClaimAllQuests} />

@@ -382,9 +382,18 @@ export function defeatEncounter(
   return withTouch(addTrainerXp(afterDefeat, trainerXpGain));
 }
 
-export function runFromEncounter(state: PokeRemGameState): PokeRemGameState {
+/**
+ * Run from the wild Pokémon. The Rocket Leader's prize only goes when `giveUpPrize` is set (the sidebar's
+ * confirmed "Give up"), so a stray Run from the queue strip or a shortcut can't lose it.
+ */
+export function runFromEncounter(state: PokeRemGameState, giveUpPrize = false): PokeRemGameState {
   if (!state.currentEncounter) return state;
   const name = state.currentEncounter.name;
+  if (state.currentEncounter.pendingPrize && !giveUpPrize)
+    return withTouch({
+      ...state,
+      ...bumpBattleOutcome(state, 'none', `${name} is the Leader’s prize. To give it up, use Run in the sidebar and confirm.`),
+    });
   return withTouch(
     addTrainerXp(
       {

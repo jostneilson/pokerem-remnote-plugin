@@ -197,9 +197,15 @@ export function BattleField({
 
       {fx.intro ? (
         <div
-          className={`pkr-battle-wipe${fieldWild?.shiny ? ' pkr-battle-wipe--shiny' : ''}`}
+          className={`pkr-battle-wipe${fieldWild?.pendingPrize ? ' pkr-battle-wipe--prize' : fieldWild?.shiny ? ' pkr-battle-wipe--shiny' : ''}`}
           aria-hidden="true"
         />
+      ) : null}
+      {fieldWild?.pendingPrize && fx.intro ? (
+        <div className="pkr-prize-reveal" role="status">
+          <span className="pkr-prize-reveal__label">THE LEADER’S PRIZE</span>
+          <strong>{fieldWild.name} appeared!</strong>
+        </div>
       ) : null}
       {fieldWild?.shiny ? (
         <div

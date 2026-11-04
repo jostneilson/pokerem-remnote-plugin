@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { EncounterPokemon, OwnedPokemon } from '../../game/state/model';
 import { itemIconUrl } from '../../game/sprites';
 import type { CatchBall } from '../../game/engine/encounters';
@@ -55,20 +56,28 @@ export function BattleCommandMenu({
   autoAttackMessage?: string;
   onThrow: (ball: CatchBall) => void;
   onFight: () => void;
-  onRun: () => void;
+  /** `giveUpPrize` is set once the player confirms giving up the Rocket Leader's prize. */
+  onRun: (giveUpPrize?: boolean) => void;
   onToggleAutoAttack?: () => void;
   onCatchScope?: () => void;
 }) {
   const busy = (a: BusyAction) => battleBusy && busyAction === a;
   const lead = active.nickname || active.name;
+  const isPrize = wild?.pendingPrize === true;
+  const [confirmGiveUp, setConfirmGiveUp] = useState(false);
+  useEffect(() => setConfirmGiveUp(false), [wild?.dexNum, wild?.pendingPrize]);
   return (
     <div className="space-y-2">
       <div className={`pkr-battle-prompt${wild?.shiny ? ' pkr-battle-prompt--shiny' : ''}`}>
         <TypedLine
           text={
-            wild?.shiny
-              ? `✦ A shiny ${wild.name} appeared! What will ${lead} do?`
-              : `What will ${lead} do?`
+            confirmGiveUp
+              ? 'Give up the prize? It won’t come back.'
+              : isPrize
+                ? `THE LEADER’S PRIZE: ${wild!.shiny ? '✦ shiny ' : ''}${wild!.name}! What will ${lead} do?`
+                : wild?.shiny
+                  ? `✦ A shiny ${wild.name} appeared! What will ${lead} do?`
+                  : `What will ${lead} do?`
           }
           reducedMotion={reducedMotion}
         />
@@ -109,12 +118,19 @@ export function BattleCommandMenu({
         <button
           type="button"
           disabled={battleBusy}
-          onClick={onRun}
+          onClick={() => {
+            if (!isPrize) return onRun();
+            if (!confirmGiveUp) return setConfirmGiveUp(true);
+            setConfirmGiveUp(false);
+            onRun(true);
+          }}
+          onBlur={() => setConfirmGiveUp(false)}
+          aria-label={isPrize ? (confirmGiveUp ? 'Confirm: give up the prize' : 'Run (gives up the prize)') : 'Run'}
           className={`pkr-game-btn pkr-battle-cmd-side pkr-cmd pkr-cmd--run flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 text-center ${hoverLift}`}
         >
           <GameIcon name="flee" size={15} className="shrink-0" />
           <div className="pkr-cmd__label whitespace-nowrap uppercase leading-none">
-            {busy('run') ? '…' : 'Run'}
+            {busy('run') ? '…' : confirmGiveUp ? 'Give up' : 'Run'}
           </div>
         </button>
       </div>

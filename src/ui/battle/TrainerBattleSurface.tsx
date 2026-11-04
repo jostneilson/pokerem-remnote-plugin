@@ -1,7 +1,7 @@
 import { Coins } from '../components/Coins';
 import { formatCoins, formatCoinsExact } from '../format/coins';
 import { useTrainerPresentation } from '../hooks/useTrainerPresentation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   OwnedPokemon,
   PokeRemGameState,
@@ -10,6 +10,7 @@ import type {
 } from '../../game/state/model';
 import { backSpriteUrl, frontSpriteUrl, itemIconUrl } from '../../game/sprites';
 import { PokemonSprite } from '../components/PokemonSprite';
+import { typePillStyle } from './battleTheme';
 import { movesetForBattle } from '../../game/engine/moveLearn';
 import { MOVES } from '../../game/data/moves';
 import { trainerCatchChance } from '../../game/engine/trainerBattles';
@@ -57,6 +58,29 @@ const TIER_ACCENT: Record<
     pillFill: 'linear-gradient(180deg,#e9d5ff 0%,#a855f7 55%,#6d28d9 100%)',
   },
 };
+
+type Accent = (typeof TIER_ACCENT)['standard'];
+const ROCKET_ACCENT: Record<'grunt' | 'leader', Accent> = {
+  grunt: {
+    glow: 'rgba(248,113,113,0.45)',
+    ribbon: 'linear-gradient(180deg, #3a1016 0%, #17080b 100%)',
+    label: 'Team Rocket',
+    accent: '#f87171',
+    pillFill: 'linear-gradient(180deg,#fecaca 0%,#ef4444 55%,#7f1d1d 100%)',
+  },
+  leader: {
+    glow: 'rgba(251,191,36,0.5)',
+    ribbon: 'linear-gradient(180deg, #2a1d05 0%, #0d0a04 100%)',
+    label: 'Rocket Leader',
+    accent: '#fbbf24',
+    pillFill: 'linear-gradient(180deg,#fde68a 0%,#f59e0b 55%,#78350f 100%)',
+  },
+};
+
+/** Header and HUD colours: Team Rocket battles get red-and-black (grunts) or black-and-gold (Leader). */
+function accentFor(battle: TrainerBattleState): Accent {
+  return battle.rocket ? ROCKET_ACCENT[battle.rocket.kind] : TIER_ACCENT[battle.tier];
+}
 
 function hpColorTokens(ratio: number): { fill: string; text: string } {
   if (ratio > 0.5) {
@@ -152,7 +176,7 @@ function LineupStrip({
   rootURL?: string;
   reducedMotion: boolean;
 }) {
-  const accent = TIER_ACCENT[battle.tier];
+  const accent = accentFor(battle);
   const selectedIds = battle.selectedPartyIds;
   const selectedMons = selectedIds
     .map((id: string) => state.party.find((p: OwnedPokemon) => p.id === id))
@@ -178,6 +202,7 @@ function LineupStrip({
               key={`e-${i}`}
               rootURL={rootURL}
               dexNum={e.dexNum}
+              shiny={e.shiny === true}
               defeated={e.defeated || e.currentHp <= 0}
               active={i === battle.activeEnemyIndex && !(e.defeated || e.currentHp <= 0)}
               label={`${e.name} Lv${e.level}`}
@@ -261,7 +286,8 @@ function TrainerHudPlate({
         className="line-clamp-1 pkr-fine font-black leading-tight"
         style={{ color: 'white' }}
       >
-        {enemy.name}{' '}
+        {enemy.name}
+        {enemy.shiny ? <span style={{ color: 'var(--pkr-ink-gold)' }}> ✦</span> : null}{' '}
         <span className="whitespace-nowrap font-bold" style={{ color: 'var(--pkr-ink-danger)' }}>
           Lv{enemy.level}
         </span>
@@ -345,7 +371,7 @@ function EnemyCard({
     >
       <div className="relative">
         <PokemonSprite
-          src={frontSpriteUrl(rootURL, enemy.dexNum)}
+          src={frontSpriteUrl(rootURL, enemy.dexNum, enemy.shiny === true)}
           alt={enemy.name}
           size={sz}
           reducedMotion={reducedMotion}
@@ -437,6 +463,39 @@ function PartyPickRow({
   );
 }
 
+/**
+ * Team Rocket's entrance (SPEC U7): a quick red-and-black diagonal wipe (black-and-gold for the Leader) with
+ * a stamp, then it fades away. Reduced motion shows the banner still for a second. It never blocks taps.
+ */
+function RocketIntro({ battle, reducedMotion }: { battle: TrainerBattleState; reducedMotion: boolean }) {
+  const leader = battle.rocket?.kind === 'leader';
+  const type = battle.rocket?.type;
+  const [shown, setShown] = useState(true);
+  useEffect(() => {
+    const t = window.setTimeout(() => setShown(false), reducedMotion ? 1000 : 1800);
+    return () => window.clearTimeout(t);
+  }, [reducedMotion]);
+  if (!shown) return null;
+  return (
+    <div
+      className={`pkr-rocket-intro${leader ? ' pkr-rocket-intro--leader' : ''}${reducedMotion ? ' pkr-rocket-intro--still' : ''}`}
+      aria-hidden="true"
+    >
+      <div className="pkr-rocket-intro__stamp">{leader ? 'ROCKET LEADER CORVIN' : 'TEAM ROCKET'}</div>
+      {!leader ? (
+        <div className="pkr-rocket-intro__who">
+          Grunt {battle.trainer.displayName}
+          {type ? (
+            <span className="ml-1 rounded border px-1 py-px uppercase" style={typePillStyle(type)}>
+              {type}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function TrainerHeader({
   battle,
   state,
@@ -446,7 +505,7 @@ function TrainerHeader({
   state: PokeRemGameState;
   compact?: boolean;
 }) {
-  const accent = TIER_ACCENT[battle.tier];
+  const accent = accentFor(battle);
   return (
     <div
       className={`flex flex-col gap-1 rounded-md ${battle.tier === 'elite' ? 'pkr-trainer-elite' : ''}`}
@@ -467,6 +526,11 @@ function TrainerHeader({
           <div className={`font-black ${compact ? 'pkr-fine' : 'text-[12px]'}`} style={{ color: 'var(--pkr-ink-bright)' }}>
             {battle.trainer.className}
             {battle.trainer.displayName ? ` ${battle.trainer.displayName}` : ''}
+            {battle.rocket?.kind === 'grunt' && battle.rocket.type ? (
+              <span className="ml-1 rounded border px-1 py-px pkr-fine font-bold uppercase align-middle" style={typePillStyle(battle.rocket.type)}>
+                {battle.rocket.type}
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="text-right pkr-fine" style={{ color: '#e0e7ff' }}>
@@ -541,7 +605,8 @@ export function TrainerBattleSurface({
     const canLock = picked.length > 0 && picked.length >= Math.min(3, battleReadyParty.length);
 
     return (
-      <div className="flex flex-col gap-3 p-2">
+      <div className="relative flex flex-col gap-3 p-2">
+        {battle.rocket ? <RocketIntro key={battle.id} battle={battle} reducedMotion={reducedMotion} /> : null}
         <TrainerHeader battle={battle} state={state} />
 
         <div className="flex items-center justify-between gap-3">
@@ -629,7 +694,7 @@ export function TrainerBattleSurface({
           {enemy && !(enemy.defeated || enemy.currentHp <= 0) ? (
             <div style={{translate:'-50% -100%'}} className={`pointer-events-none absolute left-[74%] top-[64%] z-[6] ${motionPhase === 'enemy' ? 'pkr-trainer-enemy-strike' : ''}`}>
               <PokemonSprite
-                src={frontSpriteUrl(rootURL, enemy.dexNum)}
+                src={frontSpriteUrl(rootURL, enemy.dexNum, enemy.shiny === true)}
                 alt={enemy.name}
                 grounded
                 size={84}
@@ -655,8 +720,8 @@ export function TrainerBattleSurface({
           {enemy ? (
             <TrainerHudPlate
               enemy={enemy}
-              accent={TIER_ACCENT[battle.tier].accent}
-              glow={TIER_ACCENT[battle.tier].glow}
+              accent={accentFor(battle).accent}
+              glow={accentFor(battle).glow}
             />
           ) : null}
           {activeMon ? <PlayerHudPlate mon={activeMon} /> : null}
@@ -708,6 +773,12 @@ export function TrainerBattleSurface({
   // ── post_win (with retry-friendly catch offer) ─────────────────────────
   if (battle.phase === 'post_win') {
     const reward = battle.rewardSnapshot;
+    // A Rocket grunt only offers its ace (the last Pokémon).
+    const isGrunt = battle.rocket?.kind === 'grunt';
+    const catchable = battle.enemies
+      .map((e, i) => ({ e, i }))
+      .filter(({ i }) => !isGrunt || i === battle.enemies.length - 1);
+    const pickedIndex = isGrunt ? battle.enemies.length - 1 : chosenCatchIndex;
     const ballCounts = {
       'poke-ball': state.bag['poke-ball'] ?? 0,
       'great-ball': state.bag['great-ball'] ?? 0,
@@ -715,7 +786,7 @@ export function TrainerBattleSurface({
     };
     const totalBalls = ballCounts['poke-ball'] + ballCounts['great-ball'] + ballCounts['ultra-ball'];
     const chosenEnemy =
-      chosenCatchIndex != null ? battle.enemies[chosenCatchIndex] ?? null : null;
+      pickedIndex != null ? battle.enemies[pickedIndex] ?? null : null;
     const previewChance = chosenEnemy
       ? Math.round(trainerCatchChance(chosenEnemy, activeMon, catchBall, battle.tier) * 100)
       : null;
@@ -770,7 +841,7 @@ export function TrainerBattleSurface({
                 className="pkr-fine font-black uppercase tracking-wider"
                 style={{ color: 'var(--pkr-ink-text)' }}
               >
-                Catch one Pokémon
+                {isGrunt ? 'Catch their ace' : 'Catch one Pokémon'}
               </span>
               <span className="pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-gold)' }}>
                 Coins: <Coins value={currency} />
@@ -780,26 +851,27 @@ export function TrainerBattleSurface({
               Keep throwing balls until you catch one, run out of balls, or walk away.
             </p>
 
-            <div className="grid grid-cols-3 gap-2">
-              {battle.enemies.map((e, i) => (
+            <div className={`grid gap-2 ${catchable.length === 1 ? 'grid-cols-1' : 'grid-cols-3'}`}>
+              {catchable.map(({ e, i }) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setChosenCatchIndex(i)}
                   className="pkr-game-card flex flex-col items-center gap-1 rounded-md p-2"
                   style={{
-                    background: chosenCatchIndex === i ? 'rgba(253,224,71,0.18)' : 'rgba(15,23,42,0.4)',
-                    border: chosenCatchIndex === i ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
+                    background: pickedIndex === i ? 'rgba(253,224,71,0.18)' : 'rgba(15,23,42,0.4)',
+                    border: pickedIndex === i ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
                   }}
                 >
                   <PokemonSprite
-                    src={frontSpriteUrl(rootURL, e.dexNum)}
+                    src={frontSpriteUrl(rootURL, e.dexNum, e.shiny === true)}
                     alt={e.name}
                     size={48}
                     reducedMotion={reducedMotion}
                   />
                   <span className="pkr-fine font-bold" style={{ color: 'var(--pkr-ink-bright)' }}>
                     {e.name}
+                    {e.shiny ? <span style={{ color: 'var(--pkr-ink-gold)' }}> ✦</span> : null}
                   </span>
                   <span className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
                     Lv {e.level}
@@ -901,13 +973,13 @@ export function TrainerBattleSurface({
               <button
                 type="button"
                 className="pkr-btn-gold flex-1 rounded-md py-2 pkr-fine font-black"
-                disabled={chosenCatchIndex == null || catchBallCount <= 0}
+                disabled={pickedIndex == null || catchBallCount <= 0}
                 onClick={() => {
-                  if (chosenCatchIndex == null) return;
-                  onClaimCatch(chosenCatchIndex, catchBall);
+                  if (pickedIndex == null) return;
+                  onClaimCatch(pickedIndex, catchBall);
                 }}
               >
-                {chosenCatchIndex == null
+                {pickedIndex == null
                   ? 'Pick a Pokémon'
                   : catchBallCount <= 0
                   ? 'Out of selected ball'
@@ -932,6 +1004,14 @@ export function TrainerBattleSurface({
               </p>
             ) : null}
           </div>
+        ) : battle.prize ? (
+          <button
+            type="button"
+            className="pkr-btn-gold w-full rounded-md py-2 text-[12px] font-black"
+            onClick={onClose}
+          >
+            See the Leader’s prize
+          </button>
         ) : (
           <button
             type="button"

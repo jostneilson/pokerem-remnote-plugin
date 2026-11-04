@@ -3942,3 +3942,143 @@ body,:host { font-family:var(--pkr-font-body); }
   background: #143a22;
   color: #d8ffe2;
 }
+
+/* Rocket Radar chip (SPEC U9). */
+.pkr-rocket-radar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border: 1px solid #7f1d1d;
+  background: #1c0b0e;
+  color: #fecaca;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.pkr-rocket-radar__dots {
+  color: #f87171;
+  letter-spacing: 0.12em;
+}
+.pkr-rocket-radar--leader {
+  border-color: #d39c35;
+  background: #2a1d05;
+  color: #fde68a;
+}
+.pkr-hud-badge--prize {
+  background: linear-gradient(180deg, #fde68a 0%, #d39c35 100%);
+  color: #2a1d05;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.45);
+}
+
+/* Team Rocket entrance (SPEC U7): 0.6s diagonal wipe, stamp, then fade. Never blocks taps. */
+.pkr-rocket-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, #7f1d1d 0 18px, #0b0507 18px 36px);
+  animation: pkr-rocket-wipe 600ms steps(6, end) both, pkr-rocket-out 300ms ease-in 1500ms forwards;
+}
+.pkr-rocket-intro--leader {
+  background: repeating-linear-gradient(135deg, #0b0804 0 18px, #3d2a06 18px 36px);
+}
+.pkr-rocket-intro__stamp {
+  padding: 6px 10px;
+  border: 3px solid #f87171;
+  background: #0b0507;
+  color: #fee2e2;
+  font-family: var(--pkr-font-display);
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+  transform: rotate(-4deg);
+  animation: pkr-rocket-stamp 220ms steps(3, end) 480ms both;
+}
+.pkr-rocket-intro--leader .pkr-rocket-intro__stamp {
+  border-color: #fbbf24;
+  color: #fde68a;
+}
+.pkr-rocket-intro__who {
+  padding: 2px 8px;
+  background: #0b0507;
+  color: #fecaca;
+  font-size: 13px;
+  font-weight: 900;
+  animation: pkr-rocket-stamp 220ms steps(3, end) 650ms both;
+}
+.pkr-rocket-intro--still,
+.pkr-rocket-intro--still .pkr-rocket-intro__stamp,
+.pkr-rocket-intro--still .pkr-rocket-intro__who {
+  animation: none;
+}
+@keyframes pkr-rocket-wipe {
+  from { clip-path: polygon(0 0, 0 0, 0 0, 0 0); }
+  to { clip-path: polygon(0 0, 200% 0, 0 200%, 0 0); }
+}
+@keyframes pkr-rocket-stamp {
+  from { opacity: 0; transform: rotate(-4deg) scale(1.6); }
+  to { opacity: 1; transform: rotate(-4deg) scale(1); }
+}
+@keyframes pkr-rocket-out {
+  to { opacity: 0; visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pkr-rocket-intro,
+  .pkr-rocket-intro__stamp,
+  .pkr-rocket-intro__who {
+    animation: none;
+  }
+}
+
+/* Rocket Leader prize reveal (SPEC U8): gold-red wipe and a banner while the encounter arrives. */
+.pkr-battle-wipe--prize::before,
+.pkr-battle-wipe--prize::after {
+  background: linear-gradient(180deg, #fde68a 0%, #d39c35 45%, #7f1d1d 100%);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.8);
+}
+.pkr-battle-wipe--prize {
+  background: radial-gradient(circle at 70% 38%, rgba(255, 244, 214, 0.95) 0%, rgba(248, 113, 113, 0.5) 20%, transparent 48%);
+  animation: pkr-shiny-flash 900ms ease-out both;
+}
+.pkr-prize-reveal {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 41;
+  display: grid;
+  gap: 4px;
+  min-width: 70%;
+  padding: 8px 10px;
+  text-align: center;
+  pointer-events: none;
+  color: #fde68a;
+  background: #1c0b0e;
+  border: 2px solid #fbbf24;
+  transform: translate(-50%, -50%);
+  animation: pkr-shiny-arrival 500ms ease-out 300ms both, pkr-rocket-out 300ms ease-in 2200ms forwards;
+}
+.pkr-prize-reveal__label {
+  font-family: var(--pkr-font-display);
+  font-size: 13px;
+  color: #f87171;
+}
+.pkr-prize-reveal strong {
+  font-size: 15px;
+}
+.pkr-battle-reduced .pkr-prize-reveal {
+  animation: pkr-rocket-out 1ms linear 1000ms forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pkr-prize-reveal {
+    animation: pkr-rocket-out 1ms linear 1000ms forwards;
+  }
+}

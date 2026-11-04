@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **XP Share.** Every party Pokémon now earns study XP on every card (your lead a little more), and a knockout's XP is split: 60% to your lead, the rest shared by the bench. Your whole team grows together.
 - **Catch-up boost.** A party member behind the rest earns up to ×2 XP until it catches up, shown by a small "▲ catch-up" tag on its card.
+- **Team Rocket is back, and bigger.** About a third of trainer battles are Rocket grunts. Each uses one type and leads with a rare ace of that type (pseudo-legendaries, fossils, starters) that you can try to catch after winning. They're now your main source of rare Pokémon.
+- **Rocket Radar and the Rocket Leader.** Beat five grunts (shown on the Rocket Radar) and the Rocket Leader, Corvin, challenges you. Beat him for a big coin prize and a guaranteed legendary or mythical encounter (one you haven't caught, if any are left; shiny 1 in 5). The prize never runs away; keep throwing until you catch it.
+- **Trainer Pokémon can be shiny** (1 in 250), and a shiny you catch from a trainer stays shiny.
 - **Your starter is your Buddy.** It misses half as often and earns 15% more XP, with a ♥ Buddy badge. Existing saves pick your original starter automatically, and evolving keeps the bonus.
 
 ### Fixed

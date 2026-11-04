@@ -12,6 +12,7 @@ import {BattleReviewSurface} from '../../src/ui/battle/BattleReviewSurface';
 import {TrainerBattleSurface} from '../../src/ui/battle/TrainerBattleSurface';
 import {StatusScreen} from '../../src/ui/screens/StatusScreen';
 import {PartyScreen} from '../../src/ui/screens/PartyScreen';
+import {rollLeaderPrize as rocketPrize} from '../../src/game/engine/rocket';
 import {ItemsScreen} from '../../src/ui/screens/ItemsScreen';
 import {CollectionScreen} from '../../src/ui/screens/CollectionScreen';
 import {TypeChartScreen} from '../../src/ui/screens/TypeChartScreen';
@@ -35,7 +36,12 @@ const captureWidth=[280,320,400,520].includes(requestedWidth)?requestedWidth:400
 const requestedReducedMotion=captureParams.get('reducedMotion')==='1';
 function captureFixture(){
  let s=fixture();
- if(captureScreen==='trainer'){
+ if(captureScreen==='trainer'&&(captureScenario==='rocket'||captureScenario==='leader'||captureScenario==='leader-win')){
+  if(captureScenario!=='rocket') s={...s,rocket:{gruntWins:5,typesBeaten:['Fire','Water','Grass','Bug','Normal'],leaderReady:true,leaderWins:0}};
+  else s={...s,rocket:{gruntWins:2,typesBeaten:['Fire','Water'],leaderReady:false,leaderWins:0}};
+  s=game.startRocketBattle(s,[1,2,3,4],()=>.4);
+  if(captureScenario==='leader-win') s=game.resolveTrainerBattle(s,'win',()=>.4);
+ } else if(captureScreen==='trainer'){
   s=game.startTrainerBattle(s,'standard',[1],()=>.4);
   s=game.lockTrainerTeam(s,['qa-0','qa-2','qa-3']);
  }
@@ -54,6 +60,7 @@ function captureFixture(){
  if(captureScenario==='result-level') s={...s,currentEncounter:null,lastBattleResult:{seq:1,kind:'defeat',name:'Pidgey',dexNum:16,monName:'Froakie',xp:142,coins:210,fromLevel:11,toLevel:12,xpPctBefore:70,xpPctAfter:18,newMoves:['Quick Attack']}};
  if(captureScenario==='result-shiny') s={...s,currentEncounter:null,lastBattleResult:{seq:2,kind:'catch',name:'Galarian Zapdos',dexNum:10170,monName:'Galarian Zapdos',xp:0,coins:150,fromLevel:52,toLevel:52,xpPctBefore:0,xpPctAfter:0,newMoves:[],shiny:true,perfectIvs:true},shinyLog:[{dexNum:10170,name:'Galarian Zapdos',caughtAt:'2026-11-02T18:20:00.000Z',card:321,perfectIvs:true},{dexNum:41,name:'Zubat',caughtAt:'2026-10-21T09:05:00.000Z',card:118}]};
  if(captureScenario==='bench-hurt') s={...s,party:s.party.map((p,i)=>i===1?{...p,currentHp:Math.max(1,Math.floor(p.maxHp/3))}:i===2?{...p,currentHp:0}:p),bag:{...s.bag,revive:2,potion:3}};
+ if(captureScenario==='prize') s={...s,rocket:{gruntWins:0,typesBeaten:[],leaderReady:false,leaderWins:1},currentTrainerBattle:null,currentEncounter:rocketPrize(30,[1,2,3,4],{},()=>.3)};
  if(captureScenario==='buddy') s={...game.activateXpDoubler({...s,bag:{...s.bag,'xp-doubler-common':2}},'common'),starterId:s.party[0]!.id,party:s.party.map((p,i)=>i===2?{...p,level:Math.max(2,p.level-8)}:p)};
  if(captureScenario==='buddy') s=game.activateXpDoubler(s,'common');
  if(captureScenario==='hurt') s={...s,party:s.party.map((p,i)=>i===0?{...p,currentHp:20}:p)};

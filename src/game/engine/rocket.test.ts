@@ -12,6 +12,7 @@ import {
   onQueueCardComplete,
   parseGameState,
   resolveTrainerBattle,
+  runFromEncounter,
   startRocketBattle
 } from '../state/store';
 import {
@@ -127,6 +128,9 @@ describe('Rocket Radar and Leader', () => {
       expect(s.currentEncounter?.pendingPrize).toBe(true);
       for (let i = 0; i < 30; i++) s = applyCombatTurn(s);
       expect(s.currentEncounter?.currentHp).toBeGreaterThan(0);
+      // Run only gives it up once confirmed.
+      expect(runFromEncounter(s).currentEncounter?.pendingPrize).toBe(true);
+      expect(runFromEncounter(s, true).currentEncounter).toBeNull();
     });
   });
 

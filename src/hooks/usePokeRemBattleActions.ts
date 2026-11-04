@@ -125,9 +125,9 @@ export function usePokeRemBattleActions(
     [applyBattleAction, stopAutoAttack],
   );
 
-  const makeRun = useCallback(() => {
+  const makeRun = useCallback((giveUpPrize?: boolean) => {
     stopAutoAttack();
-    void applyBattleAction('run', gameCommand('runFromEncounter'));
+    void applyBattleAction('run', gameCommand('runFromEncounter', giveUpPrize === true));
   }, [applyBattleAction, stopAutoAttack]);
 
   return {

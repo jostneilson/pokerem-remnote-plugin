@@ -30,6 +30,7 @@ import { estimatedQueueCompletionsUntilWild } from '../../game/wildEncounterDisp
 import { speciesLabel } from '../components/SpeciesBadge';
 import { AchievementFanfare } from '../components/AchievementFanfare';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
+import { RocketRadarChip } from '../components/RocketRadarChip';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 import { BRAND } from '../theme/gameTheme';
 import { BattleField } from './BattleField';
@@ -117,7 +118,7 @@ export function BattleReviewSurface({
   /** Throw this ball, or the recommended one when omitted. */
   onCatch: (ball?: CatchBall) => void;
   onFightMove: (moveId: string) => void;
-  onRun: () => void;
+  onRun: (giveUpPrize?: boolean) => void;
   encounterRate?: number;
   currency?: number;
   reducedMotion?: boolean;
@@ -324,8 +325,13 @@ export function BattleReviewSurface({
         header={
           <div className="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5">
             <span className="pkr-battle-hud-role" style={{ color: amb.accentMuted }}>
-              Wild
+              {fieldWild.pendingPrize ? 'Rocket' : 'Wild'}
             </span>
+            {fieldWild.pendingPrize ? (
+              <span className="pkr-hud-badge pkr-hud-badge--prize" title="The Rocket Leader’s prize: it won’t flee">
+                Prize
+              </span>
+            ) : null}
             {fieldWild.tier && fieldWild.tier !== 'Common' ? (
               <span
                 className="pkr-hud-badge"
@@ -573,6 +579,7 @@ export function BattleReviewSurface({
                   exploreWildCompletionsRemaining === 1 ? '' : 's'
                 } until the next wild Pokémon (${progress} of ${effectiveRate} toward encounter)`}
               />
+              <RocketRadarChip rocket={state.rocket} />
             </div>
           )}
           {!canCatch && hasEncounter ? (
