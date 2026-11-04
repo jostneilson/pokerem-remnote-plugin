@@ -87,7 +87,7 @@ export function PokeRemTrekStrip({
                 className={dotClass}
                 style={
                   filled
-                    ? { background: '#6ee7b7', boxShadow: '0 0 6px rgba(110,231,183,0.85)' }
+                    ? { background: 'var(--pkr-ink-success)', boxShadow: '0 0 6px rgba(110,231,183,0.85)' }
                     : { background: 'rgba(255,255,255,0.22)' }
                 }
               />

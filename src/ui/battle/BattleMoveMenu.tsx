@@ -74,7 +74,7 @@ export function BattleMoveMenu({
               style={{
                 borderColor: (pill?.borderColor as string) ?? 'rgba(148,163,184,0.5)',
                 background: (pill?.backgroundColor as string) ?? 'rgba(30,41,59,0.9)',
-                color: (pill?.color as string) ?? '#f8fafc',
+                color: (pill?.color as string) ?? 'var(--pkr-ink-bright)',
                 boxShadow: fighting
                   ? `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px ${accent}55`
                   : `inset 0 1px 0 rgba(255,255,255,0.14), 0 2px 0 rgba(0,0,0,0.35)`,

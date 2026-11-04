@@ -110,7 +110,7 @@ function BoostersPanel({
           >
             <span
               className="text-[13px] font-black tabular-nums"
-              style={{ color: active ? '#fde68a' : '#c3cde3' }}
+              style={{ color: active ? 'var(--pkr-ink-gold)' : 'var(--pkr-ink-muted)' }}
             >
               2×
             </span>
@@ -119,7 +119,7 @@ function BoostersPanel({
             <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <span
                 className="pkr-fine font-black"
-                style={{ color: active ? '#fde68a' : '#c3cde3' }}
+                style={{ color: active ? 'var(--pkr-ink-gold)' : 'var(--pkr-ink-muted)' }}
               >
                 {active ? `${TIER_STYLE[active.tier].label} Doubler` : 'XP Doubler'}
               </span>
@@ -151,7 +151,7 @@ function BoostersPanel({
                   className="pkr-meter-fill h-full transition-[width] duration-500"
                   style={{
                     width: `${activePct}%`,
-                    background: 'linear-gradient(90deg, #fde68a 0%, #f59e0b 100%)',
+                    background: 'linear-gradient(90deg, var(--pkr-ink-gold) 0%, #f59e0b 100%)',
                     boxShadow: '0 0 6px rgba(253,224,71,0.5)',
                   }}
                 />
@@ -215,14 +215,14 @@ function BoostersPanel({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="flex min-w-0 flex-wrap items-baseline gap-1.5">
-                    <span className="pkr-fine font-black" style={{ color: owned ? '#e2e8f0' : '#c3cde3' }}>
+                    <span className="pkr-fine font-black" style={{ color: owned ? 'var(--pkr-ink-text)' : 'var(--pkr-ink-muted)' }}>
                       {style.name}
                     </span>
                     <span
                       className="shrink-0 rounded px-1 py-[1px] pkr-fine font-black uppercase leading-none tracking-[0.1em]"
                       style={{
                         background: owned ? style.chipBg : 'rgba(15,23,42,0.6)',
-                        color: owned ? style.chipText : '#c3cde3',
+                        color: owned ? style.chipText : 'var(--pkr-ink-muted)',
                         border: owned ? 'none' : '1px solid rgba(100,116,139,0.4)',
                       }}
                     >
@@ -326,7 +326,7 @@ function ItemRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-          <span className="min-w-0 break-words pkr-fine font-black" style={{ color: isEmpty ? '#c3cde3' : '#e2e8f0' }}>
+          <span className="min-w-0 break-words pkr-fine font-black" style={{ color: isEmpty ? 'var(--pkr-ink-muted)' : 'var(--pkr-ink-text)' }}>
             {item.name}
           </span>
           <span
@@ -429,9 +429,9 @@ export function BagScreen({
       <div className="pkr-bag-screen-header">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
-            <GameIcon name="bag" size={20} style={{ color: 'var(--pkr-accent, #fbbf24)' }} />
+            <GameIcon name="bag" size={20} style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }} />
             <div>
-              <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+              <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }}>
                 Your bag
               </div>
               <div className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>

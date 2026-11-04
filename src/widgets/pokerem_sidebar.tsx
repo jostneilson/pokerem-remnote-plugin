@@ -500,7 +500,7 @@ function PokeRemSidebar() {
                 <strong className="font-black" style={{ color: 'var(--pkr-ink-gold)' }}>Run</strong> above, or the RemNote command palette / queue menu.
               </p>
             ) : (
-              <p className="text-center pkr-fine font-semibold" style={{ color: 'var(--pkr-ui-muted, #64748b)' }}>
+              <p className="text-center pkr-fine font-semibold" style={{ color: 'var(--pkr-ui-muted, var(--pkr-ink-dim))' }}>
                 Developed by {POKEREM_AUTHOR}
               </p>
             )}

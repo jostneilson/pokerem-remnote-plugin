@@ -47,7 +47,7 @@ export function TrainerIdentityCard({
           <span className="pkr-trainer-identity__level-label">Lv</span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+          <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }}>
             Trainer license
           </div>
           <h2 className="mt-1 truncate pkr-lead font-black leading-tight tracking-tight" style={{ color: 'var(--pkr-ink-bright)' }}>

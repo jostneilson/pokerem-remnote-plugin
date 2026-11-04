@@ -136,7 +136,7 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
         className="pkr-game-btn mt-1 rounded-lg border-2 px-3 py-2 pkr-fine font-black uppercase"
         style={{
           borderColor: '#6d28d9',
-          background: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%)',
+          background: 'linear-gradient(180deg, var(--pkr-accent) 0%, #7c3aed 50%, #5b21b6 100%)',
           color: '#f5f3ff',
         }}
       >

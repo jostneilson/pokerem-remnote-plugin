@@ -69,7 +69,7 @@ function RewardNode({
         <div className="flex items-baseline justify-between gap-1">
           <span
             className="pkr-fine font-black leading-tight"
-            style={{ color: claimed ? '#6ee7b7' : canClaim ? '#fde68a' : '#e2e8f0' }}
+            style={{ color: claimed ? 'var(--pkr-ink-success)' : canClaim ? 'var(--pkr-ink-gold)' : 'var(--pkr-ink-text)' }}
           >
             Lv {reward.level} — {reward.title}
           </span>

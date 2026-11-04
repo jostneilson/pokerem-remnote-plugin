@@ -59,7 +59,7 @@ function AchievementRow({
         style={
           unlocked
             ? {
-                background: 'linear-gradient(145deg, #fbbf24 0%, #d97706 100%)',
+                background: 'linear-gradient(145deg, var(--pkr-ink-gold-strong) 0%, #d97706 100%)',
                 color: '#451a03',
                 boxShadow: '0 0 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }
@@ -192,7 +192,7 @@ export function ProgressScreen({
           ) : null}
           {prestigeBadges.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1">
-              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: '#a78bfa' }}>
+              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: 'var(--pkr-accent)' }}>
                 Prestige
               </span>
               {prestigeBadges.map((b) => (

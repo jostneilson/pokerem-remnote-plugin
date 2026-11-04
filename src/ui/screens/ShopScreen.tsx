@@ -140,7 +140,7 @@ export function ShopScreen({
       <div className="pkr-shop-hero">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <div className="pkr-pixel-title pkr-fine font-black tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+            <div className="pkr-pixel-title pkr-fine font-black tracking-wide" style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }}>
               POKE MART
             </div>
             <p className="mt-0.5 max-w-[18rem] pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-muted)' }}>

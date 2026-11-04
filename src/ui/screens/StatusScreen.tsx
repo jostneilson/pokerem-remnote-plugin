@@ -105,7 +105,7 @@ export function StatusScreen({
                 {partySlot >= 0 ? (
                   <>
                     <span style={{ color: 'var(--pkr-ink-faint)' }}>·</span>
-                    <span style={{ color: 'var(--pkr-accent-muted, #cbd5e1)' }} title="Position in party">
+                    <span style={{ color: 'var(--pkr-accent-muted, var(--pkr-ink-soft))' }} title="Position in party">
                       Party {partySlot + 1}/{state.party.length}
                     </span>
                   </>

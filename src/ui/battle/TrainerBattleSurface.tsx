@@ -445,7 +445,7 @@ function PartyPickRow({
           </span>
         </div>
         <HpMeter hp={mon.currentHp} max={mon.maxHp} />
-        <div className="pkr-fine" style={{ color: fainted ? '#fca5a5' : '#c3cde3' }}>
+        <div className="pkr-fine" style={{ color: fainted ? 'var(--pkr-ink-danger)' : 'var(--pkr-ink-muted)' }}>
           {fainted ? 'Fainted — heal in Bag before selecting' : `${mon.currentHp} / ${mon.maxHp} HP`}
         </div>
       </div>
@@ -454,7 +454,7 @@ function PartyPickRow({
         className="grid h-6 w-6 place-items-center rounded-full pkr-fine font-black"
         style={{
           background: selected ? '#fde68a' : 'rgba(148,163,184,0.25)',
-          color: selected ? '#1e1b4b' : '#c3cde3',
+          color: selected ? '#1e1b4b' : 'var(--pkr-ink-muted)',
         }}
       >
         {selected ? '✓' : ''}

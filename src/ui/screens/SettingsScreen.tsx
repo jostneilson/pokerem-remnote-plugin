@@ -142,7 +142,7 @@ export function SettingsScreen({
         <p className="mt-2 pkr-lead">Hide the wild arena for more study space. Battle controls stay available.</p>
       </Panel> : null}
       <div className="pkr-settings-hero">
-        <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+        <div className="pkr-pixel-title pkr-fine font-black uppercase tracking-widest" style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }}>
           Configuration
         </div>
         <h1 className="mt-1 pkr-lead font-black tracking-tight" style={{ color: 'var(--pkr-ink-bright)' }}>
@@ -618,7 +618,7 @@ function DonateSupportCard() {
       aria-label={`Support ${BRAND.wordmark} on Ko-fi`}
       className="pkr-btn-gold group relative block overflow-hidden no-underline"
       style={{
-        background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 55%, #b45309 100%)',
+        background: 'linear-gradient(180deg, var(--pkr-ink-gold) 0%, #f59e0b 55%, #b45309 100%)',
         border: '2px solid #1c1917',
         borderRadius: 6,
         color: '#1c1917',

@@ -18,7 +18,7 @@ export function OnboardingTipsBar({
       role="region"
       aria-label="Getting started tips"
     >
-      <GameIcon name="pokeball" size={16} style={{ color: 'var(--pkr-accent, #fbbf24)' }} className="shrink-0" />
+      <GameIcon name="pokeball" size={16} style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }} className="shrink-0" />
       <p className="min-w-0 flex-1 pkr-fine font-semibold leading-snug" style={{ color: 'var(--pkr-ink-soft)' }}>
         <span className="font-black text-slate-200">First time with {BRAND.wordmark}?</span> Open{' '}
         <span className="font-black text-amber-200">Menu → Settings</span> for controls, recommended study flow, and troubleshooting.
