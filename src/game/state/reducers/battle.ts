@@ -135,7 +135,8 @@ function applyCombatTurnInner(
   const enc = sanitizeEncounterHp(enc0);
   // A shiny Legendary can never be knocked out or lost: it waits until you catch it.
   const guaranteed = isGuaranteedCatch(enc);
-  protectWild = protectWild || guaranteed;
+  // The Leader's prize can't be knocked out either: you catch it or give it up.
+  protectWild = protectWild || guaranteed || enc.pendingPrize === true;
 
   let aid = state.activePokemonId;
   if (!aid && state.party.length > 0) {
@@ -202,7 +203,7 @@ function applyCombatTurnInner(
     wildEffectiveness: getEffectiveness(MOVES[wildMove]!.type, active.types),
   };
   // Any shiny (and every shiny Legendary) waits for your next Pokémon instead of fleeing.
-  if (exchange.player.currentHp <= 0 && (guaranteed || enc.shiny === true))
+  if (exchange.player.currentHp <= 0 && (guaranteed || enc.shiny === true || enc.pendingPrize === true))
     return withTouch({
       ...state,
       party,

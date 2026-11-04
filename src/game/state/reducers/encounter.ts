@@ -46,7 +46,8 @@ import {
   normalizeEnabledGenerations,
   normalizeStudyHealCarriesSlice,
 } from './persistence';
-import { closeTrainerBattle, startTrainerBattle } from './trainer';
+import { closeTrainerBattle, startRocketBattle, startTrainerBattle } from './trainer';
+import { ROCKET_SHARE } from '../../engine/rocket';
 import { cancelPendingCaught } from './battle';
 
 export function clearBattleLog(state: PokeRemGameState): PokeRemGameState {
@@ -143,6 +144,7 @@ export function onQueueCardComplete(
       if (idle < WILD_FLEE_AFTER_CARDS) return withTouch({ ...paused, wildIdleCards: idle });
       const who = [tb.trainer.className, tb.trainer.displayName].filter(Boolean).join(' ');
       const closed = closeTrainerBattle(paused);
+      if (closed.currentEncounter?.pendingPrize) return { ...closed, wildIdleCards: 0 };
       return {
         ...closed,
         wildIdleCards: 0,
@@ -249,7 +251,10 @@ export function onQueueCardComplete(
           ...next,
           encounterProgress: 0,
         };
-        next = startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
+        next =
+          Math.random() < ROCKET_SHARE
+            ? startRocketBattle(next, enabledGens ?? [1], Math.random)
+            : startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
       } else {
         const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
         const ticket = next.routeTicket && next.routeTicket.remaining > 0 ? next.routeTicket : null;

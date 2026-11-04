@@ -88,8 +88,10 @@ export interface EncounterPokemon {
   maxHp: number;
   types: PokemonType[];
   tier?: string;
-  /** Rare palette swap (~1/1000). */
+  /** Rare palette swap (1 in 250 encounters). */
   shiny?: boolean;
+  /** The Rocket Leader's prize: never flees, can't be knocked out (SPEC Appendix S). */
+  pendingPrize?: boolean;
 }
 
 export interface BattleResult {
@@ -187,6 +189,26 @@ export interface TrainerEnemyMon {
   moves: string[];
   /** Set true after this enemy is KO'd. */
   defeated?: boolean;
+  /** Trainer Pokémon can be shiny (1 in 250); a caught shiny stays shiny. */
+  shiny?: boolean;
+}
+
+/** Team Rocket progress (SPEC A9, Appendix S). */
+export interface RocketState {
+  /** Grunt wins this cycle; 5 brings out the Leader. Reset when the Leader is beaten. */
+  gruntWins: number;
+  /** Grunt types beaten this cycle; the next grunt uses a type not in here. */
+  typesBeaten: PokemonType[];
+  /** The next Rocket battle is the Leader (stays set after a loss, for a rematch). */
+  leaderReady: boolean;
+  leaderWins: number;
+}
+
+/** What kind of Rocket battle this is, when it is one. */
+export interface RocketBattleInfo {
+  kind: 'grunt' | 'leader';
+  /** The grunt's type. */
+  type?: PokemonType;
 }
 
 /** Reward bundle granted on trainer battle victory (mirrored on `rewardSnapshot`). */
@@ -226,6 +248,10 @@ export interface TrainerBattleState {
   lastLog?: string;
   /** Bumped on each turn so UI can animate damage / KOs. */
   feedbackSeq: number;
+  /** Set for Team Rocket battles. */
+  rocket?: RocketBattleInfo;
+  /** Leader battles: the legendary that appears when you win (rolled at the start). */
+  prize?: EncounterPokemon;
 }
 
 /** Aggregate trainer-battle stats — drives identity overlay + achievements. */
@@ -366,6 +392,8 @@ export interface PokeRemGameState {
   // ── 1.6.0 additions — all optional, normalised in `parseGameStateCore` ──
   /** Nonces of the last widget commands applied (see commandChannel.ts), so none applies twice. */
   recentCommandNonces?: string[];
+  /** Team Rocket progress (Radar, Leader). */
+  rocket?: RocketState;
   /** 2 once `battleSceneIndex` uses the current scene list (see normalizeBattleSceneIndex). */
   sceneIndexVersion?: number;
   /** The area the arena is in; it moves on only after `encountersLeft` wild encounters (see AREA_* constants). */

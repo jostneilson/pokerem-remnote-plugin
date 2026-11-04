@@ -44,6 +44,7 @@ export {
 export type { DefeatFinisher } from './reducers/battle';
 export {
   startTrainerBattle,
+  startRocketBattle,
   lockTrainerTeam,
   applyTrainerCombatTurn,
   trainerLossFee,

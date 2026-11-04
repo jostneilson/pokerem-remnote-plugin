@@ -14,10 +14,26 @@ import {
   trainerEnemyAsEncounter,
 } from '../../engine/trainerBattles';
 import { chooseFoeMove } from '../../engine/foeAi';
+import {
+  LEADER_LEVEL_BONUS,
+  generateRocketGrunt,
+  generateRocketLeader,
+  gruntRewards,
+  isLeaderNext,
+  leaderCoins,
+  nextGruntType,
+  rocketAfterWin,
+  rollLeaderPrize
+} from '../../engine/rocket';
 import type {
+  EncounterPokemon,
   PokeRemGameState,
   OwnedPokemon,
+  RocketBattleInfo,
   TrainerBattleState,
+  TrainerEnemyMon,
+  TrainerIdentity,
+  TrainerRewardSnapshot,
   TrainerBattleStats,
   TrainerTier,
 } from '../model';
@@ -57,6 +73,41 @@ export function startTrainerBattle(
     averageLevel: avgLevel,
     rng,
   });
+  return beginTrainerBattle(state, tier, identity, enemies, rng);
+}
+
+/**
+ * Spawn a Team Rocket battle: the Rocket Leader once the Radar is full, else a one-type grunt whose type
+ * hasn't been beaten this cycle (SPEC A9). Same guards as {@link startTrainerBattle}.
+ */
+export function startRocketBattle(
+  state: PokeRemGameState,
+  enabledGens: number[],
+  rng: () => number = Math.random
+): PokeRemGameState {
+  if (state.currentTrainerBattle || state.currentEncounter) return state;
+  if (!state.starterChosen || state.party.length === 0) return state;
+  const gens = enabledGens && enabledGens.length > 0 ? enabledGens : [1];
+  const avgLevel = averageOwnedPartyLevel(state.party);
+  if (isLeaderNext(state)) {
+    const { identity, enemies } = generateRocketLeader(avgLevel, gens, rng);
+    const prize = rollLeaderPrize(avgLevel + LEADER_LEVEL_BONUS, gens, state.collectionDex, rng);
+    return beginTrainerBattle(state, 'elite', identity, enemies, rng, { kind: 'leader' }, prize);
+  }
+  const type = nextGruntType(state.rocket, gens, rng);
+  const { identity, enemies } = generateRocketGrunt(type, avgLevel, gens, state.collectionDex, rng);
+  return beginTrainerBattle(state, 'standard', identity, enemies, rng, { kind: 'grunt', type });
+}
+
+function beginTrainerBattle(
+  state: PokeRemGameState,
+  tier: TrainerTier,
+  identity: TrainerIdentity,
+  enemies: TrainerEnemyMon[],
+  rng: () => number,
+  rocket?: RocketBattleInfo,
+  prize?: EncounterPokemon
+): PokeRemGameState {
   const battle: TrainerBattleState = {
     id: `tb_${Date.now()}_${Math.floor(rng() * 1e6)}`,
     phase: 'team_select',
@@ -69,18 +120,32 @@ export function startTrainerBattle(
     catchOfferActive: false,
     catchOfferClaimed: false,
     feedbackSeq: 0,
+    ...(rocket ? { rocket } : {}),
+    ...(prize ? { prize } : {}),
   };
+  const who = `${identity.className}${identity.displayName ? ' ' + identity.displayName : ''}`;
+  const typed = rocket?.kind === 'grunt' && rocket.type ? ` (${rocket.type})` : '';
   return withTouch({
     ...state,
     currentTrainerBattle: battle,
     trainerBattleCounter: 0,
     selectedTab: 'status',
-    ...bumpBattleOutcome(
-      state,
-      'spawn',
-      `${identity.className}${identity.displayName ? ' ' + identity.displayName : ''} challenges you!`
-    ),
+    ...bumpBattleOutcome(state, 'spawn', `${who}${typed} challenges you!`),
   });
+}
+
+/** Coins, items and trainer XP for beating Team Rocket (SPEC Appendix R). */
+function rocketRewards(rocket: RocketBattleInfo, averageLevel: number, rng: () => number): TrainerRewardSnapshot {
+  if (rocket.kind === 'leader') {
+    return { coins: leaderCoins(rng), trainerXp: 150, items: {}, headline: 'The Rocket Leader is beaten! The Leader’s prize awaits.' };
+  }
+  const loot = gruntRewards(averageLevel, rng);
+  return {
+    coins: loot.coins + loot.cache,
+    trainerXp: 60,
+    items: loot.items,
+    headline: loot.cache > 0 ? `You found a Rocket cache worth ${formatCoins(loot.cache)}!` : 'The grunt retreats! Catch their ace?',
+  };
 }
 
 /**
@@ -362,7 +427,7 @@ export function resolveTrainerBattle(
   }
 
   const avgLevel = averageOwnedPartyLevel(state.party);
-  const reward = generateTrainerRewards(battle.tier, avgLevel, rng);
+  const reward = battle.rocket ? rocketRewards(battle.rocket, avgLevel, rng) : generateTrainerRewards(battle.tier, avgLevel, rng);
   const bag: Record<ItemId, number> = { ...state.bag };
   for (const [iid, qty] of Object.entries(reward.items)) {
     if (!qty || qty <= 0) continue;
@@ -384,10 +449,12 @@ export function resolveTrainerBattle(
     longestWinStreak: Math.max(stats.longestWinStreak, newStreak),
   };
 
+  const isLeader = battle.rocket?.kind === 'leader';
   const post: TrainerBattleState = {
     ...battle,
     phase: 'post_win',
-    catchOfferActive: true,
+    // The Leader's team can't be caught: the prize appears when you close the battle.
+    catchOfferActive: !isLeader,
     catchOfferClaimed: false,
     rewardSnapshot: reward,
     lastLog: battle.trainer.defeatLine,
@@ -408,7 +475,7 @@ export function resolveTrainerBattle(
   noticeQueue.push({
     kind: 'trainer_battle_result',
     id: `tb_result_${battle.id}`,
-    title: isElite ? `Elite Trainer defeated!` : `Trainer defeated!`,
+    title: isLeader ? 'Rocket Leader defeated!' : battle.rocket ? 'Rocket Grunt defeated!' : isElite ? `Elite Trainer defeated!` : `Trainer defeated!`,
     subtitle: subline.slice(0, 220),
   });
 
@@ -422,6 +489,7 @@ export function resolveTrainerBattle(
         currentTrainerBattle: post,
         trainerBattleStats: updatedStats,
         mainNoticeQueue: noticeQueue.slice(-12),
+        ...(battle.rocket ? { rocket: rocketAfterWin(state.rocket, battle.rocket.kind, battle.rocket.type) } : {}),
         ...bumpBattleOutcome(
           state,
           'defeat',
@@ -448,6 +516,8 @@ export function claimTrainerCatch(
   if (!battle || battle.phase !== 'post_win') return state;
   if (!battle.catchOfferActive || battle.catchOfferClaimed) return state;
   if (enemyIndex < 0 || enemyIndex >= battle.enemies.length) return state;
+  // A grunt only offers its ace.
+  if (battle.rocket?.kind === 'grunt' && enemyIndex !== battle.enemies.length - 1) return state;
   const ballCount = state.bag[ball] ?? 0;
   if (ballCount <= 0) return state;
   const enemy = battle.enemies[enemyIndex]!;
@@ -504,7 +574,19 @@ export function dismissTrainerCatchOffer(state: PokeRemGameState): PokeRemGameSt
 
 /** Close the trainer battle popup and return to studying. */
 export function closeTrainerBattle(state: PokeRemGameState): PokeRemGameState {
-  if (!state.currentTrainerBattle) return state;
+  const battle = state.currentTrainerBattle;
+  if (!battle) return state;
+  if (battle.phase === 'post_win' && battle.prize) {
+    // Beating the Rocket Leader: the prize legendary appears, and waits until you catch it or give up.
+    return withTouch({
+      ...state,
+      currentTrainerBattle: null,
+      currentEncounter: { ...battle.prize, pendingPrize: true },
+      wildIdleCards: 0,
+      selectedTab: 'status',
+      ...bumpBattleOutcome(state, 'spawn', `THE LEADER’S PRIZE: ${battle.prize.name} appeared!`),
+    });
+  }
   return withTouch({
     ...state,
     currentTrainerBattle: null,

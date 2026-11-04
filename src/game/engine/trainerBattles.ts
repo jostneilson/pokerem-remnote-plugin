@@ -5,6 +5,7 @@ import {
   catchStatusMultiplier,
   catchTypeBonus,
   computeCatchChance,
+  isGuaranteedCatch,
   legendaryCatchChance
 } from './encounters';
 import { encounterBaseLevel, isEventSpecies, pickEverydaySpecies } from './speciesPool';
@@ -212,12 +213,15 @@ function pickFromArray<T>(arr: T[] | undefined, rng: () => number): T | undefine
   return arr[Math.floor(rng() * arr.length)];
 }
 
-interface BuildEnemyOpts {
+export interface BuildEnemyOpts {
   level: number;
   rng: () => number;
 }
 
-function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): TrainerEnemyMon | null {
+/** Trainer Pokémon can be shiny at the everyday per-encounter rate (SPEC A3). */
+export const TRAINER_SHINY_ODDS = 1 / 250;
+
+export function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): TrainerEnemyMon | null {
   const species = SPECIES_BY_DEX.get(dexNum);
   if (!species) return null;
   const lv = Math.max(1, Math.min(MAX_ENEMY_LEVEL, Math.floor(level)));
@@ -241,6 +245,7 @@ function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): Train
     types: species.types,
     moves: finalMoves,
     defeated: false,
+    ...(rng() < TRAINER_SHINY_ODDS ? { shiny: true } : {}),
   };
 }
 
@@ -348,6 +353,7 @@ export function trainerCatchChance(
   ball: 'poke-ball' | 'great-ball' | 'ultra-ball',
   tier: TrainerTier,
 ): number {
+  if (isGuaranteedCatch(enemy)) return 1;
   if (isEventSpecies(enemy.dexNum)) return legendaryCatchChance(enemy.currentHp, enemy.maxHp, ball, enemy.condition);
   const tierBonus = TRAINER_CATCH_BONUS[tier];
   const baseCatchRate = SPECIES_BY_DEX.get(enemy.dexNum)?.baseCatchRate;
@@ -370,6 +376,7 @@ export function trainerEnemyAsEncounter(enemy: TrainerEnemyMon): EncounterPokemo
     maxHp: enemy.maxHp,
     types: enemy.types,
     ivs: enemy.ivs,
+    ...(enemy.shiny ? { shiny: true } : {}),
   };
 }
 

@@ -2,6 +2,8 @@ import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../../data/evolutions';
 import { isStarterLine } from '../../engine/evolution';
+import { normalizeRocketState } from '../../engine/rocket';
+import { ALL_TYPES } from '../../data/typeChart';
 import { ITEM_BY_ID, STARTING_BAG, type ItemId } from '../../data/items';
 import { SPECIES_BY_DEX } from '../../data/species';
 import { ACHIEVEMENT_DEFS, deriveAchievements } from '../../engine/achievements';
@@ -45,6 +47,7 @@ import type {
   ShinyLogEntry,
   MainNoticeItem,
   OwnedPokemon,
+  RocketBattleInfo,
   SectionTab,
   TrainerBattleState,
   TrainerBattleStats,
@@ -55,6 +58,8 @@ import type {
   XpDoublerEntry,
   XpDoublerTier,
 } from '../model';
+
+const SPECIES_TYPES = new Set<string>(ALL_TYPES);
 
 export function sanitizeEncounterHp(enc: EncounterPokemon): EncounterPokemon {
   const maxHp = Math.max(1, Math.floor(enc.maxHp));
@@ -474,6 +479,7 @@ function normalizeEncounter(raw: unknown): EncounterPokemon | null {
     shiny,
     ivs: ivsFor({ dexNum, ivs: e.ivs as any }),
     condition: e.condition as any,
+    ...(e.pendingPrize === true ? { pendingPrize: true } : {}),
   });
 }
 
@@ -648,7 +654,16 @@ function normalizeTrainerEnemyMon(raw: unknown): TrainerEnemyMon | null {
     defeated,
     ivs: ivsFor({ dexNum, ivs: e.ivs as any }),
     condition: e.condition as any,
+    ...(e.shiny === true ? { shiny: true } : {}),
   };
+}
+
+function normalizeRocketBattleInfo(raw: unknown): RocketBattleInfo | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  if (r.kind !== 'grunt' && r.kind !== 'leader') return undefined;
+  const type = typeof r.type === 'string' && SPECIES_TYPES.has(r.type) ? (r.type as RocketBattleInfo['type']) : undefined;
+  return { kind: r.kind, ...(type ? { type } : {}) };
 }
 
 function normalizeTrainerIdentity(raw: unknown): TrainerIdentity | null {
@@ -715,6 +730,8 @@ function normalizeTrainerBattleState(raw: unknown): TrainerBattleState | null {
       ? t.phase
       : 'team_select';
   const tier: TrainerTier = t.tier === 'elite' ? 'elite' : 'standard';
+  const rocket = normalizeRocketBattleInfo(t.rocket);
+  const prize = rocket?.kind === 'leader' ? normalizeEncounter(t.prize) : null;
   const activeEnemyIndex =
     typeof t.activeEnemyIndex === 'number' && Number.isFinite(t.activeEnemyIndex)
       ? Math.max(0, Math.min(2, Math.floor(t.activeEnemyIndex)))
@@ -746,6 +763,8 @@ function normalizeTrainerBattleState(raw: unknown): TrainerBattleState | null {
       typeof t.feedbackSeq === 'number' && Number.isFinite(t.feedbackSeq)
         ? Math.max(0, Math.floor(t.feedbackSeq))
         : 0,
+    ...(rocket ? { rocket } : {}),
+    ...(prize ? { prize: { ...prize, pendingPrize: true } } : {}),
   };
 }
 
@@ -884,6 +903,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     team: normalizeTeam((o as { team?: unknown }).team),
     teamPrompted: (o as { teamPrompted?: unknown }).teamPrompted === true || undefined,
     recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
+    rocket: normalizeRocketState((o as { rocket?: unknown }).rocket),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {

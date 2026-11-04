@@ -176,7 +176,7 @@ export function runBalance(policy: PolicyId, pacing: PacingId, seed: number, cfg
           if (enc.shiny) out.shinies++;
           if (GALARIAN_BIRDS.has(enc.dexNum)) out.birds++;
           else if (isEventSpecies(enc.dexNum)) out.legendaries++;
-          if ((enc as { leaderPrize?: boolean }).leaderPrize) out.rocketLeaders++;
+          if (enc.pendingPrize) out.rocketLeaders++;
         }
         if (enc && policy !== 'idle') playWild(policy);
         if (s.currentTrainerBattle && policy !== 'idle') playTrainer();

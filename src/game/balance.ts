@@ -31,6 +31,19 @@ export const BALANCE = {
     typeShareStorageBase: 5,
     typeShareStoragePerLevel: 0.5
   },
+  /** Team Rocket rewards (SPEC Appendix R; tunable per Appendix T). */
+  rocket: {
+    gruntCoinBase: 1200,
+    gruntCoinPerAvg: 20,
+    /** 30%: 1–3 Great/Ultra Balls or a potion. */
+    gruntItemChance: 0.3,
+    /** 10%: a ₽3–6k cache. */
+    gruntCacheChance: 0.1,
+    gruntCacheMin: 3000,
+    gruntCacheMax: 6000,
+    leaderCoinMin: 8000,
+    leaderCoinMax: 15000
+  },
   /** Hidden study cash rolls per card: cumulative chance, then the ₽ range. */
   studyCash: [
     { upTo: 0.0005, min: 10_000, max: 25_000, tier: 'Jackpot' },
