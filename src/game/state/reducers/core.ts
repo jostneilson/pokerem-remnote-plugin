@@ -1,3 +1,4 @@
+import { BALANCE, catchCoins } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
 import { isPerfectIVs, rollIVs, battleStats } from '../../engine/pokemonStats';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -261,7 +262,7 @@ export function battleResult(
 export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeRemGameState {
   const mon = ownedFromEncounter(enc);
   const caughtInfo = {
-    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, CURRENCY_REWARDS.catch),
+    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, catchCoins(enc.level)),
     shinyLog: enc.shiny
       ? [
           ...(base.shinyLog ?? []),
@@ -284,8 +285,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
   const rewards = {
     ...caughtInfo,
     totalCaught: (base.totalCaught ?? 0) + 1,
-    currency: (base.currency ?? 0) + CURRENCY_REWARDS.catch,
-    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + CURRENCY_REWARDS.catch,
+    currency: (base.currency ?? 0) + catchCoins(enc.level),
+    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + catchCoins(enc.level),
     dailyStats: { ...ds, catches: ds.catches + 1 },
   };
 
@@ -397,8 +398,9 @@ export function applyTypeShareXpBoost(
     return { party, storagePokemon, boostedCount: 0 };
   }
   const typeSet = new Set(targetTypes);
-  const partyBoost = Math.max(15, 15 + Math.floor(targetLevel * 2));
-  const storageBoost = Math.max(5, 5 + Math.floor(targetLevel * 0.5));
+  const b = BALANCE.xp;
+  const partyBoost = Math.max(b.typeSharePartyBase, b.typeSharePartyBase + Math.floor(targetLevel * b.typeSharePartyPerLevel));
+  const storageBoost = Math.max(b.typeShareStorageBase, b.typeShareStorageBase + Math.floor(targetLevel * b.typeShareStoragePerLevel));
   let boostedCount = 0;
 
   const nextParty = party.map((mon) => {
@@ -449,7 +451,7 @@ export function knockoutXp(
     const gap = Math.max(0, foe.level - activeP.level);
     xp = Math.round(xp * (1 + Math.min(0.55, gap * 0.045)));
   }
-  return Math.max(8, xp);
+  return Math.max(8, Math.round(xp * BALANCE.xp.knockoutMult));
 }
 
 /**

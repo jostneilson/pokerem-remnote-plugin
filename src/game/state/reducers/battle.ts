@@ -1,3 +1,4 @@
+import { BALANCE, defeatCoins as defeatCoinsFor } from '../../balance';
 import { resolveExchange, WILD_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { isGuaranteedCatch, wildCatchChancePreview } from '../../engine/encounters';
 import { getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
@@ -180,8 +181,11 @@ function applyCombatTurnInner(
   );
   const xp = applyXpDoublerMultiplier(
     state,
-    xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
-      xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })
+    Math.round(
+      (xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
+        xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })) *
+        BALANCE.xp.fightMult
+    )
   );
   const grown = growPokemonWithXp(active, xp).pokemon;
   const updated = {
@@ -327,7 +331,7 @@ export function defeatEncounter(
   if (leveledUp) trainerXpGain += TRAINER_XP_SOURCES.levelUp;
   if (evolvedMon) trainerXpGain += TRAINER_XP_SOURCES.evolution;
 
-  const defeatCoins = CURRENCY_REWARDS.defeat + Math.floor(state.currentEncounter.level * 10);
+  const defeatCoins = defeatCoinsFor(state.currentEncounter.level);
   const typeBoost = applyTypeShareXpBoost(
     party,
     state.storagePokemon,

@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T0.4 (commit '1.6.0 T0.4')
-- In progress: T0.5
-- Next exact step: create src/game/balance.ts (every reward/XP/coin constant, today's values) and src/game/engine/rarity.ts (shiny/event/bird odds, today's values); repoint CURRENCY_REWARDS, encounters.ts constants, rollStudyCashBonus, knockoutXp, trainer rewards, quests to read from them; no behaviour change (tests unchanged)
+- Last finished: T0.5 (commit '1.6.0 T0.5')
+- In progress: T0.6
+- Next exact step: build src/game/sim/balance.ts (6 policies, metrics per C1) on top of simulate.ts; scripts/balance-tune.mjs via vite-node writes docs/update-1.6.0/BALANCE_REPORT.md
 - Latest checks: 2026-11-04 baseline tsc clean, vitest 40 files / 251 tests green.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T0.5 | commit '1.6.0 T0.5' | balance.ts + rarity.ts hold today's values; reducers read them; 43 files/266 tests unchanged and green |
 | T0.4 | commit '1.6.0 T0.4' | coins.test.ts (999/1.0k/1.5k/15k/152k/1.2M, negatives, exact); grep finds no raw ₽ renders left |
 | T0.3 | commit '1.6.0 T0.3' | sceneMigration.test.ts: 50x parse stable for all 19 scenes, legacy remap once, 300 cards no arena change without spawn, areas 5–8, ticket biome |
 | T0.2 | 4d3bb26 | singleWriter.test.ts (7) green; hostsim: starter pick via host in 52ms, doubler kept across 12 overlapping reviews; 41 files/258 tests |
@@ -32,8 +33,8 @@ Update this file before starting and after finishing every task. Commit it with 
 | [x] T0.2 (4d3bb26) | Single-writer command channel: sidebar, popup and strip actions route to the index host. | `singleWriter.test.ts` passes; manual hostsim check that no action is lost. |
 | [x] T0.3 (commit '1.6.0 T0.3') | Scene migration fix (`sceneIndexVersion`), plus `area` state and the area chip. | `sceneMigration.test.ts`; parse 50× is stable. |
 | [x] T0.4 (commit '1.6.0 T0.4') | `formatCoins` adopted at every call site. | Unit tests at 999, 1,000, 1,550, 15,200 and 1.2M; grep finds no raw currency renders. |
-| [~] T0.5 | `balance.ts` and `rarity.ts` holding today's values; no behaviour change. | Existing tests unchanged and green. |
-| [ ] T0.6 | Balance harness with 6 policies, plus a `balance:tune` script producing BALANCE_REPORT. | Report generated. |
+| [x] T0.5 (commit '1.6.0 T0.5') | `balance.ts` and `rarity.ts` holding today's values; no behaviour change. | Existing tests unchanged and green. |
+| [~] T0.6 | Balance harness with 6 policies, plus a `balance:tune` script producing BALANCE_REPORT. | Report generated. |
 | [ ] T0.7 | Legendary tier data fix; 1.5.0 save fixture plus tests. | Fixture round-trips. |
 
 **Phase 1 — Rarity and encounters**

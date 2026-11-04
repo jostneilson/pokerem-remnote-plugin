@@ -1,3 +1,4 @@
+import { BALANCE, rollStudyXp } from '../../balance';
 import type { ItemId } from '../../data/items';
 import { recommendedBall, spawnEncounter, wildCatchChancePreview } from '../../engine/encounters';
 import { isEventSpecies } from '../../engine/speciesPool';
@@ -310,20 +311,12 @@ export function onQueueCardComplete(
   return withTouch(next);
 }
 
-/** Lead study XP roll: 40% →3, 40% →4, 20% →5 */
 function rollLeadStudyXp(rng: () => number): number {
-  const r = rng();
-  if (r < 0.4) return 3;
-  if (r < 0.8) return 4;
-  return 5;
+  return rollStudyXp(BALANCE.xp.studyLeadRoll, rng);
 }
 
-/** Bench study XP roll: 40% →1, 40% →2, 20% →3 */
 function rollBenchStudyXp(rng: () => number): number {
-  const r = rng();
-  if (r < 0.4) return 1;
-  if (r < 0.8) return 2;
-  return 3;
+  return rollStudyXp(BALANCE.xp.studyBenchRoll, rng);
 }
 
 function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): PokeRemGameState {
@@ -561,8 +554,6 @@ export function rollStudyCashBonus(rng: () => number): { amount: number; tier?: 
   const r = rng();
   const range = (a: number, b: number) =>
     a + Math.floor(Math.max(0, Math.min(0.999999, rng())) * (b - a + 1));
-  if (r < 0.0005) return { amount: range(10000, 25000), tier: 'Jackpot' };
-  if (r < 0.0055) return { amount: range(2000, 5000), tier: 'Rare find' };
-  if (r < 0.0455) return { amount: range(350, 850), tier: 'Lucky find' };
-  return { amount: 0 };
+  const row = BALANCE.studyCash.find((t) => r < t.upTo);
+  return row ? { amount: range(row.min, row.max), tier: row.tier } : { amount: 0 };
 }
