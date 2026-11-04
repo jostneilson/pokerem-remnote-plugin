@@ -47,6 +47,7 @@ export function PartyPokemonCard({
 
   return (
     <div
+      data-pokemon-id={p.id}
       className={`pkr-party-card pkr-party-card--${classification} ${p.shiny ? 'pkr-party-card--shiny' : ''} ${!isParty ? 'pkr-party-card--storage' : ''} ${isParty && isActive ? 'pkr-party-card--lead' : ''}`}
     >
       {onToggleFavorite ? (

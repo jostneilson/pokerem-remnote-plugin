@@ -66,7 +66,7 @@ export function TransferConfirm({
             {preview.xp > 0 ? (
               <>
                 {' '}
-                and <strong style={{ color: 'var(--pkr-ink-success)' }}>{preview.xp} XP</strong> for matching types
+                and <strong style={{ color: 'var(--pkr-ink-success)' }}>{preview.xp.toLocaleString('en-US')} XP</strong> for matching types
               </>
             ) : null}
             .

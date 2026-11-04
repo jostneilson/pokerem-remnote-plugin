@@ -15,6 +15,8 @@ import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
 import { TransferConfirm } from '../components/TransferConfirm';
 import { UpgradeSheet } from '../components/UpgradeSheet';
+import { CollectionGridScreen } from './CollectionGridScreen';
+import type { GridFlag } from '../../game/engine/collectionGrid';
 import { transferCoins, transferPreview } from '../../game/engine/transfer';
 import { catchUpGap } from '../../game/engine/xpShare';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
@@ -182,7 +184,13 @@ export function PartyScreen({
   starterId,
   gameState,
   onTransfer,
+  storageCap,
+  viewAllRequest,
 }: {
+  /** Storage capacity, when capacity caps are on. */
+  storageCap?: number;
+  /** Open the View all grid with these filters (changes to `key` reopen it). */
+  viewAllRequest?: { key: number; flags: GridFlag[] };
   rootURL: string | undefined;
   /** Your original starter (buddy): ♥ badge on its card. */
   starterId?: string;
@@ -230,6 +238,7 @@ export function PartyScreen({
   const [releaseTarget, setReleaseTarget] = useState<{ id: string; name: string } | null>(null);
   const [transferIds, setTransferIds] = useState<string[] | null>(null);
   const [upgradeId, setUpgradeId] = useState<string | null>(null);
+  const [viewAll, setViewAll] = useState<{ flags: GridFlag[] } | null>(null);
   const [movePickerPokemonId, setMovePickerPokemonId] = useState<string | null>(null);
   const [moveReplacePrompt, setMoveReplacePrompt] = useState<{ pokemonId: string; moveId: string } | null>(null);
   const [search, setSearch] = useState('');
@@ -251,6 +260,21 @@ export function PartyScreen({
   });
   const visibleParty = filterAndSort(party);
   const visibleStorage = filterAndSort(storage);
+
+  useEffect(() => {
+    if (viewAllRequest) setViewAll({ flags: viewAllRequest.flags });
+  }, [viewAllRequest?.key]);
+
+  const openFromGrid = (id: string, inParty: boolean) => {
+    setViewAll(null);
+    setSearch('');
+    setFavoritesOnly(false);
+    if (!inParty) setShowStorage(true);
+    setExpanded(id);
+    window.setTimeout(() => {
+      document.querySelector(`[data-pokemon-id="${id}"]`)?.scrollIntoView({ block: 'start' });
+    }, 0);
+  };
 
   const replaceKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key !== 'Tab' || !replacePanelRef.current) return;
@@ -767,19 +791,7 @@ export function PartyScreen({
         )
       : null;
 
-  return (
-    <div className="space-y-3">
-      {replaceMovePortal}
-
-      <section className="pkr-collection-tools" aria-label="Collection filters">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" aria-label="Search Pokémon by name or Pokédex number" />
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} aria-label="Sort Pokemon">
-          <option value="level">Level</option><option value="power">Battle power</option><option value="iv">IV rating</option><option value="species">Species</option>
-        </select>
-        <label className="pkr-collection-tools__favorites"><input type="checkbox" checked={favoritesOnly} onChange={(e) => setFavoritesOnly(e.target.checked)} /> Favorites only</label>
-      </section>
-
-      {transferIds && gameState && onTransfer ? (
+  const transferConfirm = transferIds && gameState && onTransfer ? (
         <TransferConfirm
           preview={transferPreview(gameState, transferIds)}
           onCancel={() => setTransferIds(null)}
@@ -789,7 +801,49 @@ export function PartyScreen({
             setExpanded(null);
           }}
         />
-      ) : null}
+      ) : null;
+
+  if (viewAll) {
+    return (
+      <div className="space-y-3">
+        {transferConfirm}
+        <CollectionGridScreen
+          rootURL={rootURL}
+          party={party}
+          storage={storage}
+          activeId={activeId}
+          starterId={starterId}
+          storageCap={storageCap}
+          initialFlags={viewAll.flags}
+          onBack={() => setViewAll(null)}
+          onOpen={openFromGrid}
+          onTransfer={gameState && onTransfer ? (ids) => setTransferIds(ids) : undefined}
+          onToggleFavorite={onToggleFavorite}
+          onMoveToStorage={onMoveToStorage}
+          onMoveToParty={onMoveToParty}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {replaceMovePortal}
+      <div className="pkr-party-viewall">
+        <button type="button" onClick={() => setViewAll({ flags: [] })}>
+          View all ({party.length + storage.length})
+        </button>
+      </div>
+
+      <section className="pkr-collection-tools" aria-label="Collection filters">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" aria-label="Search Pokémon by name or Pokédex number" />
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} aria-label="Sort Pokemon">
+          <option value="level">Level</option><option value="power">Battle power</option><option value="iv">IV rating</option><option value="species">Species</option>
+        </select>
+        <label className="pkr-collection-tools__favorites"><input type="checkbox" checked={favoritesOnly} onChange={(e) => setFavoritesOnly(e.target.checked)} /> Favorites only</label>
+      </section>
+
+      {transferConfirm}
       {upgradeMon ? (
         <UpgradeSheet
           rootURL={rootURL}
