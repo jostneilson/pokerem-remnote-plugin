@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T5.5 (854d662)
-- In progress: T5.6
-- Next exact step: T5.6: price retune to days-of-income (items.ts prices / shop.ts; keep relative order; Power Up main sink) — then T5.7 balance:tune
+- Last finished: T5.6 (79ed7fe)
+- In progress: T5.7
+- Next exact step: T5.7: run balance:tune (quick run in progress), adjust tunables in balance.ts within Appendix T ranges, write BALANCE_REPORT, add balance.test.ts asserting bands with tolerance
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T5.6 | 79ed7fe | 321 tests (powerUp test uses powerUpCost); build OK |
 | T5.5 | 854d662 | rewards.test.ts (achievement ₽500 transfer1; levels to 10 pay Σ250×lv once + 1 voucher, idempotent); 321 tests; build OK |
 | T5.4 | acb24ce | research.test.ts (baseline, step advance, claim ₽15k → next line, round-trip, team bird spawns); 319 tests; preview 320 panel |
 | T5.3 | c97948a | rewards.test.ts (first defeat ×3/₽500 then normal; first catch ₽500; day-7 streak ₽5k + Rare Doubler + notice); 316 tests; preview 280: Today ticks + streak, no h-scroll |
@@ -129,8 +130,8 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | [x] T5.3 (c97948a) | Daily firsts and streak. |
 | [x] T5.4 (acb24ce) | Research lines. |
 | [x] T5.5 (854d662) | Achievement and trainer-level payouts; new achievements. |
-| [~] T5.6 | Price retune. |
-| [ ] T5.7 | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
+| [x] T5.6 (79ed7fe) | Price retune. |
+| [~] T5.7 | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
 
 **Phase 6 — Teams and themes**
 
