@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T5.2 (e1cc0d9)
-- In progress: T5.3
-- Next exact step: T5.3: daily firsts (first catch/defeat of the day ×3 XP + ₽500) + 7-day streak (₽5k + Rare Doubler) + two daily tick boxes on Play; state.daily
+- Last finished: T5.3 (c97948a)
+- In progress: T5.4
+- Next exact step: T5.4: Special Research lines (engine/research.ts, state.research, one active line, Trainer screen panel per SPEC U15); Rocket Investigation + Team bird lines
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T5.3 | c97948a | rewards.test.ts (first defeat ×3/₽500 then normal; first catch ₽500; day-7 streak ₽5k + Rare Doubler + notice); 316 tests; preview 280: Today ticks + streak, no h-scroll |
 | T5.2 | e1cc0d9 | rewards.test.ts (rate 1/40, range, paid on defeat+catch, round-trip); preview 320: BOUNTY ₽2.4k chip on plate; lucky chip code-reviewed (fires on new lastStudyReward.seq, needs live card) |
 | T5.1 | f4c9b5f | 311 tests; defeat/catch formulas asserted in userRequestsV5; build OK |
 | T4.7 | 6ea89b6 | capacity.test.ts 7 tests (blocked catch keeps ball, shiny/Mewtwo pass, bag-full → ₽ at 50%); preview: 'Storage full · Transfer' opens Party; 311 tests green, build OK; sims gate catches on storage |
@@ -123,8 +124,8 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 |---|---|
 | [x] T5.1 (f4c9b5f) | All rewards routed through `balance.ts` with the C2 formulas. |
 | [x] T5.2 (e1cc0d9) | Lucky flourish and bounties. |
-| [~] T5.3 | Daily firsts and streak. |
-| [ ] T5.4 | Research lines. |
+| [x] T5.3 (c97948a) | Daily firsts and streak. |
+| [~] T5.4 | Research lines. |
 | [ ] T5.5 | Achievement and trainer-level payouts; new achievements. |
 | [ ] T5.6 | Price retune. |
 | [ ] T5.7 | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
