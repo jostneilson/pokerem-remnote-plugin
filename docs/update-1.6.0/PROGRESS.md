@@ -140,7 +140,7 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 |---|---|
 | [!] T7.1 | Full Verification pass (below), with results logged. |
 | [x] T7.2 (129a6dd screenshots; docs follow-up) | CHANGELOG, README and manifest, new screenshots. |
-| [ ] T7.3 | Version 1.6.0 in all 4 places; `npm run release`. |
+| [x] T7.3 (local release gate passed; commit follows) | Version 1.6.0 in all 4 places; `npm run release`. |
 | [ ] T7.4 | Final hand-off update: "Ready for owner review; nothing pushed". |
 
 **Phase 6 — Teams and themes (moved to 1.6.1, after the 1.6.0 release)**
@@ -165,3 +165,5 @@ Full 1.6.1 checklist: `RELEASE_1.6.1.md`. WIP for T6.1 is saved as `parked/T6.1-
 - Green gates are not all-band acceptance. T5.7 remains [!] until the current full report and out-of-Appendix-T choices are resolved. Full automatic grid-search tuning is still absent and explicitly disclosed by the runner.
 - T7.1 responsive/hostsim and T6.7 visual checks cannot be completed through the current browser: managed policy denied localhost access. Existing three listing images were visually read; they do not prove today's responsive or interactive behavior.
 - Next: proceed to unblocked Phase 7 preparation, keeping release holds; do not claim native/visual acceptance. No push, tag, publish, reset, stash, or root AGENTS edit.
+
+- T7.3: all four version sources align on 1.6.0; `npm run release` exit 0 (337 tests, types, version check, listing check, validation, production build, ZIP). ZIP manifest/README/three new screenshots read back against source. This is a candidate under the T5.7/T7.1 holds, not publication acceptance.
