@@ -410,6 +410,8 @@ export interface PokeRemGameState {
   daily?: { day: string; firstCatch: boolean; firstDefeat: boolean };
   /** Type themes bought (SPEC A12). */
   themesOwned?: string[];
+  /** Equipped type theme (SPEC A12); always one of `themesOwned`. Undefined = default arcade. */
+  themeActive?: string;
   /** Theme discount vouchers from milestone trainer levels (10/20/30/40/50). */
   themeVouchers?: number;
   /** Storage slots bought in the shop (0..200, steps of 20). */

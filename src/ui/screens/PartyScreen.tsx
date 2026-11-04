@@ -131,7 +131,7 @@ function TeachableMovesBrowser({
           <div
             key={mid}
             className="flex flex-col gap-0.5 rounded border border-white/[0.06] px-1.5 py-1"
-            style={{ background: 'rgba(30,41,59,0.45)' }}
+            style={{ background: 'rgba(var(--pkr-rgb-panel),0.45)' }}
           >
             <div className="flex items-start justify-between gap-1">
               <div className="min-w-0 flex-1">
@@ -719,7 +719,7 @@ export function PartyScreen({
                   className="mt-2 flex min-h-0 flex-1 flex-col rounded border p-1"
                   style={{
                     borderColor: 'rgba(255,255,255,0.12)',
-                    background: '#050a05',
+                    background: 'var(--pkr-themed-shade, #050a05)',
                     boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.45)',
                   }}
                 >
@@ -879,7 +879,7 @@ export function PartyScreen({
             className="pkr-battle-hud w-full max-w-sm rounded-lg border-2 p-4 shadow-xl outline-none"
             style={{
               borderColor: 'rgba(248,113,113,0.45)',
-              background: 'linear-gradient(180deg, rgba(69,10,10,0.95) 0%, rgba(15,23,42,0.98) 100%)',
+              background: 'linear-gradient(180deg, rgba(69,10,10,0.95) 0%, rgba(var(--pkr-rgb-deep),0.98) 100%)',
               boxShadow: '0 0 24px rgba(220,38,38,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -950,7 +950,7 @@ export function PartyScreen({
                   >
                     <PokemonSprite src={frontSpriteUrl(rootURL, m.dexNum, m.shiny === true)} alt={dn} size={48} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
+                      <div className="truncate pkr-fine font-bold" style={{ color: 'var(--pkr-ink-bright)' }}>
                         {dn}
                       </div>
                       <div className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
@@ -958,7 +958,7 @@ export function PartyScreen({
                       </div>
                     </div>
                     {m.id === activeId ? (
-                      <span className="shrink-0 rounded px-1 py-px pkr-fine font-black uppercase" style={{ background: 'var(--pkr-accent)', color: '#0f172a' }}>
+                      <span className="shrink-0 rounded px-1 py-px pkr-fine font-black uppercase" style={{ background: 'var(--pkr-accent)', color: 'var(--pkr-panel-deep)' }}>
                         Lead
                       </span>
                     ) : null}

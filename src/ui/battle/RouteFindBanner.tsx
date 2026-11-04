@@ -54,7 +54,7 @@ export function RouteFindBanner({
         className="flex max-w-full min-w-0 items-start gap-2 rounded-lg border-2 px-2.5 py-2 shadow-[2px_2px_0_rgba(0,0,0,0.45)]"
         style={{
           borderColor: accent,
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(15,23,42,0.92) 100%)',
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(var(--pkr-rgb-deep),0.92) 100%)',
           boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 2px 2px 0 rgba(0,0,0,0.45)`,
         }}
       >
@@ -73,7 +73,7 @@ export function RouteFindBanner({
           >
             {kind}
           </div>
-          <p className="pkr-fine font-bold leading-snug" style={{ color: '#f1f5f9' }}>
+          <p className="pkr-fine font-bold leading-snug" style={{ color: 'var(--pkr-ink-bright)' }}>
             {notice.headline}
           </p>
           <p className="mt-0.5 pkr-fine font-semibold leading-snug" style={{ color: accentMuted }}>
@@ -87,7 +87,7 @@ export function RouteFindBanner({
           style={{
             borderColor: accent,
             color: 'var(--pkr-ink-bright)',
-            background: 'rgba(15,23,42,0.55)',
+            background: 'rgba(var(--pkr-rgb-deep),0.55)',
           }}
           aria-label="Dismiss route find notification"
         >

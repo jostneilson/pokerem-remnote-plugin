@@ -1,4 +1,5 @@
 import { storageCap } from '../game/engine/capacity';
+import { useAppliedTheme } from '../ui/theme/ThemeProvider';
 import { EvolutionScene, useEvolutionWatcher } from '../ui/battle/EvolutionScene';
 import '../style.css';
 import { SidebarNavigation } from '../ui/components/SidebarNavigation';
@@ -510,6 +511,7 @@ function PokeRemSidebar() {
     </>
   );
 
+  useAppliedTheme(state.themeActive);
   const [evolutions, nextEvolution] = useEvolutionWatcher(useMemo(() => [...state.party, ...state.storagePokemon], [state.party, state.storagePokemon]), loaded);
 
   return (

@@ -178,7 +178,7 @@ export function ProgressScreen({
       {battleId.id !== 'unranked' || prestigeBadges.length > 0 ? (
         <div
           className="flex flex-col gap-2 rounded-lg p-2.5"
-          style={{ background: 'rgba(15,23,42,0.45)', border: '1px solid rgba(148,163,184,0.25)' }}
+          style={{ background: 'rgba(var(--pkr-rgb-deep),0.45)', border: '1px solid rgba(148,163,184,0.25)' }}
         >
           {battleId.id !== 'unranked' ? (
             <div className="flex items-center justify-between gap-2">
@@ -202,7 +202,7 @@ export function ProgressScreen({
                   style={{
                     borderColor: 'rgba(167,139,250,0.45)',
                     background: 'linear-gradient(180deg, rgba(167,139,250,0.2) 0%, rgba(76,29,149,0.3) 100%)',
-                    color: '#ede9fe',
+                    color: 'var(--pkr-themed-ink-text, #ede9fe)',
                   }}
                 >
                   {ACHIEVEMENT_DEFS.find((d) => d.prestigeBadgeId === b)?.name ?? b.replace(/_/g, ' ')}

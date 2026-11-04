@@ -136,11 +136,11 @@ function LineupIcon({
         width: 40,
         height: 40,
         background: defeated
-          ? 'rgba(15,23,42,0.85)'
+          ? 'rgba(var(--pkr-rgb-deep),0.85)'
           : active
-          ? 'rgba(15,23,42,0.55)'
-          : 'rgba(15,23,42,0.5)',
-        border: active ? `2px solid ${accent}` : '1.5px solid rgba(15,23,42,0.75)',
+          ? 'rgba(var(--pkr-rgb-deep),0.55)'
+          : 'rgba(var(--pkr-rgb-deep),0.5)',
+        border: active ? `2px solid ${accent}` : '1.5px solid rgba(var(--pkr-rgb-deep),0.75)',
         boxShadow: active ? `0 0 8px ${accent}88` : undefined,
         opacity: defeated ? 0.55 : 1,
       }}
@@ -247,9 +247,9 @@ function LineupStrip({
               style={{
                 width: 40,
                 height: 40,
-                background: 'rgba(15,23,42,0.55)',
-                border: '1.5px dashed rgba(100,116,139,0.4)',
-                color: '#475569',
+                background: 'rgba(var(--pkr-rgb-deep),0.55)',
+                border: '1.5px dashed rgba(var(--pkr-rgb-border),0.4)',
+                color: 'var(--pkr-themed-border-dim, #475569)',
               }}
             >
               —
@@ -363,7 +363,7 @@ function EnemyCard({
     <div
       className={`pkr-game-card flex flex-col items-center gap-1 rounded-md p-2 ${active ? 'pkr-trainer-enemy--active' : ''}`}
       style={{
-        background: active ? 'rgba(15,23,42,0.55)' : 'rgba(15,23,42,0.35)',
+        background: active ? 'rgba(var(--pkr-rgb-deep),0.55)' : 'rgba(var(--pkr-rgb-deep),0.35)',
         border: active ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
         opacity: isKO ? 0.55 : 1,
         minWidth: sz + 16,
@@ -423,7 +423,7 @@ function PartyPickRow({
       onClick={onToggle}
       className={`pkr-game-card flex w-full items-center gap-3 rounded-md p-2 text-left transition-transform`}
       style={{
-        background: selected ? 'rgba(253,224,71,0.18)' : 'rgba(15,23,42,0.4)',
+        background: selected ? 'rgba(253,224,71,0.18)' : 'rgba(var(--pkr-rgb-deep),0.4)',
         border: selected ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
         opacity: fainted ? 0.45 : 1,
         cursor: fainted || disabled ? 'not-allowed' : 'pointer',
@@ -437,7 +437,7 @@ function PartyPickRow({
       />
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span className="pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
+          <span className="pkr-fine font-bold" style={{ color: 'var(--pkr-ink-bright)' }}>
             {mon.nickname || mon.name}
           </span>
           <span className="pkr-fine" style={{ color: 'var(--pkr-ink-soft)' }}>
@@ -533,7 +533,7 @@ function TrainerHeader({
             ) : null}
           </div>
         </div>
-        <div className="text-right pkr-fine" style={{ color: '#e0e7ff' }}>
+        <div className="text-right pkr-fine" style={{ color: 'var(--pkr-themed-ink-text, #e0e7ff)' }}>
           Trainer wins
           <br />
           <span className="text-[12px] font-black" style={{ color: 'var(--pkr-ink-gold)' }}>
@@ -542,7 +542,7 @@ function TrainerHeader({
         </div>
       </div>
       {!compact && (battle.phase === 'team_select' || battle.phase === 'active') ? (
-        <p className="pkr-fine italic" style={{ color: '#e0e7ff' }}>
+        <p className="pkr-fine italic" style={{ color: 'var(--pkr-themed-ink-text, #e0e7ff)' }}>
           “{battle.trainer.taunt}”
         </p>
       ) : null}
@@ -750,7 +750,7 @@ export function TrainerBattleSurface({
                   onClick={() => onCombatTurn(mid)}
                   title={m?.name ?? mid}
                 >
-                  <div className="pkr-fine font-black" style={{ color: '#f1f5f9' }}>
+                  <div className="pkr-fine font-black" style={{ color: 'var(--pkr-ink-bright)' }}>
                     {m?.name ?? mid}
                   </div>
                   <div className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
@@ -807,7 +807,7 @@ export function TrainerBattleSurface({
           <div
             className="flex flex-col gap-2 rounded-md p-3"
             style={{
-              background: 'linear-gradient(180deg, rgba(252,211,77,0.18) 0%, rgba(15,23,42,0.55) 90%)',
+              background: 'linear-gradient(180deg, rgba(252,211,77,0.18) 0%, rgba(var(--pkr-rgb-deep),0.55) 90%)',
               border: '1px solid rgba(253,224,71,0.5)',
             }}
           >
@@ -834,7 +834,7 @@ export function TrainerBattleSurface({
         {canCatch ? (
           <div
             className="flex flex-col gap-2.5 rounded-md p-3"
-            style={{ background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.35)' }}
+            style={{ background: 'rgba(var(--pkr-rgb-deep),0.55)', border: '1px solid rgba(148,163,184,0.35)' }}
           >
             <div className="flex items-center justify-between">
               <span
@@ -859,7 +859,7 @@ export function TrainerBattleSurface({
                   onClick={() => setChosenCatchIndex(i)}
                   className="pkr-game-card flex flex-col items-center gap-1 rounded-md p-2"
                   style={{
-                    background: pickedIndex === i ? 'rgba(253,224,71,0.18)' : 'rgba(15,23,42,0.4)',
+                    background: pickedIndex === i ? 'rgba(253,224,71,0.18)' : 'rgba(var(--pkr-rgb-deep),0.4)',
                     border: pickedIndex === i ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
                   }}
                 >
@@ -894,7 +894,7 @@ export function TrainerBattleSurface({
                     onClick={() => setCatchBall(b)}
                     className="pkr-game-btn flex items-center gap-1 rounded-md p-1.5 pkr-fine font-bold"
                     style={{
-                      background: selected ? 'rgba(253,224,71,0.2)' : 'rgba(15,23,42,0.4)',
+                      background: selected ? 'rgba(253,224,71,0.2)' : 'rgba(var(--pkr-rgb-deep),0.4)',
                       border: selected ? '2px solid #fde68a' : '1px solid rgba(148,163,184,0.35)',
                       opacity: count <= 0 ? 0.4 : 1,
                     }}
@@ -922,7 +922,7 @@ export function TrainerBattleSurface({
             <div
               className="flex flex-wrap items-center gap-1.5 rounded-md px-2 py-1.5"
               style={{
-                background: 'rgba(15,23,42,0.4)',
+                background: 'rgba(var(--pkr-rgb-deep),0.4)',
                 border: '1px dashed rgba(148,163,184,0.3)',
               }}
             >
@@ -943,7 +943,7 @@ export function TrainerBattleSurface({
                     onClick={() => onBuyBall(b.id, b.price)}
                     className="pkr-game-btn flex items-center gap-1 rounded-md p-1 pkr-fine font-bold"
                     style={{
-                      background: disabled ? 'rgba(71,85,105,0.3)' : 'rgba(15,23,42,0.6)',
+                      background: disabled ? 'rgba(var(--pkr-rgb-border-dim),0.3)' : 'rgba(var(--pkr-rgb-deep),0.6)',
                       border: '1px solid rgba(148,163,184,0.35)',
                       opacity: disabled ? 0.5 : 1,
                     }}
@@ -1031,7 +1031,7 @@ export function TrainerBattleSurface({
       <TrainerHeader battle={battle} state={state} />
       <div
         className="flex flex-col items-center gap-2 rounded-md p-3 text-center"
-        style={{ background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(248,113,113,0.4)' }}
+        style={{ background: 'rgba(var(--pkr-rgb-deep),0.55)', border: '1px solid rgba(248,113,113,0.4)' }}
       >
         <div className="text-[12px] font-black" style={{ color: 'var(--pkr-ink-danger)' }}>
           Defeated by {battle.trainer.className}

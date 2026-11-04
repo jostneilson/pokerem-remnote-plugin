@@ -1,4 +1,5 @@
 import '../../src/style.css';
+import { useAppliedTheme } from '../../src/ui/theme/ThemeProvider';
 import {storageCap} from '../../src/game/engine/capacity';
 import {useEffect,useMemo,useState} from 'react';
 import {SPECIES_BY_DEX} from '../../src/game/data/species';
@@ -77,6 +78,7 @@ function captureFixture(){
  return s;
 }
 function Preview(){
+ useAppliedTheme(captureParams.get('theme')??undefined);
  const [s,set]=useState<PokeRemGameState>(captureMode?captureFixture:fixture);const [tab,setTab]=useState<SectionTab>(captureScreen==='trainer'||captureScreen==='settings'?'status':captureScreen as SectionTab);
  const [settings,setSettings]=useState(captureScreen==='settings');
 

@@ -195,14 +195,14 @@ export function SettingsScreen({
                 <GameIcon name={row.icon} size={18} style={{ color: row.action === 'Catch' ? '#451a03' : row.action === 'Fight' ? '#fff' : '#042f2e' }} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="pkr-fine font-black" style={{ color: '#f1f5f9' }}>
+                <div className="pkr-fine font-black" style={{ color: 'var(--pkr-ink-bright)' }}>
                   {row.action}
                 </div>
                 <div className="pkr-fine font-semibold leading-tight" style={{ color: 'var(--pkr-ink-muted)' }}>
                   {row.line}
                 </div>
                 <div className="mt-1.5 pkr-fine font-bold" style={{ color: '#a5b4fc' }}>
-                  Command palette: <span style={{ color: '#e0e7ff' }}>{row.cmd}</span>
+                  Command palette: <span style={{ color: 'var(--pkr-themed-ink-text, #e0e7ff)' }}>{row.cmd}</span>
                 </div>
               </div>
             </div>
@@ -476,7 +476,7 @@ export function SettingsScreen({
             className="pkr-battle-hud w-full max-w-sm rounded-lg border-2 p-4 shadow-xl outline-none"
             style={{
               borderColor: 'rgba(248,113,113,0.5)',
-              background: 'linear-gradient(180deg, rgba(69,10,10,0.96) 0%, rgba(15,23,42,0.98) 100%)',
+              background: 'linear-gradient(180deg, rgba(69,10,10,0.96) 0%, rgba(var(--pkr-rgb-deep),0.98) 100%)',
               boxShadow: '0 0 28px rgba(220,38,38,0.22), inset 0 1px 0 rgba(255,255,255,0.06)',
             }}
             onClick={(e) => e.stopPropagation()}

@@ -939,9 +939,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
     bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
     themeVouchers: normalizeBonus(o.themeVouchers, 50),
-    themesOwned: Array.isArray(o.themesOwned)
-      ? [...new Set((o.themesOwned as unknown[]).filter((t): t is string => typeof t === 'string' && t.length > 0 && t.length < 40))].slice(0, 40)
-      : undefined,
+    ...normalizeThemes(o.themesOwned, o.themeActive),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {
@@ -1025,4 +1023,11 @@ export function normalizeEnabledGenerations(raw: unknown): number[] | undefined 
 
 export function ownedMons(state: PokeRemGameState): (OwnedPokemon | null | undefined)[] {
   return [...state.party, ...state.storagePokemon, state.pendingCaughtMon];
+}
+
+/** `themesOwned` keeps valid type themes only (deduped); `themeActive` must be owned (SPEC save-field table). */
+function normalizeThemes(owned: unknown, active: unknown): { themesOwned?: string[]; themeActive?: string } {
+  if (!Array.isArray(owned)) return { themesOwned: undefined, themeActive: undefined };
+  const themesOwned = [...new Set(owned.filter((t): t is string => typeof t === 'string' && (ALL_TYPES as string[]).includes(t)))];
+  return { themesOwned, themeActive: typeof active === 'string' && themesOwned.includes(active) ? active : undefined };
 }

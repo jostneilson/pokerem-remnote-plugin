@@ -194,7 +194,7 @@ export function BattleCommandMenu({
           className="mt-1 w-full rounded-md border px-2 py-1 pkr-fine font-black uppercase tracking-wide active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
           style={{
             borderColor: 'rgba(147,197,253,0.5)',
-            background: 'linear-gradient(180deg, rgba(30,58,138,0.5) 0%, rgba(15,23,42,0.85) 100%)',
+            background: 'linear-gradient(180deg, rgba(30,58,138,0.5) 0%, rgba(var(--pkr-rgb-deep),0.85) 100%)',
             color: '#bfdbfe',
             boxShadow: '0 0 10px rgba(59,130,246,0.25)',
           }}

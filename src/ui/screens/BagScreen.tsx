@@ -103,7 +103,7 @@ function BoostersPanel({
             className="pkr-bag-item__icon-slot"
             style={{
               background: active
-                ? 'radial-gradient(circle at 30% 25%, rgba(253,224,71,0.45) 0%, rgba(15,23,42,0.7) 75%)'
+                ? 'radial-gradient(circle at 30% 25%, rgba(253,224,71,0.45) 0%, rgba(var(--pkr-rgb-deep),0.7) 75%)'
                 : undefined,
               borderColor: active ? 'rgba(120,53,15,0.75)' : undefined,
             }}
@@ -133,7 +133,7 @@ function BoostersPanel({
                         background: 'rgba(120,53,15,0.4)',
                       }
                     : {
-                        borderColor: 'rgba(100,116,139,0.35)',
+                        borderColor: 'rgba(var(--pkr-rgb-border),0.35)',
                         color: 'var(--pkr-ink-faint)',
                         background: 'rgba(0,0,0,0.2)',
                       }
@@ -221,9 +221,9 @@ function BoostersPanel({
                     <span
                       className="shrink-0 rounded px-1 py-[1px] pkr-fine font-black uppercase leading-none tracking-[0.1em]"
                       style={{
-                        background: owned ? style.chipBg : 'rgba(15,23,42,0.6)',
+                        background: owned ? style.chipBg : 'rgba(var(--pkr-rgb-deep),0.6)',
                         color: owned ? style.chipText : 'var(--pkr-ink-muted)',
-                        border: owned ? 'none' : '1px solid rgba(100,116,139,0.4)',
+                        border: owned ? 'none' : '1px solid rgba(var(--pkr-rgb-border),0.4)',
                       }}
                     >
                       {style.label}
@@ -234,7 +234,7 @@ function BoostersPanel({
                     style={
                       owned
                         ? { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
-                        : { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
+                        : { borderColor: 'rgba(var(--pkr-rgb-border),0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
                     }
                   >
                     ×{count}
@@ -256,9 +256,9 @@ function BoostersPanel({
                   onClick={() => onActivate(tier)}
                   className="pkr-game-btn"
                   style={{
-                    borderColor: disabled ? 'rgba(100,116,139,0.5)' : '#854d0e',
+                    borderColor: disabled ? 'rgba(var(--pkr-rgb-border),0.5)' : '#854d0e',
                     background: disabled
-                      ? 'rgba(71,85,105,0.35)'
+                      ? 'rgba(var(--pkr-rgb-border-dim),0.35)'
                       : 'linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)',
                     color: disabled ? '#8296a5' : '#1c1917',
                     cursor: disabled ? 'not-allowed' : 'pointer',
@@ -333,7 +333,7 @@ function ItemRow({
             className="shrink-0 rounded-full border px-2 py-0.5 pkr-fine font-black tabular-nums"
             style={
               isEmpty
-                ? { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
+                ? { borderColor: 'rgba(var(--pkr-rgb-border),0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
                 : { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
             }
           >

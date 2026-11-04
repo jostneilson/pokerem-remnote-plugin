@@ -130,13 +130,13 @@ function cellStyle(eff: number): CSSProperties {
   if (eff >= 2) {
     return {
       background: 'linear-gradient(180deg, rgba(34,197,94,0.55) 0%, rgba(21,128,61,0.5) 100%)',
-      color: '#ecfdf5',
+      color: 'var(--pkr-themed-ink-bright, #ecfdf5)',
       textShadow: '0 1px 0 rgba(0,0,0,0.5)',
     };
   }
   if (eff === 0) {
     return {
-      background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)',
+      background: 'linear-gradient(180deg, var(--pkr-shade) 0%, var(--pkr-panel-deep) 100%)',
       color: 'var(--pkr-ink-muted)',
       fontWeight: 900,
     };
@@ -149,7 +149,7 @@ function cellStyle(eff: number): CSSProperties {
     };
   }
   return {
-    background: 'rgba(30,41,59,0.35)',
+    background: 'rgba(var(--pkr-rgb-panel),0.35)',
     color: 'var(--pkr-ink-faint)',
     fontWeight: 700,
   };
@@ -164,14 +164,14 @@ function ChartView() {
           2× super-effective
         </span>
         <span className="pkr-typechart-legend-item">
-          <span className="pkr-typechart-swatch" style={{ background: 'rgba(30,41,59,0.5)' }} /> 1× neutral
+          <span className="pkr-typechart-swatch" style={{ background: 'rgba(var(--pkr-rgb-panel),0.5)' }} /> 1× neutral
         </span>
         <span className="pkr-typechart-legend-item">
           <span className="pkr-typechart-swatch" style={{ background: 'linear-gradient(180deg, rgba(239,68,68,0.55), rgba(127,29,29,0.45))' }} />{' '}
           ½× resisted
         </span>
         <span className="pkr-typechart-legend-item">
-          <span className="pkr-typechart-swatch" style={{ background: '#020617' }} /> 0× immune
+          <span className="pkr-typechart-swatch" style={{ background: 'var(--pkr-shade)' }} /> 0× immune
         </span>
       </div>
       <div className="pkr-typechart-matrix-wrap pkr-no-scrollbar">

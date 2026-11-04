@@ -80,7 +80,7 @@ export function PartyPokemonCard({
                   className="flex items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase"
                   style={{
                     background: 'rgba(168,85,247,0.28)',
-                    color: '#f3e8ff',
+                    color: 'var(--pkr-themed-ink-bright, #f3e8ff)',
                     border: '1px solid rgba(192,132,252,0.45)',
                   }}
                   title="Will evolve on next level-up after battle"

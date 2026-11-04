@@ -127,7 +127,7 @@ export function StatusScreen({
               {checkLevelEvolution(active) ? (
                 <span
                   className="flex shrink-0 items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase leading-tight"
-                  style={{ background: 'rgba(168,85,247,0.28)', color: '#f3e8ff', border: '1px solid rgba(192,132,252,0.45)' }}
+                  style={{ background: 'rgba(168,85,247,0.28)', color: 'var(--pkr-themed-ink-bright, #f3e8ff)', border: '1px solid rgba(192,132,252,0.45)' }}
                   title="Meets level for evolution — will evolve when it levels up after a win"
                 >
                   <GameIcon name="dna" size={9} />
@@ -150,7 +150,7 @@ export function StatusScreen({
                       style={{
                         ...(pill ?? {
                           borderColor: 'rgba(148,163,184,0.35)',
-                          backgroundColor: 'rgba(30,41,59,0.5)',
+                          backgroundColor: 'rgba(var(--pkr-rgb-panel),0.5)',
                           color: 'var(--pkr-ink-text)',
                         }),
                       }}

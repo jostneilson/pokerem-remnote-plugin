@@ -445,7 +445,7 @@ export function BattleReviewSurface({
           className="flex items-center justify-center gap-1 px-2 py-1 pkr-fine font-black uppercase tracking-widest"
           style={{
             background: 'linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%)',
-            color: '#faf5ff',
+            color: 'var(--pkr-ink-bright)',
             boxShadow: '0 0 12px rgba(168,85,247,0.45)',
           }}
         >
