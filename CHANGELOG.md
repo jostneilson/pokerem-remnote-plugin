@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Rocket Radar and the Rocket Leader.** Beat five grunts (shown on the Rocket Radar) and the Rocket Leader, Corvin, challenges you. Beat him for a big coin prize and a guaranteed legendary or mythical encounter (one you haven't caught, if any are left; shiny 1 in 5). The prize never runs away; keep throwing until you catch it.
 - **Trainer Pokémon can be shiny** (1 in 250), and a shiny you catch from a trainer stays shiny.
 - **Your starter is your Buddy.** It misses half as often and earns 15% more XP, with a ♥ Buddy badge. Existing saves pick your original starter automatically, and evolving keeps the bonus.
+- **Three buttons on every Pokémon card: Lead, Upgrade and Transfer.** Upgrade opens a small sheet with Power Up (cost shown), stone evolutions, Bottle Caps and the Move Tutor. A small + on the HP bar heals a hurt Pokémon in one tap.
+- **Transfer.** Send Pokémon away for coins (more for rarer, higher-level, shiny or perfect ones) and XP for every Pokémon you own that shares a type. It asks first, and warns you about shinies, perfect IVs, legendaries, favourites and your Buddy. Your Pokédex keeps the entry.
+- **View all.** A fast grid of every Pokémon you own, with sort (level, IV, power, Dex number, type, caught, rarity), filters (shiny, perfect, legendary, favourites, duplicates, party, storage, type) and search. Tap Select (or press and hold) to pick several, then transfer, favourite or move them at once. "Select duplicates (keep best)" picks your spare copies in one tap and never picks your team, shinies, favourites or perfect Pokémon.
+- **Storage and bag space.** Storage holds 60 Pokémon and the bag 200 items, growing every 5 trainer levels, with Storage and Bag Upgrades in the Shop. Meters show how full each is. XP Doublers, Bottle Caps and evolution stones don't take bag space. Saves already over a limit keep everything.
+- **When storage is full,** Catch turns into "Storage full · Transfer" and opens your duplicates. Shinies, legendaries and the Rocket Leader's prize always get through. When your bag is full, items you find turn into coins at half their shop price.
 
 ### Fixed
 

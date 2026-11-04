@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T4.6 (f800933)
-- In progress: T4.7
-- Next exact step: T4.7: full storage → Catch reads 'Storage full · Transfer' and opens grid pre-filtered to duplicates (exempt: shiny, legendary-class, birds, prize; allowed over cap); bag-full found items → ₽ at 50% ('Bag full → ₽120')
+- Last finished: T4.7 (6ea89b6)
+- In progress: T5.1
+- Next exact step: T5.1: route rewards through balance.ts (defeat 60+8L × tier, catch 40+5L × tier, card ₽10, lucky 300–800, quest bands via questCoins) — balance.ts/quests.ts/core.ts/battle.ts edited, run tests + shop.ts CURRENCY_REWARDS check
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T4.7 | 6ea89b6 | capacity.test.ts 7 tests (blocked catch keeps ball, shiny/Mewtwo pass, bag-full → ₽ at 50%); preview: 'Storage full · Transfer' opens Party; 311 tests green, build OK; sims gate catches on storage |
 | T4.6 | f800933 | capacity.test.ts (5); preview: Storage 520/70 red meter (grandfathered), Bag 22/220, upgrade rows ₽8.0k/₽6.0k, no h-scroll |
 | T4.5 | 37be92f | preview: select mode, keep-best picks 421, bulk Transfer opens one confirm with totals |
 | T4.4 | 37be92f | preview 280/320/400: 520 tiles, ~21-30 rendered, sort/filter, tap opens detail, no h-scroll; collectionGrid.test.ts |
@@ -110,7 +111,7 @@ Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 | [x] T4.4 (37be92f) | View all grid: sort and filter. |
 | [x] T4.5 (37be92f) | Multi-select and bulk bar. |
 | [x] T4.6 (f800933) | Capacity caps, meters, upgrades, grandfathering. |
-| [~] T4.7 | Full-storage catch flow and bag-full ₽ conversion. |
+| [x] T4.7 (6ea89b6) | Full-storage catch flow and bag-full ₽ conversion. |
 
 Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 
@@ -118,7 +119,7 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 
 | Task | What |
 |---|---|
-| [ ] T5.1 | All rewards routed through `balance.ts` with the C2 formulas. |
+| [~] T5.1 | All rewards routed through `balance.ts` with the C2 formulas. |
 | [ ] T5.2 | Lucky flourish and bounties. |
 | [ ] T5.3 | Daily firsts and streak. |
 | [ ] T5.4 | Research lines. |
