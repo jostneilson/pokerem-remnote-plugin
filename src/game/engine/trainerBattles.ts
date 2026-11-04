@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import { SPECIES_BY_DEX } from '../data/species';
 import type { PokemonType } from '../data/species';
 import {
@@ -320,9 +321,11 @@ export function generateTrainerRewards(
 ): TrainerRewardSnapshot {
   const isElite = tier === 'elite';
   const lvScale = Math.max(1, averageLevel);
-  const coins = isElite
-    ? 1500 + Math.floor(lvScale * 25) + Math.floor(rng() * 300)
-    : 600 + Math.floor(lvScale * 15) + Math.floor(rng() * 150);
+  const coins = Math.round(
+    (isElite
+      ? 1500 + Math.floor(lvScale * 25) + Math.floor(rng() * 300)
+      : 600 + Math.floor(lvScale * 15) + Math.floor(rng() * 150)) * BALANCE.trainerCoinScale
+  );
   const trainerXp = isElite ? 120 : 45;
   const items: Partial<Record<string, number>> = isElite
     ? { 'great-ball': 2, 'super-potion': 2, revive: 1 }

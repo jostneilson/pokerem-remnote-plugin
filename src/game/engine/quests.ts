@@ -129,7 +129,7 @@ export function questViews(s: PokeRemGameState): QuestView[] {
   return activeQuests(qs).map((q) => {
     const base = q.period === 'daily' ? qs.dayBase : qs.weekBase;
     const current = Math.max(0, Math.min(q.target, now[q.metric] - (base[q.metric] ?? 0)));
-    return { ...q, coins: questCoins(q.period, q.coins), current, done: current >= q.target, claimed: qs.claimed.includes(q.id) };
+    return { ...q, coins: questCoins(q.period, q.coins, s.trainerLevel ?? 1), current, done: current >= q.target, claimed: qs.claimed.includes(q.id) };
   });
 }
 

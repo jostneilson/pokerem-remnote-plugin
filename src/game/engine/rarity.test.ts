@@ -54,8 +54,8 @@ describe('per-encounter rarity calibrated at Medium (SPEC L1)', () => {
       else if (isEventSpecies(e.dexNum)) events++;
     }
     for (let i = 0; i < 20_000; i++) if (GALARIAN_BIRDS.has(spawnEncounter(party, 99, [1], 0, { rng }).dexNum)) early++;
-    expect(birds / n).toBeGreaterThan(0.012 * 0.9);
-    expect(birds / n).toBeLessThan(0.012 * 1.1);
+    expect(birds / n).toBeGreaterThan(BIRD_CHANCE * 0.9);
+    expect(birds / n).toBeLessThan(BIRD_CHANCE * 1.1);
     expect(events / n).toBeGreaterThan(0.0012 * 0.75);
     expect(events / n).toBeLessThan(0.0012 * 1.25);
     expect(early).toBe(0);
@@ -164,5 +164,16 @@ describe('legendary-class catch curve (L6)', () => {
     // Everyday wilds keep the old formula.
     const rattata = { ...mewtwo, dexNum: 19, name: 'Rattata', types: ['Normal'], tier: 'Common' } as EncounterPokemon;
     expect(wildCatchChancePreview(rattata, undefined, 'poke-ball')).toBeGreaterThan(0.5);
+  });
+});
+
+describe('level XP damp (DECISIONS T5.7)', () => {
+  it('is 1 up to the pivot and falls smoothly after it', async () => {
+    const { levelXpDamp } = await import('./xpShare');
+    const { BALANCE } = await import('../balance');
+    expect(levelXpDamp(1)).toBe(1);
+    expect(levelXpDamp(BALANCE.xp.levelDampFrom)).toBe(1);
+    expect(levelXpDamp(BALANCE.xp.levelDampFrom + BALANCE.xp.levelDampSpan)).toBeCloseTo(0.5, 10);
+    expect(levelXpDamp(60)).toBeLessThan(levelXpDamp(40));
   });
 });

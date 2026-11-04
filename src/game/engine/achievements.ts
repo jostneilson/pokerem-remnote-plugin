@@ -163,15 +163,17 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     check: (s) => s.storagePokemon.length >= 10 },
 
   // Economy
-  { id: 'earn1000', name: 'First Savings', description: 'Earn 1000 Poke Dollars total', category: 'economy', tier: 'common',
-    check: (s) => (s.totalCurrencyEarned ?? 0) >= 1000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 1000), target: 1000 }) },
-  { id: 'earn5000', name: 'Well Off', description: 'Earn 5000 Poke Dollars total', category: 'economy', tier: 'uncommon',
+  // Money milestones re-targeted to the 1.6.0 income (SPEC B5). Unlocks are sticky, so anyone past the old
+  // thresholds keeps them.
+  { id: 'earn1000', name: 'First Savings', description: 'Earn ₽5,000 total', category: 'economy', tier: 'common',
     check: (s) => (s.totalCurrencyEarned ?? 0) >= 5000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 5000), target: 5000 }) },
-  { id: 'earn25000', name: 'Wealthy Trainer', description: 'Earn 25000 Poke Dollars total', category: 'economy', tier: 'rare',
+  { id: 'earn5000', name: 'Well Off', description: 'Earn ₽25,000 total', category: 'economy', tier: 'uncommon',
+    check: (s) => (s.totalCurrencyEarned ?? 0) >= 25_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 25_000), target: 25_000 }) },
+  { id: 'earn25000', name: 'Wealthy Trainer', description: 'Earn ₽100,000 total', category: 'economy', tier: 'rare',
     bonusItems: { 'ultra-ball': 5 },
-    check: (s) => (s.totalCurrencyEarned ?? 0) >= 25000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 25000), target: 25000 }) },
-  { id: 'earn100k', name: 'High Roller', description: 'Earn ₽100,000 total', category: 'economy', tier: 'rare',
     check: (s) => (s.totalCurrencyEarned ?? 0) >= 100_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 100_000), target: 100_000 }) },
+  { id: 'earn100k', name: 'High Roller', description: 'Earn ₽400,000 total', category: 'economy', tier: 'rare',
+    check: (s) => (s.totalCurrencyEarned ?? 0) >= 400_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 400_000), target: 400_000 }) },
   { id: 'earn1m', name: 'Pokémon Tycoon', description: 'Earn ₽1,000,000 total', category: 'economy', tier: 'epic',
     bonusItems: { 'gold-bottle-cap': 1 },
     check: (s) => (s.totalCurrencyEarned ?? 0) >= 1_000_000, progress: (s) => ({ current: Math.min(s.totalCurrencyEarned ?? 0, 1_000_000), target: 1_000_000 }) },
@@ -274,10 +276,7 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     check: (s) => (s.totalTransferred ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 1), target: 1 }) },
   { id: 'transfer100', name: 'Bulk Shipper', description: 'Transfer 100 Pokémon', category: 'pokemon', tier: 'rare',
     check: (s) => (s.totalTransferred ?? 0) >= 100, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 100), target: 100 }) },
-  { id: 'theme1', name: 'Fresh Look', description: 'Buy a type theme', category: 'economy', tier: 'uncommon',
-    check: (s) => (s.themesOwned?.length ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 1), target: 1 }) },
-  { id: 'theme18', name: 'Every Colour', description: 'Own all 18 type themes', category: 'economy', tier: 'epic',
-    check: (s) => (s.themesOwned?.length ?? 0) >= 18, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 18), target: 18 }) },
+  // 'theme1' (Fresh Look, buy a theme) and 'theme18' (Every Colour, own all 18) arrive with themes in 1.6.1.
   { id: 'bird1', name: 'Galarian Sighting', description: 'Catch a Galarian legendary bird', category: 'collection', tier: 'rare',
     check: (s) => birdCount(s) >= 1, progress: (s) => ({ current: Math.min(birdCount(s), 1), target: 1 }) },
   { id: 'bird3', name: 'Trio of Legends', description: 'Register all three Galarian birds', category: 'collection', tier: 'epic',

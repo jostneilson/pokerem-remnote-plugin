@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import type { ItemId } from '../data/items';
 import type { PokemonType } from '../data/species';
 import type { PokeRemGameState } from '../state/model';
@@ -112,7 +113,9 @@ export type ResearchView = {
 
 export function researchView(s: PokeRemGameState): ResearchView {
   const r = researchState(s);
-  const line = RESEARCH_LINES.find((l) => l.id === r.lineId)!;
+  const def = RESEARCH_LINES.find((l) => l.id === r.lineId)!;
+  // Listed coins × the tunable scale (Appendix T: research ₽15–30k ±40%).
+  const line = { ...def, coins: Math.round((def.coins * BALANCE.researchCoinScale) / 100) * 100 };
   if (r.step >= line.steps.length) return { line, step: line.steps.length, current: 0, done: true };
   const st = line.steps[r.step]!;
   const current = Math.max(0, Math.min(st.target, researchCounter(s, st.metric) - r.progress));

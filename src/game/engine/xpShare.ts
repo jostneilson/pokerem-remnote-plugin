@@ -39,12 +39,21 @@ export function memberXpMult(state: PokeRemGameState, mon: OwnedPokemon): number
 }
 
 /**
- * Final XP for `mon` from a base amount: × catch-up × buddy × doubler. Fractions are rounded at random in
+ * Gain scale by the earner's level: 1 up to `levelDampFrom`, then 1 / (1 + (L − from) / span). The XP curve
+ * itself is fixed (no level ever moves), so this is how later levels take longer per card (SPEC A2 bands).
+ */
+export function levelXpDamp(level: number): number {
+  const { levelDampFrom, levelDampSpan } = BALANCE.xp;
+  return 1 / (1 + Math.max(0, level - levelDampFrom) / Math.max(1, levelDampSpan));
+}
+
+/**
+ * Final XP for `mon` from a base amount: × catch-up × buddy × level damp × doubler. Fractions are rounded at random in
  * proportion (1.6 XP pays 2 XP 60% of the time), so small per-card amounts stay fair on average.
  */
 export function scaledXp(state: PokeRemGameState, mon: OwnedPokemon, base: number, rng: () => number = Math.random): number {
   if (base <= 0) return 0;
-  const raw = applyXpDoublerMultiplier(state, base * memberXpMult(state, mon));
+  const raw = applyXpDoublerMultiplier(state, base * memberXpMult(state, mon) * levelXpDamp(mon.level));
   const whole = Math.floor(raw);
   return whole + (rng() < raw - whole ? 1 : 0);
 }

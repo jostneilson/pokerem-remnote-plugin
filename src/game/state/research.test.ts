@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import { describe, expect, it } from 'vitest';
 import { TEAM_BIRD } from '../engine/rarity';
 import { researchView } from '../engine/research';
@@ -30,7 +31,7 @@ describe('Special Research (SPEC B4)', () => {
     expect(researchView(s).done).toBe(true);
     const before = s.currency;
     const claimed = claimResearch(s);
-    expect(claimed.currency - before).toBe(15000);
+    expect(claimed.currency - before).toBe(Math.round((15000 * BALANCE.researchCoinScale) / 100) * 100);
     expect(researchView(claimed).line.id).toBe('rocket-investigation');
     expect(claimResearch(claimed)).toBe(claimed);
     expect(parseGameState(JSON.parse(JSON.stringify(claimed))).research?.lineId).toBe('rocket-investigation');

@@ -26,7 +26,7 @@ function world(): PokeRemGameState {
     ...s,
     currency: 0,
     totalCurrencyEarned: 0,
-    party: [starter, mon('pk_2_rat', 19, 20, { types: ['Normal'] })],
+    party: [starter, mon('pk_2_rat', 19, 15, { types: ['Normal'] })],
     storagePokemon: [
       mon('pk_3_rat2', 19, 10, { types: ['Normal'] }),
       mon('pk_4_pidgey', 16, 12, { types: ['Normal', 'Flying'] }),
@@ -40,10 +40,10 @@ describe('transfer payout (SPEC A5)', () => {
     expect(transferTier(19)).toBe('Common');
     expect(transferTier(147)).toBe('Rare'); // Dratini, catch rate 45
     expect(transferTier(150)).toBe('Legendary');
-    expect(transferCoins(mon('a', 147, 25))).toBe(Math.round(150 * 2));
-    expect(transferCoins(mon('a', 150, 25))).toBe(3000);
-    expect(transferCoins(mon('a', 150, 25, { shiny: true }))).toBe(9000);
-    expect(transferCoins(mon('a', 150, 25, { ivs: { hp: 3, attack: 3, defense: 3 } }))).toBe(6000);
+    expect(transferCoins(mon('a', 147, 25))).toBe(Math.round(BALANCE.transfer.base.Rare * 2));
+    expect(transferCoins(mon('a', 150, 25))).toBe(BALANCE.transfer.base.Legendary * 2);
+    expect(transferCoins(mon('a', 150, 25, { shiny: true }))).toBe(BALANCE.transfer.base.Legendary * 2 * 3);
+    expect(transferCoins(mon('a', 150, 25, { ivs: { hp: 3, attack: 3, defense: 3 } }))).toBe(BALANCE.transfer.base.Legendary * 2 * 2);
   });
 
   it('a plain Common is always worth less than a Poké Ball', () => {
