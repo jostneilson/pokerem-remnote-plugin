@@ -86,6 +86,7 @@ export {
   claimQuest,
   claimAllQuests,
   chooseStarter,
+  chooseTeam,
   setAutoMoves,
   forgetMoveAction,
   learnMoveAction,

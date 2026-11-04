@@ -1,4 +1,8 @@
 import { MeterBar } from './Bars';
+import type { CSSProperties } from 'react';
+import type { TeamId } from '../../game/engine/rarity';
+import { TEAM_BY_ID } from '../../game/engine/teams';
+import { TeamCrest } from '../screens/TeamPickScreen';
 import { GameIcon } from './GameIcon';
 import { TrainerXpStarBurst } from './TrainerXpStarBurst';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
@@ -15,6 +19,7 @@ export function TrainerIdentityCard({
   reducedMotion = false,
   rewardSparkleKey,
   cardStyle,
+  team,
 }: {
   rankTitle: string;
   trainerLevel: number;
@@ -28,6 +33,8 @@ export function TrainerIdentityCard({
   rewardSparkleKey?: number;
   /** Cosmetic card style id (engine/sinks.ts); Classic when unset. */
   cardStyle?: string;
+  /** Team accent and crest (SPEC A13). */
+  team?: TeamId;
 }) {
   const maxed = trainerLevel >= 50 && xpProg.needed <= 0;
   const xpMoment = useTrainerXpMoment(trainerXp, trainerLevel, reducedMotion, rewardSparkleKey);
@@ -36,7 +43,8 @@ export function TrainerIdentityCard({
     <div
       className={`pkr-trainer-identity ${cardStyle ? `pkr-trainer-identity--style-${cardStyle}` : ''} ${xpMoment.focusXpUi ? 'pkr-trainer-identity--xp-focus' : ''} ${
         xpMoment.phase === 'reward_sparkle' ? 'pkr-trainer-identity--reward-sparkle' : ''
-      }`}
+      } ${team ? 'pkr-trainer-identity--team' : ''}`}
+      style={team ? ({ '--pkr-team-color': TEAM_BY_ID.get(team)?.color } as CSSProperties) : undefined}
     >
       <div className="pkr-trainer-identity__glow" aria-hidden />
       <div className="pkr-trainer-identity__inner">
@@ -79,7 +87,7 @@ export function TrainerIdentityCard({
           </div>
         </div>
         <div className="pkr-trainer-identity__crest" aria-hidden>
-          <GameIcon name="trophy" size={22} style={{ color: 'rgba(251,191,36,0.35)' }} />
+          {team ? <TeamCrest team={team} size={30} /> : <GameIcon name="trophy" size={22} style={{ color: 'rgba(251,191,36,0.35)' }} />}
         </div>
       </div>
     </div>

@@ -4375,3 +4375,23 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-theme-preview-chip { position: sticky; top: 4px; z-index: 3; display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border: 2px solid var(--pkr-accent); background: var(--pkr-panel); color: var(--pkr-ink); font-size: var(--pkr-text-label); font-weight: 900; box-shadow: 0 0 0 3px var(--pkr-glow); }
 .pkr-theme-preview-chip span { flex: 1; }
 .pkr-theme-bonus-tag{display:inline-block;padding:1px 6px;border:1px solid var(--pkr-accent);background:var(--pkr-panel-2);color:var(--pkr-accent-2);font-size:var(--pkr-text-micro);font-weight:900;letter-spacing:.5px}
+
+/* 1.6.1 Team pick (SPEC U10) and team accents. Cards stack under 360px and sit side by side from 360px. */
+.pkr-team-pick { display: flex; flex-direction: column; gap: 10px; padding: 6px 2px 12px; color: var(--pkr-ink); }
+.pkr-team-pick__title { margin: 0; font-size: var(--pkr-text-title); font-weight: 900; text-align: center; color: var(--pkr-ink-bright); }
+.pkr-team-pick__sub { margin: 0; text-align: center; font-size: var(--pkr-text-label); color: var(--pkr-ink-muted); }
+.pkr-team-pick__list { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0; padding: 0; list-style: none; }
+@container (min-width: 360px) { .pkr-team-pick__list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pkr-team-card { display: flex; width: 100%; min-height: 32px; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border: 3px solid; background: var(--pkr-panel); color: var(--pkr-ink-text); font: inherit; text-align: center; cursor: pointer; box-shadow: inset 0 1px 0 var(--pkr-bevel-light), inset 0 -2px 0 var(--pkr-bevel-dark); }
+.pkr-team-card strong { font-size: var(--pkr-text-body); font-weight: 900; }
+.pkr-team-card span { font-size: var(--pkr-text-label); color: var(--pkr-ink-muted); line-height: 1.35; }
+.pkr-team-card--on { background: var(--pkr-panel-2); box-shadow: 0 0 0 3px var(--pkr-glow); }
+.pkr-team-confirm { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 3px solid; background: var(--pkr-panel-deep); text-align: center; font-size: var(--pkr-text-body); }
+.pkr-team-confirm p { margin: 0; font-weight: 900; }
+.pkr-team-confirm__actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pkr-team-confirm__actions .pkr-game-btn { min-height: 32px; padding: 4px 12px; }
+.pkr-team-confirm__join { color: #101326; }
+.pkr-team-badge { display: inline-flex; flex-shrink: 0; padding: 1px; border: 1px solid; background: var(--pkr-shade); line-height: 0; }
+.pkr-team-pick__list li { display: flex; }
+.pkr-team-pick__list .pkr-team-card { flex: 1; }
+.pkr-trainer-identity--team .pkr-trainer-identity__inner { box-shadow: inset 4px 0 0 var(--pkr-team-color); padding-left: 8px; }

@@ -163,6 +163,7 @@ export function ProgressScreen({
         subtitle={subtitle}
         reducedMotion={reducedMotion}
         cardStyle={state.trainerCardStyle}
+        team={state.team}
       />
 
       {rewards}

@@ -1,4 +1,5 @@
 import { storageCap } from '../game/engine/capacity';
+import { TeamPickScreen } from '../ui/screens/TeamPickScreen';
 import { useAppliedTheme } from '../ui/theme/ThemeProvider';
 import { EvolutionScene, useEvolutionWatcher } from '../ui/battle/EvolutionScene';
 import '../style.css';
@@ -529,7 +530,11 @@ function PokeRemSidebar() {
       {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
       {evolutions[0] ? <EvolutionScene key={evolutions[0].key} event={evolutions[0]} rootURL={plugin.rootURL} reducedMotion={reducedMotion} onDone={nextEvolution} /> : null}
       {/* ── Starter selection ── */}
-      {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
+      {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.team && !state.teamPrompted ? (
+        <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
+          <TeamPickScreen existingPlayer={state.starterChosen} onChoose={(team) => void dispatch(gameCommand('chooseTeam', team))} />
+        </div>
+      ) : !state.starterChosen ? (
         <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
           <StarterPickerScreen rootURL={plugin.rootURL} onChoose={(dex) => void dispatch(gameCommand('chooseStarter', dex))} />
         </div>

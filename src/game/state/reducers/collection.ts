@@ -46,6 +46,12 @@ export function claimAllQuests(state: PokeRemGameState): PokeRemGameState {
     .reduce((s, q) => claimQuest(s, q.id), state);
 }
 
+/** Join a team (SPEC A13). It can't be changed: once a team is set, later calls do nothing. */
+export function chooseTeam(state: PokeRemGameState, team: string): PokeRemGameState {
+  if (state.team || (team !== 'ember' && team !== 'tide' && team !== 'volt')) return state;
+  return withTouch({ ...state, team, teamPrompted: true });
+}
+
 export function chooseStarter(state: PokeRemGameState, dexNum: number): PokeRemGameState {
   if (!(STARTER_DEX_ALL as readonly number[]).includes(dexNum)) return state;
   // Never replace an existing team (for example if the picker showed before the save loaded).

@@ -146,6 +146,7 @@ export function RewardsScreen({
           subtitle={subtitle}
           reducedMotion={reducedMotion}
           cardStyle={state.trainerCardStyle}
+        team={state.team}
           rewardSparkleKey={rewardSparkleKey}
         />
       )}

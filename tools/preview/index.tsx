@@ -1,4 +1,5 @@
 import '../../src/style.css';
+import { TeamPickScreen } from '../../src/ui/screens/TeamPickScreen';
 import { useAppliedTheme } from '../../src/ui/theme/ThemeProvider';
 import {storageCap} from '../../src/game/engine/capacity';
 import {useEffect,useMemo,useState} from 'react';
@@ -39,6 +40,7 @@ const captureWidth=[280,320,400,520].includes(requestedWidth)?requestedWidth:400
 const requestedReducedMotion=captureParams.get('reducedMotion')==='1';
 function captureFixture(){
  let s=fixture();
+ if(captureScenario!=='noteam') s={...s,team:s.team??'tide'};
  if(captureScenario==='themes') s={...s,currency:60000,themesOwned:['Fire'],themeVouchers:1};
  if(captureScreen==='trainer'&&(captureScenario==='rocket'||captureScenario==='leader'||captureScenario==='leader-win')){
   if(captureScenario!=='rocket') s={...s,rocket:{gruntWins:5,typesBeaten:['Fire','Water','Grass','Bug','Normal'],leaderReady:true,leaderWins:0}};
@@ -91,7 +93,8 @@ function Preview(){
  const tail=<>{tab==='status'&&!settings?<QuickCarePanel state={s} onApply={act}/>:null}<div className="pkr-content-vignette"><div className="pkr-panel-mount" key={tab}>
  {news?<WhatsNewCard seenVersion="" onDismiss={()=>setNews(false)}/>:null}
  {settings?<SettingsScreen compact={compact} onToggleCompact={()=>setCompact(v=>!v)} plugin={demoPlugin} studyProfile={{configured:true,preset:s.studyDifficultyPreset,reviews:s.studyReviewsPerEncounter,weight:s.studyCardWeight}} onConfigureStudy={(p,c)=>act(s=>game.configureStudyDifficulty(s,p,c))}/>:null}
- {!settings && tab==='status'?<StatusScreen rootURL="/" state={s} active={active}/>:null}
+ {captureScreen==='team'?<TeamPickScreen existingPlayer={captureScenario==='existing'} onChoose={t=>act(x=>game.chooseTeam(x,t))}/>:null}
+ {!settings && tab==='status'&&captureScreen!=='team'?<StatusScreen rootURL="/" state={s} active={active}/>:null}
  {!settings && tab==='party'?<PartyScreen rootURL="/" storageCap={storageCap(s)} viewAllRequest={captureScenario==='grid'?GRID_REQUEST:undefined} party={s.party} starterId={s.starterId} gameState={s} onTransfer={(ids)=>act(x=>game.transferPokemon(x,ids))} bag={s.bag} currency={s.currency} powerUpBlocked={!!s.currentEncounter || !!s.currentTrainerBattle || !!s.pendingCaughtMon} evolutionBlocked={!!s.currentEncounter || !!s.currentTrainerBattle} evolutionMessage={s.lastOutcomeKind==='evolution'?s.lastBattleLog:undefined} onPowerUp={(id,level)=>act(s=>game.powerUpPokemon(s,id,level))} onToggleFavorite={id=>act(s=>game.togglePokemonFavorite(s,id))} onEvolve={(pid,item)=>act(s=>game.useEvolutionStone(s,pid,item))} activeId={s.activePokemonId} storagePokemon={s.storagePokemon} onSwitch={id=>act(s=>game.switchActivePokemon(s,id))} onLearnMove={(id,mid,i)=>act(s=>game.learnMoveAction(s,id,mid,i))} onRename={(id,name)=>act(s=>game.renamePokemon(s,id,name))} onRelease={id=>act(s=>game.releasePokemon(s,id))} onMoveToStorage={id=>act(s=>game.moveToStorage(s,id))} onMoveToParty={id=>act(s=>game.moveToParty(s,id))} onSwapStorageForParty={(sid,pid)=>act(s=>game.swapPartyWithStorage(s,sid,pid))} onHeal={id=>act(s=>game.quickHealPokemon(s,id))} onSetAutoMoves={(id,on)=>act(s=>game.setAutoMoves(s,id,on))} healBlocked={!!s.currentTrainerBattle} onBottleCap={(pid,item,stat)=>act(s=>game.useBottleCap(s,pid,item,stat))} onTutor={(pid,mid)=>act(s=>game.teachTutorMove(s,pid,mid))}/>:null}
  {!settings && (tab==='bag'||tab==='shop')?<ItemsScreen rootURL="/" state={s} initialView={tab==='shop'?'shop':'inventory'} reducedMotion={rm} onUseItem={(id,t)=>act(s=>id==='rare-candy'||id==='exp-candy-s'?game.useLeadUtilityItem(s,id,t):game.useHealingItem(s,id,t))} onActivateXpDoubler={tier=>act(s=>game.activateXpDoubler(s,tier))} onBuy={(id,qty)=>act(s=>game.buyItem(s,id,qty))} onBuyRouteTicket={id=>act(s=>game.buyRouteTicket(s,id))} onBuyCardStyle={id=>act(s=>game.buyCardStyle(s,id))} onBuyStorageUpgrade={()=>act(game.buyStorageUpgrade)} onBuyBagUpgrade={()=>act(game.buyBagUpgrade)} onEquipCardStyle={id=>act(s=>game.equipCardStyle(s,id))} onBuyTheme={(id,v)=>act(s=>game.buyTheme(s,id,v))} onEquipTheme={id=>act(s=>game.equipTheme(s,id))}/>:null}
  {!settings && tab==='dex'?<CollectionScreen rootURL="/" collectionDex={s.collectionDex} shinyLog={s.shinyLog} ownedPokemon={[...s.party,...s.storagePokemon]}/>:null}

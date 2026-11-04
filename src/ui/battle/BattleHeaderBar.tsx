@@ -5,6 +5,8 @@ import { trainerXpProgress } from '../../game/engine/trainerLevel';
 import { StatHoverTip } from './StatHoverTip';
 import { GameIcon } from '../components/GameIcon';
 import { BRAND } from '../theme/gameTheme';
+import { TEAM_BY_ID } from '../../game/engine/teams';
+import { TeamCrest } from '../screens/TeamPickScreen';
 import { TrainerXpStarBurst } from '../components/TrainerXpStarBurst';
 import type { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 
@@ -40,6 +42,11 @@ export function BattleHeaderBar({
           {BRAND.wordmark}
         </span>
       </StatHoverTip>
+      {state.team ? (
+        <span className="pkr-team-badge" title={TEAM_BY_ID.get(state.team)?.name} style={{ borderColor: TEAM_BY_ID.get(state.team)?.color }}>
+          <TeamCrest team={state.team} size={16} />
+        </span>
+      ) : null}
       <StatHoverTip
         className="min-w-0 flex-1"
         label={`Trainer level ${trainerLv} (${state.trainerRank ?? 'Trainer'}). The gold bar is trainer XP toward the next level — earn XP from flashcards, wild battles, streaks, catches, achievements (tiered), and other actions.`}

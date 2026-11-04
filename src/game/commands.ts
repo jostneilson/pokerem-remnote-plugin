@@ -49,6 +49,7 @@ export const GAME_COMMANDS = {
   cancelPendingCaught: store.cancelPendingCaught,
   catchWithBall,
   chooseStarter: store.chooseStarter,
+  chooseTeam: store.chooseTeam,
   claimAchievement: store.claimAchievement,
   claimAllAchievements: store.claimAllAchievements,
   claimAllQuests: store.claimAllQuests,
