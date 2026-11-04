@@ -5,10 +5,10 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T3.5 (97001c9)
-- In progress: T3.2
-- Next exact step: T3.2 UI: Rocket Radar chip (U9) on Play under the trek strip + Trainer screen; then T3.6 TrainerBattleSurface: ace-only catch offer, Leader 'see the prize' button, PRIZE chip, run confirm, intro wipe (U7/U8)
-- Latest checks: 2026-11-04 after Phase 2: tsc clean, vitest 288 tests, build OK.
+- Last finished: T3.6 (ee5f71d)
+- In progress: T4.1
+- Next exact step: T4.1: transferPokemon(state, ids[]) in reducers/collection.ts per SPEC A5/L7 (payout tiers in BALANCE.transfer, type-share XP via applyTypeShareXpBoost-like path doubled, guards: favourite, last party member); transfer.test.ts
+- Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 297 tests, build OK.
 
 ## Known issues
 
@@ -18,6 +18,8 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T3.6 | ee5f71d | preview: grunt intro (reduced motion clears at 1s), leader win -> See the Leader's prize, prize PRIZE badge + 2-tap give up; 297 tests, build OK |
+| T3.2 | ee5f71d | Radar chip on Play + Trainer; preview checked |
 | T3.5 | 97001c9 | buildEnemyForDex 1/250 shiny; trainerEnemyAsEncounter keeps shiny |
 | T3.4 | 97001c9 | rocket.test: prize pendingPrize, never flees/KO, reload, shiny 20%±2 |
 | T3.3 | 97001c9 | rocket.test: leader after 5 wins, elite, avg+4, loss keeps leaderReady |
@@ -84,11 +86,11 @@ Each task's check: unit tests; the level bands are checked in T5.
 | Task | What |
 |---|---|
 | [x] T3.1 (97001c9) | `rocket.ts`: 18 grunts, ace pools, share and type rotation. |
-| [~] T3.2 | Radar state and chip. |
+| [x] T3.2 (ee5f71d) | Radar state and chip. |
 | [x] T3.3 (97001c9) | Leader battle. |
 | [x] T3.4 (97001c9) | Leader prize encounter: never flees, 1/5 shiny. |
 | [x] T3.5 (97001c9) | Shiny trainer Pokémon. |
-| [ ] T3.6 | Rocket intro and prize reveal presentation. |
+| [x] T3.6 (ee5f71d) | Rocket intro and prize reveal presentation. |
 
 Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 
@@ -96,7 +98,7 @@ Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 
 | Task | What |
 |---|---|
-| [ ] T4.1 | `transferPokemon` reducer, payout and XP. |
+| [~] T4.1 | `transferPokemon` reducer, payout and XP. |
 | [ ] T4.2 | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
 | [ ] T4.3 | Transfer confirm with warning chips. |
 | [ ] T4.4 | View all grid: sort and filter. |
