@@ -8,7 +8,7 @@ Update this file before starting and after finishing every task. Commit it with 
 - Last finished: T5.6 (79ed7fe)
 - T5.7: implementation checkpoint; acceptance blocked by the current full-matrix gap and Needs owner decisions. No task is represented as complete merely because tests pass.
 - Release split (owner, 2026-11-04): ship 1.6.0 at the end of Phase 5 (Phase 7 runs next). Refined by the owner: finish every area already started, leave only unstarted features for 1.6.1. So T6.1 (colour tokens, already started) ships in 1.6.0; T6.2–T6.7 are 1.6.1.
-- Next exact step: T7.1 verification recorded with holds; prepare T7.2 images/docs next while owner decisions remain pending. Earlier continuation step: T5.7: correct and verify the harness stalls/accounting, add resumable focused runs, then rerun the matrix; owner conflicts are recorded under DECISIONS → Needs owner. Earlier handoff step: T5.7: finish the full `balance:tune` (20 seeds), write BALANCE_REPORT, confirm `balance.test.ts` + full suite green, commit `1.6.0 T5.7`. Then Phase 7 (T7.1 → T7.4) for the 1.6.0 release. Listing screenshots for 1.6.0 are already captured into `public/assets/screenshots/` (listing-party, listing-view-all, listing-rocket-prize; uncommitted until T7.2); `scratchpad`-style README insertion is described in T7.2 notes.
+- Next exact step: T7.3 local 1.6.0 version alignment and release build, still under T5.7/T7.1 review holds. Previous step: T7.1 verification recorded with holds; prepare T7.2 images/docs next while owner decisions remain pending. Earlier continuation step: T5.7: correct and verify the harness stalls/accounting, add resumable focused runs, then rerun the matrix; owner conflicts are recorded under DECISIONS → Needs owner. Earlier handoff step: T5.7: finish the full `balance:tune` (20 seeds), write BALANCE_REPORT, confirm `balance.test.ts` + full suite green, commit `1.6.0 T5.7`. Then Phase 7 (T7.1 → T7.4) for the 1.6.0 release. Listing screenshots for 1.6.0 are already captured into `public/assets/screenshots/` (listing-party, listing-view-all, listing-rocket-prize; uncommitted until T7.2); `scratchpad`-style README insertion is described in T7.2 notes.
 - Latest checks: 2026-11-04 continuation: tsc clean, 53 files / 337 tests pass, production build/ZIP pass after shortening the manifest blurb. Runner cancellation exits 130 without orphan workers; cache smoke reuses 1/1; six unchanged full-day samples previously reused 6/6. No current full-matrix or fresh browser acceptance.
 
 ## Known issues
@@ -139,7 +139,7 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | Task | What |
 |---|---|
 | [!] T7.1 | Full Verification pass (below), with results logged. |
-| [~] T7.2 | CHANGELOG, README and manifest, new screenshots. |
+| [x] T7.2 (129a6dd screenshots; docs follow-up) | CHANGELOG, README and manifest, new screenshots. |
 | [ ] T7.3 | Version 1.6.0 in all 4 places; `npm run release`. |
 | [ ] T7.4 | Final hand-off update: "Ready for owner review; nothing pushed". |
 

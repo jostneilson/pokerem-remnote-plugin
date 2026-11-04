@@ -20,7 +20,7 @@ Catch, Fight, Auto and Run sit in a strip right above your flashcard, so you can
 - **Pick your ball.** Every ball shows its live catch chance, and PokéRem suggests the cheapest good one.
 - **Shiny hunting.** About 1 in 250 wild Pokémon sparkles, and a gentle safety net makes sure every regular studier meets one. Shinies get their own gold star entrance and a SHINY CAUGHT! card. Shiny legendaries are always caught with the first ball.
 - **Perfect IVs.** A Pokémon with top stats earns four gold stars and a **HUNDO** badge.
-- **Legendaries and Ultra Beasts** show up as rare events once your team is strong enough.
+- **Legendaries are special.** Galarian birds turn up about once every 250 cards, and other legendaries, mythicals and Ultra Beasts far more rarely. They're hard to catch: wear them down, use better balls and status. Team Rocket is your reliable way to get one.
 
 ## Battles that feel like the games
 
@@ -32,23 +32,31 @@ Classic main-series layout: "What will Mewtwo do?", moves tagged *Super effectiv
 
 Themed trainers challenge you as you study, from Bug Catchers to Dragon Masters and elite trainers. Pick three Pokémon and battle 3-on-3. Win coins, items, gym badges, and a chance to catch one of their team. Lost? Heal up and rematch.
 
+**Team Rocket** makes up about a third of your challengers. Each grunt uses one type and ends its line-up with a rare ace you can catch after winning. Beat five and the Rocket Leader appears; beat him to win a legendary that never runs away.
+
 ![A 3-on-3 trainer battle against Hiker Russ, with both teams' line-ups and your moves](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-battle.png)
+
+![The Rocket Leader’s legendary prize waits while you choose your next move](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-rocket-prize.png)
 
 ## Build your dream team
 
-Level up and evolve, with every evolution played out in the panel. Teach moves with the Move Tutor, appraise IVs, set your lead, and heal in one tap. Fill your Pokédex, keep your shinies in the Shiny Case, and store as many Pokémon as you like.
+Your whole party levels up together with XP Share, and anyone who falls behind gets a catch-up boost. Your starter is your Buddy, with a ♥ badge and its own bonuses. Evolve, with every evolution played out in the panel. Every card has Lead, Upgrade (Power Up, evolve, Bottle Caps, Move Tutor) and Transfer, which turns spares into coins and XP. View all shows everything you own, with sort, filters and multi-select. Storage and bag space grow with your trainer level and Shop upgrades. Fill your Pokédex and keep your shinies in the Shiny Case.
 
-![Party screen: Pokémon cards with HP, XP, types, IV stars, and one-tap Lead and Heal](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-party.png)
+![Party screen with Lead, Upgrade and Transfer buttons, IV appraisal, and quick healing](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-party.png)
+
+![View all: your owned Pokémon in a grid with filters, sorting, favourites and multi-select](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-view-all.png)
+
+Screenshots use a separate demonstration save.
 
 ## Goals for every study session
 
-Three daily quests and two weekly ones, eight gym badges, 55 achievements, a trainer license that levels up as you study, and a shop with balls, potions, XP Doublers, route tickets and trainer card styles. Studying earns plenty of coins, so there's always something to work towards.
+Three daily quests and two weekly ones, Special Research lines, eight gym badges, long-term achievements, daily firsts and study streaks, and a trainer license that levels up as you study. Look out for bounties and lucky cards. Spend your coins on Power Ups, balls, potions, XP Doublers, route tickets, storage and bag upgrades and trainer card styles. Your current coins and collection carry forward when you update.
 
 ![Trainer screen: trainer license, level rewards, and today's and this week's quests](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-screen.png)
 
 ## Made for studying
 
-- **It never gets in your way.** Ignore a wild Pokémon and it wanders off. If your lead faints, a teammate steps in. A team that's fully down rests while you study. Nothing waiting in the sidebar ever stops the game.
+- **Made to sit alongside your cards.** Ignore an ordinary wild Pokémon and it wanders off. If your lead faints, a teammate steps in. A team that's fully down rests while you study. Protected shinies, legendaries and Leader prizes wait for you to finish the encounter; your flashcard reviews remain available.
 - **You set the pace.** Choose a study difficulty for how often wild Pokémon appear. Turn on Compact view to hide the arena, or reduced motion for still animations.
 - **Your progress is safe.** Your save lives in your RemNote knowledge base, carries across updates, and can be exported from Settings.
 - **Keyboard friendly.** C, F, A and R, plus 1–4 for moves.
