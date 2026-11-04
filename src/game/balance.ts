@@ -29,6 +29,10 @@ export const BALANCE = {
     min: 1500,
     max: 4000
   },
+  /** Achievement coins by tier (SPEC B5; tunable ±50%). */
+  achievementCoins: { common: 500, uncommon: 1500, rare: 5000, epic: 15000 } as Record<'common' | 'uncommon' | 'rare' | 'epic', number>,
+  /** Every trainer level pays this × the level reached (tunable 100–500). */
+  trainerLevelCoinPerLevel: 250,
   /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */
   quests: {
     scale: 1,

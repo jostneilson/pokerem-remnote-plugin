@@ -408,6 +408,10 @@ export interface PokeRemGameState {
   typeCatches?: Partial<Record<PokemonType, number>>;
   /** Daily firsts (SPEC B3): today's first catch / first defeat already paid. */
   daily?: { day: string; firstCatch: boolean; firstDefeat: boolean };
+  /** Type themes bought (SPEC A12). */
+  themesOwned?: string[];
+  /** Theme discount vouchers from milestone trainer levels (10/20/30/40/50). */
+  themeVouchers?: number;
   /** Storage slots bought in the shop (0..200, steps of 20). */
   storageBonus?: number;
   /** Bag slots bought in the shop (0..250, steps of 25). */

@@ -1,3 +1,4 @@
+import { formatCoins } from '../../../ui/format/coins';
 import { advanceResearch } from '../../engine/research';
 import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { capacityGain, fitFoundItems } from '../../engine/capacity';
@@ -68,6 +69,31 @@ export function addBagQuantities(
   };
 }
 
+/** Trainer levels that also give a theme discount voucher (SPEC B5). */
+export const THEME_VOUCHER_LEVELS = [10, 20, 30, 40, 50];
+
+/** Coins paid on reaching trainer level `lv` (SPEC B5). */
+export function trainerLevelCoins(lv: number): number {
+  return BALANCE.trainerLevelCoinPerLevel * lv;
+}
+
+/** Coins and vouchers for every trainer level gained from `from` to `to`. */
+function levelUpPayout(state: PokeRemGameState, from: number, to: number): PokeRemGameState {
+  if (to <= from) return state;
+  let coins = 0;
+  let vouchers = 0;
+  for (let lv = from + 1; lv <= to; lv++) {
+    coins += trainerLevelCoins(lv);
+    if (THEME_VOUCHER_LEVELS.includes(lv)) vouchers++;
+  }
+  return {
+    ...state,
+    currency: (state.currency ?? 0) + coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + coins,
+    ...(vouchers ? { themeVouchers: (state.themeVouchers ?? 0) + vouchers } : {}),
+  };
+}
+
 /** "Storage +10 · Bag +20" when reaching `lv` grows capacity (SPEC U6). */
 function capacityLine(lv: number): string | null {
   const g = capacityGain(lv - 1, lv);
@@ -106,7 +132,9 @@ function appendMainNoticesIfNeeded(
         kind: 'trainer_reward',
         id: nid,
         title: `Trainer Lv ${lv} — ${r.title}`,
-        subtitle: capacityLine(lv) ? `${r.description} · ${capacityLine(lv)}` : r.description,
+        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv), THEME_VOUCHER_LEVELS.includes(lv) ? 'Theme voucher' : null]
+          .filter(Boolean)
+          .join(' · '),
       });
     }
   }
@@ -133,7 +161,8 @@ export function withTouch(state: PokeRemGameState): PokeRemGameState {
   next.achievements = deriveAchievements(next);
   next.trainerLevel = trainerLevelFromXp(next.trainerXp ?? 0);
   next.trainerRank = computeTrainerRank(next);
-  return appendMainNoticesIfNeeded(advanceResearch(next), preAch, preTrainerLevel);
+  const paid = levelUpPayout(next, preTrainerLevel, next.trainerLevel);
+  return appendMainNoticesIfNeeded(advanceResearch(paid), preAch, preTrainerLevel);
 }
 
 /** Close the post-battle result card. */

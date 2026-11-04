@@ -938,6 +938,10 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     typeCatches: normalizeTypeCatches(o.typeCatches),
     storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
     bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
+    themeVouchers: normalizeBonus(o.themeVouchers, 50),
+    themesOwned: Array.isArray(o.themesOwned)
+      ? [...new Set((o.themesOwned as unknown[]).filter((t): t is string => typeof t === 'string' && t.length > 0 && t.length < 40))].slice(0, 40)
+      : undefined,
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {

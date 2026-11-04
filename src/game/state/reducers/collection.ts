@@ -8,6 +8,7 @@ import { STARTER_DEX_ALL } from '../../data/pokedex';
 import {
   ACHIEVEMENT_DEFS,
   achievementItemBonus,
+  achievementCoinReward,
   achievementTrainerXpReward,
 } from '../../engine/achievements';
 import { withOptimalMoves } from '../../engine/movesetOptimizer';
@@ -307,6 +308,8 @@ export function claimAchievement(state: PokeRemGameState, id: string): PokeRemGa
   };
   next = addTrainerXp(next, achievementTrainerXpReward(def));
   next = addBagQuantities(next, achievementItemBonus(def));
+  const coins = achievementCoinReward(def);
+  next = { ...next, currency: (next.currency ?? 0) + coins, totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + coins };
   if (def.prestigeBadgeId) {
     const existing = next.prestigeBadges ?? [];
     if (!existing.includes(def.prestigeBadgeId)) {

@@ -1,3 +1,5 @@
+import { formatCoins } from '../../ui/format/coins';
+import { BALANCE } from '../balance';
 import type { ItemId } from '../data/items';
 import { ITEM_BY_ID } from '../data/items';
 import type { OwnedPokemon, PokeRemGameState } from '../state/model';
@@ -62,7 +64,7 @@ export function achievementItemBonus(def: AchievementDef): Partial<Record<ItemId
 export function achievementRewardSummary(def: AchievementDef): string {
   const xp = achievementTrainerXpReward(def);
   const items = achievementItemBonus(def);
-  const parts: string[] = [`+${xp} trainer XP`];
+  const parts: string[] = [`+${formatCoins(achievementCoinReward(def))}`, `+${xp} trainer XP`];
   for (const [id, n] of Object.entries(items)) {
     if (!n || n <= 0) continue;
     const meta = ITEM_BY_ID.get(id as ItemId);
@@ -82,6 +84,17 @@ export const GYM_BADGES: { name: string; wins: number }[] = [
   { name: 'Ember', wins: 28 },
   { name: 'Quake', wins: 36 },
 ];
+
+/** Galarian bird species registered in the Pokédex. */
+const birdCount = (s: PokeRemGameState) => [10169, 10170, 10171].filter((d) => (s.collectionDex?.[d] ?? 0) > 0).length;
+/** Level of your starter (Buddy), or 0. */
+const buddyLevel = (s: PokeRemGameState) =>
+  s.starterId ? ([...s.party, ...s.storagePokemon].find((p) => p.id === s.starterId)?.level ?? 0) : 0;
+
+/** Coins for claiming an achievement (by tier). */
+export function achievementCoinReward(def: AchievementDef): number {
+  return BALANCE.achievementCoins[def.tier];
+}
 
 export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   // Review milestones
@@ -249,6 +262,28 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: 'perfect10', name: 'Perfectionist', description: 'Own 10 Pokémon with perfect IVs', category: 'collection', tier: 'rare',
     bonusItems: { 'rare-candy': 1 },
     check: (s) => perfectCount(s) >= 10, progress: (s) => ({ current: Math.min(perfectCount(s), 10), target: 10 }) },
+  // 1.6.0: Team Rocket, transfers, themes, Galarian birds and your Buddy
+  { id: 'rocket_grunt1', name: 'Rocket Buster', description: 'Beat a Team Rocket grunt', category: 'trainer', tier: 'uncommon',
+    check: (s) => (s.rocket?.totalGruntWins ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.rocket?.totalGruntWins ?? 0, 1), target: 1 }) },
+  { id: 'rocket_grunt18', name: 'Rocket Sweeper', description: 'Beat 18 Team Rocket grunts', category: 'trainer', tier: 'rare',
+    check: (s) => (s.rocket?.totalGruntWins ?? 0) >= 18, progress: (s) => ({ current: Math.min(s.rocket?.totalGruntWins ?? 0, 18), target: 18 }) },
+  { id: 'rocket_leader', name: 'Rocket Badge', description: 'Beat the Rocket Leader', category: 'trainer', tier: 'rare',
+    prestigeBadgeId: 'rocket_badge',
+    check: (s) => (s.rocket?.leaderWins ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.rocket?.leaderWins ?? 0, 1), target: 1 }) },
+  { id: 'transfer1', name: 'Professor’s Helper', description: 'Transfer a Pokémon', category: 'pokemon', tier: 'common',
+    check: (s) => (s.totalTransferred ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 1), target: 1 }) },
+  { id: 'transfer100', name: 'Bulk Shipper', description: 'Transfer 100 Pokémon', category: 'pokemon', tier: 'rare',
+    check: (s) => (s.totalTransferred ?? 0) >= 100, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 100), target: 100 }) },
+  { id: 'theme1', name: 'Fresh Look', description: 'Buy a type theme', category: 'economy', tier: 'uncommon',
+    check: (s) => (s.themesOwned?.length ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 1), target: 1 }) },
+  { id: 'theme18', name: 'Every Colour', description: 'Own all 18 type themes', category: 'economy', tier: 'epic',
+    check: (s) => (s.themesOwned?.length ?? 0) >= 18, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 18), target: 18 }) },
+  { id: 'bird1', name: 'Galarian Sighting', description: 'Catch a Galarian legendary bird', category: 'collection', tier: 'rare',
+    check: (s) => birdCount(s) >= 1, progress: (s) => ({ current: Math.min(birdCount(s), 1), target: 1 }) },
+  { id: 'bird3', name: 'Trio of Legends', description: 'Register all three Galarian birds', category: 'collection', tier: 'epic',
+    check: (s) => birdCount(s) >= 3, progress: (s) => ({ current: Math.min(birdCount(s), 3), target: 3 }) },
+  { id: 'buddy50', name: 'Best Buddies', description: 'Raise your Buddy to Lv50', category: 'pokemon', tier: 'rare',
+    check: (s) => buddyLevel(s) >= 50, progress: (s) => ({ current: Math.min(buddyLevel(s), 50), target: 50 }) },
   { id: 'type_specialist', name: 'Type Specialist', description: 'Register 30 species of one type', category: 'collection', tier: 'rare',
     check: (s) => bestTypeCount(s) >= 30, progress: (s) => ({ current: Math.min(bestTypeCount(s), 30), target: 30 }) },
 
