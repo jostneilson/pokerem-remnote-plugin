@@ -4,6 +4,9 @@
  * docs/update-1.6.0/SPEC.md Appendix T; everything else here is fixed by the spec.
  */
 
+/** Transfer payout tier: the species tier, with everyday Pokémon split by how hard they are to catch. */
+export type TransferTier = 'Common' | 'Uncommon' | 'Rare' | 'Baby' | 'Ultra' | 'Legendary' | 'Mythical';
+
 export const BALANCE = {
   coins: {
     /** Per reviewed card, × the study card weight. */
@@ -30,6 +33,20 @@ export const BALANCE = {
     typeSharePartyPerLevel: 2,
     typeShareStorageBase: 5,
     typeShareStoragePerLevel: 0.5
+  },
+  /** Transfer payouts (SPEC A5; tunable ±50% per Appendix T, a Common always < ₽100). */
+  transfer: {
+    base: { Common: 30, Uncommon: 60, Rare: 150, Baby: 80, Ultra: 600, Legendary: 1500, Mythical: 2500 } as Record<TransferTier, number>,
+    /** Payout × (1 + level / perLevelDiv). */
+    perLevelDiv: 25,
+    shinyMult: 3,
+    hundoMult: 2,
+    /** A plain Common is always worth less than a Poké Ball. */
+    commonMax: 99,
+    /** XP to every owned Pokémon sharing a type: xpBase + xpPerLevel × level (storage gets half). */
+    xpBase: 8,
+    xpPerLevel: 2,
+    storageXpShare: 0.5
   },
   /** Team Rocket rewards (SPEC Appendix R; tunable per Appendix T). */
   rocket: {

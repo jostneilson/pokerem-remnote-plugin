@@ -85,6 +85,7 @@ export const GAME_COMMANDS = {
   switchActivePokemon: store.switchActivePokemon,
   teachTutorMove: store.teachTutorMove,
   togglePokemonFavorite: store.togglePokemonFavorite,
+  transferPokemon: store.transferPokemon,
   useBagItem,
   useBottleCap: store.useBottleCap,
   useEvolutionStone: store.useEvolutionStone

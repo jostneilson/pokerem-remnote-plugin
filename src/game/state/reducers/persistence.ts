@@ -311,6 +311,8 @@ function idTime(id: string): number {
 export function normalizeStarterId(raw: unknown, state: PokeRemGameState): string | undefined {
   const owned = [...state.party, ...state.storagePokemon];
   if (typeof raw === 'string' && owned.some((p) => p.id === raw)) return raw;
+  // Empty = the starter was transferred: no buddy any more.
+  if (raw === '') return '';
   let best: OwnedPokemon | undefined;
   for (const p of owned) {
     if (!isStarterLine(p.dexNum)) continue;
@@ -904,6 +906,8 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     teamPrompted: (o as { teamPrompted?: unknown }).teamPrompted === true || undefined,
     recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
     rocket: normalizeRocketState((o as { rocket?: unknown }).rocket),
+    totalTransferred:
+      typeof o.totalTransferred === 'number' && Number.isFinite(o.totalTransferred) ? Math.max(0, Math.floor(o.totalTransferred)) : undefined,
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {

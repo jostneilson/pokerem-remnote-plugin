@@ -16,8 +16,12 @@ import { xpThresholdForLevel } from '../../engine/progression';
 import { STARTER_LEVEL } from '../../constants';
 import { TRAINER_REWARDS } from '../../engine/trainerLevel';
 import type { PokeRemGameState, OwnedPokemon } from '../model';
-import { addBagQuantities, addTrainerXp, dismissMainNotice, withTouch } from './core';
-import { uid } from './persistence';
+import { addBagQuantities, addTrainerXp, dismissMainNotice, growPokemonWithXp, withTouch } from './core';
+import { BALANCE } from '../../balance';
+import { transferPreview, transferXpBase } from '../../engine/transfer';
+import { scaledXp } from '../../engine/xpShare';
+import { formatCoins } from '../../../ui/format/coins';
+import { bumpBattleOutcome, uid } from './persistence';
 
 /** Claim a finished daily or weekly quest's coins and items. */
 export function claimQuest(state: PokeRemGameState, questId: string): PokeRemGameState {
@@ -200,6 +204,45 @@ export function releasePokemon(state: PokeRemGameState, pokemonId: string): Poke
     activePokemonId = party[0]?.id ?? null;
   }
   return withTouch({ ...state, party, storagePokemon, activePokemonId });
+}
+
+/**
+ * Transfer Pokémon away for good (SPEC A5, L7): pays coins by tier and level (×3 shiny, ×2 HUNDO), and every
+ * owned Pokémon sharing a type gets XP (storage half). Refused if any is a favourite, it would empty the
+ * party, or one is fighting a trainer right now. The Pokédex keeps the entries.
+ */
+export function transferPokemon(state: PokeRemGameState, ids: string[]): PokeRemGameState {
+  const preview = transferPreview(state, ids);
+  if (preview.blocked) return state;
+  const leaving = new Set(preview.ids);
+  const party = state.party.filter((p) => !leaving.has(p.id));
+  const storage = state.storagePokemon.filter((p) => !leaving.has(p.id));
+  const scaled = { ...state, party, storagePokemon: storage };
+  const grow = (mon: OwnedPokemon, inParty: boolean) => {
+    let base = 0;
+    for (const m of preview.mons) {
+      if (mon.types.some((t) => m.types.includes(t))) base += transferXpBase(m) * (inParty ? 1 : BALANCE.transfer.storageXpShare);
+    }
+    return base > 0 ? growPokemonWithXp(mon, scaledXp(scaled, mon, base)).pokemon : mon;
+  };
+  const nextParty = party.map((p) => grow(p, true));
+  const nextStorage = storage.map((p) => grow(p, false));
+  const activePokemonId =
+    state.activePokemonId && leaving.has(state.activePokemonId) ? (nextParty[0]?.id ?? null) : state.activePokemonId;
+  const lostStarter = !!state.starterId && leaving.has(state.starterId);
+  const names = preview.mons.length === 1 ? preview.mons[0]!.nickname || preview.mons[0]!.name : `${preview.mons.length} Pokémon`;
+  return withTouch({
+    ...state,
+    party: nextParty,
+    storagePokemon: nextStorage,
+    activePokemonId,
+    // An empty id means "no buddy any more", so the starter backfill doesn't pick a new one.
+    ...(lostStarter ? { starterId: '' } : {}),
+    currency: (state.currency ?? 0) + preview.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + preview.coins,
+    totalTransferred: (state.totalTransferred ?? 0) + preview.mons.length,
+    ...bumpBattleOutcome(state, 'none', `Transferred ${names} for ${formatCoins(preview.coins)}.`),
+  });
 }
 
 export function moveToStorage(state: PokeRemGameState, pokemonId: string): PokeRemGameState {

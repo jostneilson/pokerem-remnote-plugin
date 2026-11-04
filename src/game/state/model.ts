@@ -394,6 +394,8 @@ export interface PokeRemGameState {
   recentCommandNonces?: string[];
   /** Team Rocket progress (Radar, Leader). */
   rocket?: RocketState;
+  /** Pokémon transferred, all time (achievements). */
+  totalTransferred?: number;
   /** 2 once `battleSceneIndex` uses the current scene list (see normalizeBattleSceneIndex). */
   sceneIndexVersion?: number;
   /** The area the arena is in; it moves on only after `encountersLeft` wild encounters (see AREA_* constants). */

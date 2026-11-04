@@ -87,6 +87,7 @@ export {
   learnMoveAction,
   renamePokemon,
   releasePokemon,
+  transferPokemon,
   moveToStorage,
   moveToParty,
   swapPartyWithStorage,
