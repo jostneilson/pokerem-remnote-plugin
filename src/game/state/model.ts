@@ -206,6 +206,8 @@ export interface RocketState {
   /** The next Rocket battle is the Leader (stays set after a loss, for a rematch). */
   leaderReady: boolean;
   leaderWins: number;
+  /** Lifetime grunt wins (research). */
+  totalGruntWins?: number;
 }
 
 /** What kind of Rocket battle this is, when it is one. */
@@ -400,6 +402,10 @@ export interface PokeRemGameState {
   rocket?: RocketState;
   /** Pokémon transferred, all time (achievements). */
   totalTransferred?: number;
+  /** Special Research (SPEC B4). `progress` = the step's counter value when the step began. */
+  research?: { lineId: string; step: number; progress: number; completed: string[]; birdPending?: boolean };
+  /** Lifetime catches per type (research steps like "Catch 10 Poison"). */
+  typeCatches?: Partial<Record<PokemonType, number>>;
   /** Daily firsts (SPEC B3): today's first catch / first defeat already paid. */
   daily?: { day: string; firstCatch: boolean; firstDefeat: boolean };
   /** Storage slots bought in the shop (0..200, steps of 20). */

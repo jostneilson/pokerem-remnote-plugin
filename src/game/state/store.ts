@@ -90,6 +90,7 @@ export {
   renamePokemon,
   releasePokemon,
   transferPokemon,
+  claimResearch,
   moveToStorage,
   moveToParty,
   swapPartyWithStorage,

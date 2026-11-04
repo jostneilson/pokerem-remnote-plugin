@@ -55,6 +55,7 @@ export const GAME_COMMANDS = {
   claimAllTrainerRewards: store.claimAllTrainerRewards,
   claimMainNotice: store.claimMainNotice,
   claimQuest: store.claimQuest,
+  claimResearch: store.claimResearch,
   claimTrainerCatch: store.claimTrainerCatch,
   claimTrainerReward: store.claimTrainerReward,
   closeTrainerBattle: store.closeTrainerBattle,

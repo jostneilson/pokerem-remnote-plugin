@@ -60,7 +60,8 @@ export function normalizeRocketState(raw: unknown): RocketState | undefined {
     gruntWins: int(o.gruntWins, LEADER_AFTER_GRUNT_WINS),
     typesBeaten: types,
     leaderReady: o.leaderReady === true,
-    leaderWins: int(o.leaderWins, 1_000_000)
+    leaderWins: int(o.leaderWins, 1_000_000),
+    ...(o.totalGruntWins ? { totalGruntWins: int(o.totalGruntWins, 1_000_000) } : {})
   };
 }
 
@@ -253,6 +254,7 @@ export function rocketAfterWin(rocket: RocketState | undefined, kind: 'grunt' | 
   return {
     ...r,
     gruntWins,
+    totalGruntWins: (r.totalGruntWins ?? 0) + 1,
     typesBeaten: beaten.length >= ALL_TYPES.length ? [] : beaten,
     leaderReady: r.leaderReady || gruntWins >= LEADER_AFTER_GRUNT_WINS
   };

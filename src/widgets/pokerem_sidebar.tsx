@@ -474,6 +474,7 @@ function PokeRemSidebar() {
                   }}
                   onClaimQuest={(id) => void dispatch(gameCommand('claimQuest', id))}
                   onClaimAllQuests={() => void dispatch(gameCommand('claimAllQuests'))}
+                  onClaimResearch={() => void dispatch(gameCommand('claimResearch'))}
                   rewards={
                     <RewardsScreen
                       embedded

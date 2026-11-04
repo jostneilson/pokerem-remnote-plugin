@@ -1,3 +1,4 @@
+import { researchAfterClaim, researchView } from '../../engine/research';
 import { storageRoom } from '../../engine/capacity';
 import { POKEREM_VERSION } from '../../../releaseMeta';
 import { rollIVs, battleStats } from '../../engine/pokemonStats';
@@ -407,5 +408,27 @@ export function togglePokemonFavorite(state: PokeRemGameState, id: string): Poke
     ...state,
     party: state.party.map(update),
     storagePokemon: state.storagePokemon.map(update),
+  });
+}
+
+/** Claim a finished Special Research line: coins, items, and (for the team line) your bird's sighting. */
+export function claimResearch(state: PokeRemGameState): PokeRemGameState {
+  const view = researchView(state);
+  if (!view.done) return state;
+  let next = addBagQuantities(state, view.line.items ?? {});
+  next = {
+    ...next,
+    currency: (next.currency ?? 0) + view.line.coins,
+    totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + view.line.coins,
+  };
+  const research = researchAfterClaim(next);
+  return withTouch({
+    ...next,
+    research: view.line.teamBird ? { ...research, birdPending: true } : research,
+    ...bumpBattleOutcome(
+      state,
+      'none',
+      `${view.line.title} complete! +${formatCoins(view.line.coins)}${view.line.teamBird ? ' · Your team’s bird has been sighted nearby…' : ''}`
+    ),
   });
 }

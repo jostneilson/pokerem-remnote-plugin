@@ -1,3 +1,5 @@
+import type { PokemonType } from '../../data/species';
+import { normalizeResearch } from '../../engine/research';
 import { normalizeDaily } from '../../engine/daily';
 import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
@@ -61,6 +63,16 @@ import type {
 } from '../model';
 import { formatCoins } from '../../../ui/format/coins';
 import { BAG_UPGRADE_MAX, STORAGE_UPGRADE_MAX, fitFoundItems } from '../../engine/capacity';
+
+/** Lifetime catches per type: known types, non-negative integers. */
+function normalizeTypeCatches(raw: unknown): Partial<Record<PokemonType, number>> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Partial<Record<PokemonType, number>> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (SPECIES_TYPES.has(k) && typeof v === 'number' && Number.isFinite(v) && v > 0) out[k as PokemonType] = Math.floor(v);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
 
 /** Bought capacity slots: an integer in 0..max; anything else is dropped. */
 function normalizeBonus(raw: unknown, max: number): number | undefined {
@@ -922,6 +934,8 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     totalTransferred:
       typeof o.totalTransferred === 'number' && Number.isFinite(o.totalTransferred) ? Math.max(0, Math.floor(o.totalTransferred)) : undefined,
     daily: normalizeDaily(o.daily),
+    research: normalizeResearch(o.research),
+    typeCatches: normalizeTypeCatches(o.typeCatches),
     storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
     bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
     schemaVersion: 5,

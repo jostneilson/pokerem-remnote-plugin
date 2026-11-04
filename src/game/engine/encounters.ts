@@ -84,6 +84,8 @@ export type SpawnEncounterOpts = {
   sceneIndex?: number;
   /** Encounters since the last shiny, for the pity ramp. */
   encountersSinceShiny?: number;
+  /** Spawn this Galarian bird (a research reward's guaranteed sighting). */
+  forceBird?: number;
 };
 
 export function spawnEncounter(
@@ -104,7 +106,8 @@ export function spawnEncounter(
   const base = encounterBaseLevel(party);
   // `rarityBonus` (faster pacing) no longer raises event odds: rarity is per encounter (SPEC L1).
   void rarityBonus;
-  const bird = cardsReviewed >= BIRD_MIN_REVIEWS && rng() < BIRD_CHANCE;
+  const forced = opts?.forceBird !== undefined && GALARIAN_BIRDS.has(opts.forceBird);
+  const bird = forced || (cardsReviewed >= BIRD_MIN_REVIEWS && rng() < BIRD_CHANCE);
   const eventPool =
     !bird && base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < EVENT_CHANCE
       ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum) && !GALARIAN_BIRDS.has(s.dexNum))
@@ -114,7 +117,7 @@ export function spawnEncounter(
   let level: number;
   if (bird) {
     // The birds are every team's mascots, so they appear whichever generations are enabled.
-    dexNum = pickGalarianBird(opts?.team, rng);
+    dexNum = forced ? opts!.forceBird! : pickGalarianBird(opts?.team, rng);
     level = base + 3 + Math.floor(rng() * 3);
   } else if (eventPool.length > 0) {
     const uncaught = eventPool.filter((s) => (collectionDex[s.dexNum] ?? 0) <= 0);

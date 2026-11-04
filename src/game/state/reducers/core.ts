@@ -1,3 +1,4 @@
+import { advanceResearch } from '../../engine/research';
 import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { capacityGain, fitFoundItems } from '../../engine/capacity';
 import { scaledXp } from '../../engine/xpShare';
@@ -132,7 +133,7 @@ export function withTouch(state: PokeRemGameState): PokeRemGameState {
   next.achievements = deriveAchievements(next);
   next.trainerLevel = trainerLevelFromXp(next.trainerXp ?? 0);
   next.trainerRank = computeTrainerRank(next);
-  return appendMainNoticesIfNeeded(next, preAch, preTrainerLevel);
+  return appendMainNoticesIfNeeded(advanceResearch(next), preAch, preTrainerLevel);
 }
 
 /** Close the post-battle result card. */
@@ -304,6 +305,10 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
     totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + coins,
     dailyStats: { ...ds, catches: ds.catches + 1 },
     daily: markDaily(base, 'firstCatch'),
+    typeCatches: enc.types.reduce(
+      (acc, t) => ({ ...acc, [t]: (acc[t] ?? 0) + 1 }),
+      { ...(base.typeCatches ?? {}) } as Partial<Record<PokemonType, number>>
+    ),
   };
 
   if (base.party.length >= 6) {

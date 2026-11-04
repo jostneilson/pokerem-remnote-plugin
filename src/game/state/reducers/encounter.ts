@@ -1,3 +1,4 @@
+import { TEAM_BIRD } from '../../engine/rarity';
 import { addBagQuantities } from './core';
 import { formatCoins } from '../../../ui/format/coins';
 import { STREAK_BONUS_COINS, streakBonusDue } from '../../engine/daily';
@@ -292,7 +293,9 @@ export function onQueueCardComplete(
           sceneIndex: bgNext,
           encountersSinceShiny: next.encountersSinceShiny ?? 0,
           team: next.team,
+          forceBird: next.research?.birdPending && next.team ? TEAM_BIRD[next.team] : undefined,
         });
+        if (next.research?.birdPending) next = { ...next, research: { ...next.research, birdPending: undefined } };
         const bounty = rollBounty();
         const enc = bounty ? { ...spawned, bounty } : spawned;
         const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';

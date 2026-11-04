@@ -13,6 +13,7 @@ import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { TrainerIdentityCard } from '../components/TrainerIdentityCard';
 import { QuestsPanel } from '../components/QuestsPanel';
+import { ResearchPanel } from '../components/ResearchPanel';
 import { RocketRadarChip } from '../components/RocketRadarChip';
 import { TrainerStatsPanels } from './StatusScreen';
 
@@ -120,6 +121,7 @@ export function ProgressScreen({
   onClaimAllAchievements,
   onClaimQuest,
   onClaimAllQuests,
+  onClaimResearch,
   rewards,
 }: {
   state: PokeRemGameState;
@@ -128,6 +130,7 @@ export function ProgressScreen({
   onClaimAllAchievements?: () => void;
   onClaimQuest?: (id: string) => void;
   onClaimAllQuests?: () => void;
+  onClaimResearch?: () => void;
   /** Trainer level rewards, shown under the identity card (Trainer screen). */
   rewards?: ReactNode;
 }) {
@@ -169,6 +172,8 @@ export function ProgressScreen({
       {onClaimQuest && onClaimAllQuests && state.starterChosen ? (
         <QuestsPanel state={state} onClaim={onClaimQuest} onClaimAll={onClaimAllQuests} />
       ) : null}
+
+      {onClaimResearch && state.starterChosen ? <ResearchPanel state={state} onClaim={onClaimResearch} /> : null}
 
       {battleId.id !== 'unranked' || prestigeBadges.length > 0 ? (
         <div
