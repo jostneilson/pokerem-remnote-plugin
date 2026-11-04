@@ -5,10 +5,10 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T2.4 (91ed5da)
-- In progress: T2.5
-- Next exact step: T2.5: applyTypeShareXpBoost gets state -> scaledXp x typeShareMult; doubler chip '×2 · N cards left' + queue count
-- Latest checks: 2026-11-04 after Phase 1: tsc clean, vitest 44 files / 279 tests, npm run build OK.
+- Last finished: T2.5 (3141bec)
+- In progress: T3.1
+- Next exact step: T3.1: create src/game/engine/rocket.ts per SPEC A9 + Appendix R (18 type grunts, ace pools, ROCKET_SHARE 0.33, type rotation); wire into trainer spawn in trainerBattles.ts
+- Latest checks: 2026-11-04 after Phase 2: tsc clean, vitest 288 tests, build OK.
 
 ## Known issues
 
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T2.5 | 3141bec | type-share doubled test; chip checked in preview at 280px (wraps, no overflow); build OK |
 | T2.4 | 91ed5da | combatV5 buddy accuracy test; xpShare buddy mult; 287 tests. Battle HUD ♥ comes with T6.7 |
 | T2.3 | eae52a9 | starterBuddy.test: choose, evolve, backfill, re-pick, none |
 | T2.2 | eae52a9 | catchUpMult unit test; tag on party card |
@@ -70,7 +71,7 @@ Each task's check: rarity sims within the C2 tolerances, plus unit tests.
 | [x] T2.2 (eae52a9) | Catch-up boost and tag. |
 | [x] T2.3 (eae52a9) | `starterId` with backfill. |
 | [x] T2.4 (91ed5da) | Buddy perks and badge. |
-| [~] T2.5 | Doublers apply to all XP sources, plus the doubler chip. |
+| [x] T2.5 (3141bec) | Doublers apply to all XP sources, plus the doubler chip. |
 
 Each task's check: unit tests; the level bands are checked in T5.
 
@@ -78,7 +79,7 @@ Each task's check: unit tests; the level bands are checked in T5.
 
 | Task | What |
 |---|---|
-| [ ] T3.1 | `rocket.ts`: 18 grunts, ace pools, share and type rotation. |
+| [~] T3.1 | `rocket.ts`: 18 grunts, ace pools, share and type rotation. |
 | [ ] T3.2 | Radar state and chip. |
 | [ ] T3.3 | Leader battle. |
 | [ ] T3.4 | Leader prize encounter: never flees, 1/5 shiny. |
