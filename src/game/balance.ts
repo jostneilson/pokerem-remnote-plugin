@@ -126,3 +126,11 @@ export function rollBounty(rng: () => number = Math.random): number | undefined 
   if (rng() >= b.chance) return undefined;
   return Math.round((b.min + rng() * (b.max - b.min)) / 100) * 100;
 }
+
+/** Type theme shop (SPEC A12/U11, 1.6.1). `price` is tunable ₽35–60k; a voucher takes `voucherOff` off one theme. */
+export const THEME_SHOP = { price: 45_000, voucherOff: 0.2 };
+
+/** Price of one theme, with or without a voucher (rounded to ₽100). */
+export function themePrice(useVoucher = false): number {
+  return Math.round((THEME_SHOP.price * (useVoucher ? 1 - THEME_SHOP.voucherOff : 1)) / 100) * 100;
+}

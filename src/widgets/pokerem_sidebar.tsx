@@ -440,6 +440,8 @@ function PokeRemSidebar() {
                   onBuyRouteTicket={(id) => void dispatch(gameCommand('buyRouteTicket', id))}
                   onBuyCardStyle={(id) => void dispatch(gameCommand('buyCardStyle', id))}
                   onEquipCardStyle={(id) => void dispatch(gameCommand('equipCardStyle', id))}
+                  onBuyTheme={(id, voucher) => void dispatch(gameCommand('buyTheme', id, voucher))}
+                  onEquipTheme={(id) => void dispatch(gameCommand('equipTheme', id))}
                   onBuyStorageUpgrade={() => void dispatch(gameCommand('buyStorageUpgrade'))}
                   onBuyBagUpgrade={() => void dispatch(gameCommand('buyBagUpgrade'))}
                   rootURL={plugin.rootURL}

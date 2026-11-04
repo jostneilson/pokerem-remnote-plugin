@@ -9,6 +9,8 @@ import {
   storageUpgradePrice
 } from '../../engine/capacity';
 import { REVIVE_SHOP_PRICE, shopPrice } from '../../engine/shop';
+import { themePrice } from '../../balance';
+import { ALL_TYPES } from '../../data/typeChart';
 import { ivsFor, isPerfectIVs, battleStats, powerUpCost } from '../../engine/pokemonStats';
 import { healAmountFor, ITEM_BY_ID, type ItemId } from '../../data/items';
 import { checkItemEvolution, applyEvolution } from '../../engine/evolution';
@@ -197,6 +199,30 @@ export function equipCardStyle(state: PokeRemGameState, styleId: string): PokeRe
   if (styleId !== 'classic' && !(state.ownedCardStyles ?? []).includes(styleId)) return state;
   const next = styleId === 'classic' ? undefined : styleId;
   return next === state.trainerCardStyle ? state : withTouch({ ...state, trainerCardStyle: next });
+}
+
+/** Buy a type theme (SPEC A12/U11) and equip it. A voucher, if used, takes 20% off and is spent. */
+export function buyTheme(state: PokeRemGameState, themeId: string, useVoucher = false): PokeRemGameState {
+  const owned = state.themesOwned ?? [];
+  const vouchers = state.themeVouchers ?? 0;
+  if (!(ALL_TYPES as string[]).includes(themeId) || owned.includes(themeId) || (useVoucher && vouchers < 1)) return state;
+  const price = themePrice(useVoucher);
+  if ((state.currency ?? 0) < price) return state;
+  return withTouch({
+    ...state,
+    currency: (state.currency ?? 0) - price,
+    themesOwned: [...owned, themeId],
+    themeActive: themeId,
+    ...(useVoucher ? { themeVouchers: vouchers - 1 } : {}),
+    totalShopPurchases: (state.totalShopPurchases ?? 0) + 1,
+  });
+}
+
+/** Equip an owned theme, or `'default'` for the free arcade look. */
+export function equipTheme(state: PokeRemGameState, themeId: string): PokeRemGameState {
+  if (themeId !== 'default' && !(state.themesOwned ?? []).includes(themeId)) return state;
+  const next = themeId === 'default' ? undefined : themeId;
+  return next === state.themeActive ? state : withTouch({ ...state, themeActive: next });
 }
 
 /** Consume exactly one compatible stone after all guards pass. No save migration. */

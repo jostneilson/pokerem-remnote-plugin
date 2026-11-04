@@ -4354,3 +4354,23 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-theme-fairy .pokerem-sidebar::after { animation:pkr-ambient-twinkle 12s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .pkr-themed .pokerem-sidebar::after { animation:none !important; } }
 .pkr-themed .pokerem-sidebar[data-reduced-motion="true"]::after { animation:none !important; }
+
+/* 1.6.1 Shop → Themes (SPEC U11). 2 columns under 360px, 3 from 360px. */
+.pkr-shop-tabs { margin: 0 0 10px; }
+.pkr-theme-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+@container (min-width: 360px) { .pkr-theme-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pkr-theme-grid__pick { display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pkr-card-style--picked { border-color: var(--pkr-accent); }
+/* Swatches show their own theme, so the default one keeps the fixed arcade colours whatever is equipped. */
+.pkr-theme-swatch { position: relative; display: block; height: 44px; overflow: hidden; border: 1px solid var(--pkr-border-dim); background-color: #101326; }
+.pkr-theme-swatch[class*="pkr-theme-"] { background-image: var(--pkr-pattern); }
+.pkr-theme-swatch i { position: absolute; left: 8px; right: 8px; top: 8px; height: 18px; border: 1px solid #65709a; background: #1a2039; }
+.pkr-theme-swatch b { position: absolute; left: 8px; right: 30%; bottom: 6px; height: 5px; background: linear-gradient(90deg, #a78bfa, #fde68a); }
+.pkr-theme-detail { display: flex; gap: 10px; margin-top: 10px; padding: 10px; border: 2px solid var(--pkr-border); background: var(--pkr-panel-deep); }
+.pkr-theme-detail .pkr-theme-swatch { flex: 0 0 72px; height: 72px; }
+.pkr-theme-detail__body { display: flex; min-width: 0; flex-direction: column; gap: 4px; font-size: var(--pkr-text-label); color: var(--pkr-ink-muted); }
+.pkr-theme-detail__body strong { color: var(--pkr-ink); font-size: var(--pkr-text-body); }
+.pkr-theme-detail__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pkr-theme-detail__actions .pkr-game-btn, .pkr-theme-preview-chip .pkr-game-btn { min-height: 32px; padding: 4px 10px; font-size: var(--pkr-text-label); }
+.pkr-theme-preview-chip { position: sticky; top: 4px; z-index: 3; display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border: 2px solid var(--pkr-accent); background: var(--pkr-panel); color: var(--pkr-ink); font-size: var(--pkr-text-label); font-weight: 900; box-shadow: 0 0 0 3px var(--pkr-glow); }
+.pkr-theme-preview-chip span { flex: 1; }
