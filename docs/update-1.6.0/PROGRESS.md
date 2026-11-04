@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T1.4 (commit '1.6.0 T1.1–T1.4')
-- In progress: T1.5
-- Next exact step: legendary-class catch curve in computeCatchChance (encounters.ts ~150) per L6; add status multiplier to trainer catch (trainerBattles.ts ~338)
+- Last finished: T1.6 (68c4ffc)
+- In progress: T2.1
+- Next exact step: T2.1: XP Share in encounter.ts study XP (equal per member, lead x1.2) and KO split 60/40 in battle.ts defeatEncounter; see SPEC L17
 - Latest checks: 2026-11-04 after Phase 0: tsc clean, vitest 44 files / 270 tests, npm run build OK.
 
 ## Known issues
@@ -18,6 +18,8 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T1.6 | 68c4ffc | shiny.test: shiny wild stays after lead faint, regular flees |
+| T1.5 | 68c4ffc | L6 curve unit points; preview + trainer path; 279 tests, tsc, build green |
 | T1.4 | commit '1.6.0 T1.1–T1.4' | levels: whole-party mean, never above avg, ~70% within 3 below (rarity.test.ts); old tests updated to the new rules |
 | T1.3 | commit '1.6.0 T1.1–T1.4' | rarity.test.ts: per-encounter odds fixed at any pacing, birds 1.2%/enc after 100 cards, team 50/25/25 ±2%, bird shiny 25% ±2%, wild legendaries ≈0.12%; 44 files/275 tests |
 | T1.2 | commit '1.6.0 T1.1–T1.4' | rarity.test.ts: per-encounter odds fixed at any pacing, birds 1.2%/enc after 100 cards, team 50/25/25 ±2%, bird shiny 25% ±2%, wild legendaries ≈0.12%; 44 files/275 tests |
@@ -51,8 +53,8 @@ Update this file before starting and after finishing every task. Commit it with 
 | [x] T1.2 (commit '1.6.0 T1.1–T1.4') | Galarian birds at 1/250 cards, with team weighting. |
 | [x] T1.3 (commit '1.6.0 T1.1–T1.4') | Wild legendary rate cut to ~1/2,500 cards; fix the uncaught-bias completeness check. |
 | [x] T1.4 (commit '1.6.0 T1.1–T1.4') | Wild level distribution (70/30). |
-| [~] T1.5 | Legendary catch curve, plus the trainer catch status multiplier. |
-| [ ] T1.6 | Shinies protected after a faint. |
+| [x] T1.5 (68c4ffc) | Legendary catch curve, plus the trainer catch status multiplier. |
+| [x] T1.6 (68c4ffc) | Shinies protected after a faint. |
 
 Each task's check: rarity sims within the C2 tolerances, plus unit tests.
 
@@ -60,7 +62,7 @@ Each task's check: rarity sims within the C2 tolerances, plus unit tests.
 
 | Task | What |
 |---|---|
-| [ ] T2.1 | XP Share and KO split. |
+| [~] T2.1 | XP Share and KO split. |
 | [ ] T2.2 | Catch-up boost and tag. |
 | [ ] T2.3 | `starterId` with backfill. |
 | [ ] T2.4 | Buddy perks and badge. |
