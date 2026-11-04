@@ -31,6 +31,11 @@ export const BALANCE = {
   },
   /** Achievement coins by tier (SPEC B5; tunable ±50%). */
   achievementCoins: { common: 500, uncommon: 1500, rare: 5000, epic: 15000 } as Record<'common' | 'uncommon' | 'rare' | 'epic', number>,
+  /**
+   * Power Up cost = base + perLevel·L + perLevelSq·L², the main steady sink (SPEC C2): about half a day's
+   * income at L20 (₽3.4k), a full day's at L40 (₽11.4k).
+   */
+  powerUp: { base: 200, perLevel: 40, perLevelSq: 6 },
   /** Every trainer level pays this × the level reached (tunable 100–500). */
   trainerLevelCoinPerLevel: 250,
   /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */

@@ -38,7 +38,7 @@ export const ITEMS: ItemData[] = [
     description: 'Revives a fainted Pokémon with about half its max HP. Potions and berries cannot heal fainted Pokémon — use a Revive first.',
   },
   { id: 'oran-berry', name: 'Oran Berry', iconFile: 'oran-berry.png', kind: 'heal', power: 10, healPercent: 0.1, price: 80, description: 'Restores a tenth of max HP (at least 10)' },
-  { id: 'rare-candy', name: 'Rare Candy', iconFile: 'rare-candy.png', kind: 'utility', price: 2000, description: 'Instantly raises level by 1' },
+  { id: 'rare-candy', name: 'Rare Candy', iconFile: 'rare-candy.png', kind: 'utility', price: 6000, description: 'Instantly raises level by 1' },
   {
     id: 'exp-candy-s',
     name: 'Exp. Candy S',
