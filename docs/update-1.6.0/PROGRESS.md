@@ -8,7 +8,7 @@ Update this file before starting and after finishing every task. Commit it with 
 - Last finished: T3.6 (ee5f71d)
 - In progress: T4.1
 - Next exact step: T4.1: transferPokemon(state, ids[]) in reducers/collection.ts per SPEC A5/L7 (payout tiers in BALANCE.transfer, type-share XP via applyTypeShareXpBoost-like path doubled, guards: favourite, last party member); transfer.test.ts
-- Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 297 tests, build OK.
+- Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
 
@@ -18,7 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
-| T3.6 | ee5f71d | preview: grunt intro (reduced motion clears at 1s), leader win -> See the Leader's prize, prize PRIZE badge + 2-tap give up; 297 tests, build OK |
+| T3.6 | ee5f71d | preview: grunt intro (reduced motion clears at 1s), leader win -> See the Leader's prize, prize PRIZE badge + 2-tap give up; 296 tests, build OK |
 | T3.2 | ee5f71d | Radar chip on Play + Trainer; preview checked |
 | T3.5 | 97001c9 | buildEnemyForDex 1/250 shiny; trainerEnemyAsEncounter keeps shiny |
 | T3.4 | 97001c9 | rocket.test: prize pendingPrize, never flees/KO, reload, shiny 20%±2 |
