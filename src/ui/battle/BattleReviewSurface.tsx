@@ -34,6 +34,7 @@ import { AchievementFanfare } from '../components/AchievementFanfare';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
 import { RocketRadarChip } from '../components/RocketRadarChip';
 import { LuckyChip } from '../components/LuckyChip';
+import { DailyTicks } from '../components/DailyTicks';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 import { BRAND } from '../theme/gameTheme';
 import { BattleField } from './BattleField';
@@ -593,6 +594,7 @@ export function BattleReviewSurface({
                 } until the next wild Pokémon (${progress} of ${effectiveRate} toward encounter)`}
               />
               <RocketRadarChip rocket={state.rocket} />
+              <DailyTicks state={state} />
             </div>
           )}
           {!canCatch && hasEncounter ? (

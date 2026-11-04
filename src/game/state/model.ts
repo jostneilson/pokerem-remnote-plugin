@@ -400,6 +400,8 @@ export interface PokeRemGameState {
   rocket?: RocketState;
   /** Pokémon transferred, all time (achievements). */
   totalTransferred?: number;
+  /** Daily firsts (SPEC B3): today's first catch / first defeat already paid. */
+  daily?: { day: string; firstCatch: boolean; firstDefeat: boolean };
   /** Storage slots bought in the shop (0..200, steps of 20). */
   storageBonus?: number;
   /** Bag slots bought in the shop (0..250, steps of 25). */

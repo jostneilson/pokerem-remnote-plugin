@@ -1,3 +1,4 @@
+import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { STORAGE_FULL_MESSAGE, catchBlockedByStorage } from '../../engine/capacity';
 import { BALANCE, defeatCoins as defeatCoinsFor } from '../../balance';
 import { resolveExchange, WILD_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
@@ -278,7 +279,13 @@ export function defeatEncounter(
     });
   }
   // XP Share: the lead keeps 60% of the knockout XP, the bench shares the rest.
-  const koShares = splitKnockoutXp(computeDefeatXp(state), state.party, state.activePokemonId);
+  // Daily first defeat: ×3 XP and ₽500 (SPEC B3).
+  const firstToday = isDailyFirst(state, 'firstDefeat');
+  const koShares = splitKnockoutXp(
+    computeDefeatXp(state) * (firstToday ? DAILY_FIRST_XP_MULT : 1),
+    state.party,
+    state.activePokemonId
+  );
   let xpGain = 0;
   let leveledUp = false;
   let evolvedMon: OwnedPokemon | null = null;
@@ -341,7 +348,9 @@ export function defeatEncounter(
   if (evolvedMon) trainerXpGain += TRAINER_XP_SOURCES.evolution;
 
   const defeatCoins =
-    defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) + (state.currentEncounter.bounty ?? 0);
+    defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) +
+    (state.currentEncounter.bounty ?? 0) +
+    (firstToday ? DAILY_FIRST_COINS : 0);
   const typeBoost = applyTypeShareXpBoost(
     party,
     state.storagePokemon,
@@ -359,6 +368,7 @@ export function defeatEncounter(
     selectedTab: 'status',
     totalDefeated: (state.totalDefeated ?? 0) + 1,
     totalEvolutions: (state.totalEvolutions ?? 0) + (evolvedMon ? 1 : 0),
+    daily: markDaily(state, 'firstDefeat'),
     currency: (state.currency ?? 0) + defeatCoins,
     totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + defeatCoins,
     ...bumpBattleOutcome(state, outcome, narr, strikeForBump),

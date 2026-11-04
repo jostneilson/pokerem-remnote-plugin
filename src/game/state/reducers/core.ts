@@ -1,3 +1,4 @@
+import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { capacityGain, fitFoundItems } from '../../engine/capacity';
 import { scaledXp } from '../../engine/xpShare';
 import { BALANCE, catchCoins } from '../../balance';
@@ -271,7 +272,10 @@ export function battleResult(
 
 export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeRemGameState {
   const mon = ownedFromEncounter(enc);
-  const coins = catchCoins(enc.level, enc.dexNum) + (enc.bounty ?? 0);
+  // Daily first catch: ×3 trainer XP and ₽500 (SPEC B3).
+  const firstToday = isDailyFirst(base, 'firstCatch');
+  const coins = catchCoins(enc.level, enc.dexNum) + (enc.bounty ?? 0) + (firstToday ? DAILY_FIRST_COINS : 0);
+  const catchTrainerXp = TRAINER_XP_SOURCES.catch * (firstToday ? DAILY_FIRST_XP_MULT : 1);
   const caughtInfo = {
     lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, coins),
     shinyLog: enc.shiny
@@ -299,6 +303,7 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
     currency: (base.currency ?? 0) + coins,
     totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + coins,
     dailyStats: { ...ds, catches: ds.catches + 1 },
+    daily: markDaily(base, 'firstCatch'),
   };
 
   if (base.party.length >= 6) {
@@ -325,7 +330,7 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
             `Caught ${enc.name}! Party is full — choose who goes to storage.`
           ),
         },
-        TRAINER_XP_SOURCES.catch
+        catchTrainerXp
       )
     );
   }
@@ -348,7 +353,7 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
         storagePokemon: typeBoost.storagePokemon,
         ...bumpBattleOutcome(base, 'catch_success', `Caught ${enc.name}!`),
       },
-      TRAINER_XP_SOURCES.catch
+      catchTrainerXp
     )
   );
 }

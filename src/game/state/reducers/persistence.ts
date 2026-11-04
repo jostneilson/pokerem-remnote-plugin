@@ -1,3 +1,4 @@
+import { normalizeDaily } from '../../engine/daily';
 import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../../data/evolutions';
@@ -920,6 +921,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
     rocket: normalizeRocketState((o as { rocket?: unknown }).rocket),
     totalTransferred:
       typeof o.totalTransferred === 'number' && Number.isFinite(o.totalTransferred) ? Math.max(0, Math.floor(o.totalTransferred)) : undefined,
+    daily: normalizeDaily(o.daily),
     storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
     bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
     schemaVersion: 5,

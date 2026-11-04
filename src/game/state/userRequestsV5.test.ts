@@ -43,6 +43,8 @@ describe('User specific requirements in 1.4.0', () => {
           currentHp: 80,
           types: ['Electric'],
         },
+        // Today's daily firsts already paid, so only the base rewards are compared.
+        daily: { day: new Date().toISOString().slice(0, 10), firstCatch: true, firstDefeat: true },
       };
 
       const defeatState = defeatEncounter(baseState);

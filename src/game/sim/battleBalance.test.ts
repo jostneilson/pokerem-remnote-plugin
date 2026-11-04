@@ -21,7 +21,8 @@ describe('battle balance (simulated play, 900 cards)', () => {
   });
 
   it('trainer battles are winnable but not free for a player who builds a team', () => {
-    const teamRuns = [4, 5, 6].map((seed) => simulate({ cards: 900, seed }));
+    // Nine seeds: three were too few to keep the band stable when the RNG stream shifts.
+    const teamRuns = [4, 5, 6, 7, 8, 9, 10, 11, 12].map((seed) => simulate({ cards: 900, seed }));
     const t = teamRuns.flatMap((r) => r.events.filter((e) => e.kind === 'trainer_win' || e.kind === 'trainer_loss'));
     const winRate = t.filter((e) => e.kind === 'trainer_win').length / t.length;
     expect(t.length).toBeGreaterThan(10);

@@ -1,3 +1,6 @@
+import { addBagQuantities } from './core';
+import { formatCoins } from '../../../ui/format/coins';
+import { STREAK_BONUS_COINS, streakBonusDue } from '../../engine/daily';
 import { rollBounty } from '../../balance';
 import { BALANCE } from '../../balance';
 import { scaledXp, studyXpBase } from '../../engine/xpShare';
@@ -79,10 +82,26 @@ function updateStreak(state: PokeRemGameState): PokeRemGameState {
   }
 
   const longestStreak = Math.max(state.longestStreak ?? 0, currentStreak);
-  return addTrainerXp(
-    { ...state, lastStudyDate: today, currentStreak, longestStreak },
-    TRAINER_XP_SOURCES.streakDay
-  );
+  let next = addTrainerXp({ ...state, lastStudyDate: today, currentStreak, longestStreak }, TRAINER_XP_SOURCES.streakDay);
+  // Every 7th day in a row: ₽5k and a Rare XP Doubler (SPEC B3).
+  if (streakBonusDue(currentStreak)) {
+    next = addBagQuantities(next, { 'xp-doubler-rare': 1 });
+    next = {
+      ...next,
+      currency: (next.currency ?? 0) + STREAK_BONUS_COINS,
+      totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + STREAK_BONUS_COINS,
+      mainNoticeQueue: [
+        ...(next.mainNoticeQueue ?? []),
+        {
+          kind: 'trainer_battle_result' as const,
+          id: `streak-${today}`,
+          title: `${currentStreak}-day study streak!`,
+          subtitle: `+${formatCoins(STREAK_BONUS_COINS)} · Rare XP Doubler`
+        }
+      ].slice(-12)
+    };
+  }
+  return next;
 }
 
 export function onQueueCardComplete(

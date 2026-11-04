@@ -4292,3 +4292,7 @@ body,:host { font-family:var(--pkr-font-body); }
 @keyframes pkr-coin-tick-b{0%{transform:scale(1)}40%{transform:scale(1.18);filter:brightness(1.4)}100%{transform:scale(1)}}
 .pkr-bounty-chip{display:inline-block;padding:1px 5px;border:1px solid #b7791f;background:#3c2b0b;color:#ffe08a;font-size:11px;font-weight:900;letter-spacing:.5px}
 @media (prefers-reduced-motion:reduce){.pkr-lucky-chip{animation:none}.pkr-coin-tick--0,.pkr-coin-tick--1{animation:none}}
+.pkr-daily-ticks{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:6px;font-size:var(--pkr-text-fine,12px);font-weight:900;color:var(--pkr-ink-muted)}
+.pkr-daily-tick{display:inline-flex;align-items:center;gap:4px}.pkr-daily-tick i{display:inline-block;width:12px;height:12px;border:2px solid #69759d;background:#080d20;color:#0f172a;font-size:9px;line-height:8px;text-align:center;font-style:normal}
+.pkr-daily-tick.is-done{color:#bff5e3}.pkr-daily-tick.is-done i{border-color:#4bd5b1;background:#4bd5b1}
+.pkr-daily-streak{display:inline-flex;align-items:center;gap:3px;color:#ffb27a}
