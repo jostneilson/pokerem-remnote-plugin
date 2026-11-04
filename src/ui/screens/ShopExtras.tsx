@@ -1,3 +1,4 @@
+import { coinsSpoken, formatCoins, formatCoinsExact } from '../format/coins';
 import { ROUTE_BIOMES, ROUTE_BIOME_BY_ID, ROUTE_TICKET_PRICE, ROUTE_TICKET_WILDS, TRAINER_CARD_STYLES } from '../../game/engine/sinks';
 import { battleSceneImageUrl } from '../../game/engine/battleAmbience';
 import { Panel } from '../components/Panel';
@@ -31,7 +32,7 @@ export function ShopExtras({
     <>
       <Panel title="Route tickets" icon={<GameIcon name="key" size={13} style={{ color: '#7dd3fc' }} />} accent="#0284c7">
         <p className="pkr-shop-extras-note">
-          ₽{ROUTE_TICKET_PRICE.toLocaleString()} sends your next {ROUTE_TICKET_WILDS} wild Pokémon to one place, with its types more likely.
+          {formatCoinsExact(ROUTE_TICKET_PRICE)} sends your next {ROUTE_TICKET_WILDS} wild Pokémon to one place, with its types more likely.
           {activeBiome ? (
             <strong className="pkr-ticket-active"> Active: {activeBiome.name} · {active!.remaining} wild{active!.remaining === 1 ? '' : 's'} left.</strong>
           ) : null}
@@ -52,10 +53,10 @@ export function ShopExtras({
                   className="pkr-game-btn pkr-ticket__buy"
                   disabled={blocked || !afford}
                   title={blocked ? `Finish your ${activeBiome?.name} ticket first` : undefined}
-                  aria-label={`${active?.biome === b.id ? 'Add 10 more wilds to' : 'Buy a ticket for'} ${b.name}, ${ROUTE_TICKET_PRICE} Poké Dollars`}
+                  aria-label={`${active?.biome === b.id ? 'Add 10 more wilds to' : 'Buy a ticket for'} ${b.name}, ${coinsSpoken(ROUTE_TICKET_PRICE)}`}
                   onClick={() => onBuyRouteTicket(b.id)}
                 >
-                  {active?.biome === b.id ? '+10' : `₽${(ROUTE_TICKET_PRICE / 1000).toFixed(0)}k`}
+                  {active?.biome === b.id ? '+10' : formatCoins(ROUTE_TICKET_PRICE)}
                 </button>
               </li>
             );
@@ -86,10 +87,10 @@ export function ShopExtras({
                     type="button"
                     className="pkr-game-btn pkr-card-style__btn"
                     disabled={currency < st.price}
-                    aria-label={`Buy ${st.name} card style for ${st.price} Poké Dollars`}
+                    aria-label={`Buy ${st.name} card style for ${coinsSpoken(st.price)}`}
                     onClick={() => onBuyCardStyle(st.id)}
                   >
-                    ₽{st.price >= 1000 ? `${st.price / 1000}k` : st.price}
+                    {formatCoins(st.price)}
                   </button>
                 )}
               </li>

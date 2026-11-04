@@ -1,3 +1,4 @@
+import { Coins } from '../components/Coins';
 import type { PokeRemGameState } from '../../game/state/model';
 import { trainerXpProgress } from '../../game/engine/trainerLevel';
 import { StatHoverTip } from './StatHoverTip';
@@ -121,7 +122,7 @@ export function BattleHeaderBar({
           style={{ color: '#fcd34d' }}
         >
           <GameIcon name="coin" size={11} />
-          {state.currency ?? 0}
+          <Coins value={state.currency ?? 0} />
         </span>
       </StatHoverTip>
       <StatHoverTip

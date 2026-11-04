@@ -1,3 +1,5 @@
+import { Coins } from '../components/Coins';
+import { coinsSpoken, formatCoins } from '../format/coins';
 import { useEffect, useRef, useState } from 'react';
 import { getShopInventory, type ShopItem } from '../../game/engine/shop';
 import { itemIconUrl } from '../../game/sprites';
@@ -85,7 +87,7 @@ export function ShopScreen({
         <div className="pkr-shop-buy flex shrink-0 flex-col items-stretch gap-1">
         <button
           type="button"
-          aria-label={`Buy ${si.item.name} for ${si.price} Poké Dollars${canAfford ? '' : ', insufficient balance'}`}
+          aria-label={`Buy ${si.item.name} for ${coinsSpoken(si.price)}${canAfford ? '' : ', insufficient balance'}`}
           disabled={!canAfford}
           onClick={() => handleBuy(si)}
           className="pkr-game-btn shrink-0 rounded-lg border-2 px-3 py-2 pkr-fine font-black tabular-nums uppercase active:translate-y-px disabled:cursor-not-allowed disabled:opacity-75"
@@ -103,7 +105,7 @@ export function ShopScreen({
                 }
           }
         >
-          <span className="pkr-shop-buy__verb">Buy</span> <span>₽{si.price.toLocaleString()}</span>
+          <span className="pkr-shop-buy__verb">Buy</span> <span>{formatCoins(si.price)}</span>
         </button>
         {si.price < 5000 ? (
           <div className="pkr-shop-multi" role="group" aria-label={`Buy several ${si.item.name}`}>
@@ -113,7 +115,7 @@ export function ShopScreen({
                 type="button"
                 className="pkr-game-btn"
                 disabled={currency < si.price * n}
-                aria-label={`Buy ${n} ${si.item.name} for ${si.price * n} Poké Dollars`}
+                aria-label={`Buy ${n} ${si.item.name} for ${coinsSpoken(si.price * n)}`}
                 onClick={() => handleBuy(si, n)}
               >
                 ×{n}
@@ -146,7 +148,7 @@ export function ShopScreen({
           <GameIcon name="coin" size={14} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Your balance
         </span>
         <span className="text-base font-black tabular-nums" style={{ color: '#fef3c7' }}>
-          ₽{currency.toLocaleString()}
+          <Coins value={currency} />
         </span>
       </div>
 

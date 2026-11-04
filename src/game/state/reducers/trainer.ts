@@ -1,3 +1,4 @@
+import { formatCoins } from '../../../ui/format/coins';
 import { resolveExchange, TRAINER_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
 import { dedupeMoveIds, getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
@@ -349,7 +350,7 @@ export function resolveTrainerBattle(
         state,
         'faint',
         fee > 0
-          ? `Defeated by ${battle.trainer.className}. You paid ₽${fee.toLocaleString()} to the winner.`
+          ? `Defeated by ${battle.trainer.className}. You paid ${formatCoins(fee)} to the winner.`
           : `Defeated by ${battle.trainer.className}. Better luck next session.`
       ),
     });
@@ -389,7 +390,7 @@ export function resolveTrainerBattle(
   };
 
   const subline = [
-    `+${reward.coins} coins`,
+    `+${formatCoins(reward.coins)}`,
     reward.xpDoublerTier
       ? `${reward.xpDoublerTier === 'rare' ? 'Rare' : reward.xpDoublerTier === 'legendary' ? 'Legendary' : 'Common'} XP Doubler`
       : '',

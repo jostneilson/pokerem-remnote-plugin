@@ -1,3 +1,4 @@
+import { Coins } from '../components/Coins';
 import { useEffect, useState } from 'react';
 import type { BattleResult } from '../../game/state/model';
 import { frontSpriteUrl } from '../../game/sprites';
@@ -65,8 +66,8 @@ export function BattleResultCard({
             <div className="pkr-result-hundo">★★★★ HUNDO · perfect IVs</div>
           ) : null}
           <div className="pkr-result-sub">
-            {result.xp > 0 ? `${result.monName} +${result.xp} XP · ` : ''}+₽
-            {result.coins.toLocaleString()}
+            {result.xp > 0 ? `${result.monName} +${result.xp} XP · ` : ''}
+            <Coins value={result.coins} prefix="+" />
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { coinsSpoken, formatCoins } from '../format/coins';
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { OwnedPokemon } from '../../game/state/model';
@@ -310,7 +311,7 @@ export function PartyScreen({
         <PokemonAppraisal pokemon={p} />
         <PokemonGrowthPanel pokemon={p} />
         {onPowerUp ? <section className="pkr-power-up" aria-label="Power up Pokemon">
-          <div className="flex items-center justify-between gap-2"><strong>POWER UP</strong><span>₽{preview?.cost ?? '—'}</span></div>
+          <div className="flex items-center justify-between gap-2"><strong>POWER UP</strong><span>{preview ? formatCoins(preview.cost) : '—'}</span></div>
           {preview ? <>
             <p>Lv{p.level} → Lv{preview.level}</p>
             <div className="pkr-power-up__stats">
@@ -377,8 +378,8 @@ export function PartyScreen({
                     <span>{m?.type ?? ''}{m && m.power > 0 ? ` · ${m.power}\u00a0PWR` : ' · Status'} · <span className="whitespace-nowrap">Lv {o.learnLevel}</span></span>
                   </span>
                   <button type="button" className="pkr-game-btn pkr-tutor__buy" disabled={powerUpBlocked || currency < o.price}
-                    aria-label={`Teach ${moveDisplayName(o.moveId)} for ${o.price} Poké Dollars`}
-                    onClick={() => onTutor(p.id, o.moveId)}>₽{o.price.toLocaleString()}</button>
+                    aria-label={`Teach ${moveDisplayName(o.moveId)} for ${coinsSpoken(o.price)}`}
+                    onClick={() => onTutor(p.id, o.moveId)}>{formatCoins(o.price)}</button>
                 </li>;
               })}
             </ul>

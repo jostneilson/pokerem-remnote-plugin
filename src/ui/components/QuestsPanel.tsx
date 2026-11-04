@@ -1,3 +1,4 @@
+import { formatCoins } from '../format/coins';
 import type { PokeRemGameState } from '../../game/state/model';
 import { questViews, type QuestView } from '../../game/engine/quests';
 import { ITEM_BY_ID, type ItemId } from '../../game/data/items';
@@ -6,7 +7,7 @@ function rewardLine(q: QuestView): string {
   const items = Object.entries(q.items ?? {})
     .filter(([, n]) => (n ?? 0) > 0)
     .map(([id, n]) => `${n}× ${ITEM_BY_ID.get(id as ItemId)?.name ?? id}`);
-  return [`₽${q.coins.toLocaleString()}`, ...items].join(' · ');
+  return [formatCoins(q.coins), ...items].join(' · ');
 }
 
 function QuestRow({ q, onClaim }: { q: QuestView; onClaim: (id: string) => void }) {

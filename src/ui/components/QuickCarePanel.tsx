@@ -1,3 +1,4 @@
+import { formatCoins } from '../format/coins';
 import { ITEM_BY_ID } from '../../game/data/items';
 import { REVIVE_SHOP_PRICE } from '../../game/engine/shop';
 import type { PokeRemGameState } from '../../game/state/model';
@@ -51,7 +52,7 @@ export function QuickCarePanel({
       <div className="pkr-care__actions">
         {fainted ? (
           <button type="button" className="pkr-btn-primary" disabled={busy || !canRevive} onClick={() => onApply(gameCommand('quickReviveLead'))}>
-            {reviveCount > 0 ? `Revive (×${reviveCount})` : `Buy & Revive ₽${REVIVE_SHOP_PRICE}`}
+            {reviveCount > 0 ? `Revive (×${reviveCount})` : `Buy & Revive ${formatCoins(REVIVE_SHOP_PRICE)}`}
           </button>
         ) : null}
         {next ? (
@@ -68,17 +69,17 @@ export function QuickCarePanel({
           >
             {potion.owned
               ? `Use ${ITEM_BY_ID.get(potion.id)!.name} (×${state.bag[potion.id] ?? 0})`
-              : `Buy & use Potion ₽${potion.price}`}
+              : `Buy & use Potion ${formatCoins(potion.price)}`}
           </button>
         ) : null}
         {showCenter ? (
           <button type="button" className="pkr-btn-secondary" disabled={busy || coins < centerCost} onClick={() => onApply(gameCommand('pokemonCenterHeal'))}>
-            Heal team ₽{centerCost}
+            Heal team {formatCoins(centerCost)}
           </button>
         ) : null}
         {needBalls ? (
           <button type="button" className="pkr-btn-primary" disabled={busy || coins < ballPrice} onClick={() => onApply(gameCommand('quickBuyBalls'))}>
-            Buy {QUICK_BALL_COUNT} Poké Balls · ₽{(ballPrice * QUICK_BALL_COUNT).toLocaleString()}
+            Buy {QUICK_BALL_COUNT} Poké Balls · {formatCoins(ballPrice * QUICK_BALL_COUNT)}
           </button>
         ) : null}
       </div>

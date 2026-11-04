@@ -1,3 +1,4 @@
+import { Coins } from '../components/Coins';
 import { useState } from 'react';
 import { ITEMS, type ItemData, type ItemId } from '../../game/data/items';
 import { itemIconUrl } from '../../game/sprites';
@@ -453,7 +454,7 @@ export function BagScreen({
             <GameIcon name="coin" size={14} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Poké Dollars
           </span>
           <span className="text-base font-black tabular-nums" style={{ color: '#fef3c7' }}>
-            ₽{currency.toLocaleString()}
+            <Coins value={currency} />
           </span>
         </div>
       ) : null}

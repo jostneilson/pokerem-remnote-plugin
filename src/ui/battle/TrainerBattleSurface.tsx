@@ -1,3 +1,5 @@
+import { Coins } from '../components/Coins';
+import { formatCoins, formatCoinsExact } from '../format/coins';
 import { useTrainerPresentation } from '../hooks/useTrainerPresentation';
 import { useMemo, useState } from 'react';
 import type {
@@ -742,7 +744,7 @@ export function TrainerBattleSurface({
               {reward.headline}
             </div>
             <div className="flex flex-wrap gap-2 pkr-fine" style={{ color: 'var(--pkr-ink-bright)' }}>
-              <span className="rounded bg-black/30 px-2 py-1">+₽{reward.coins}</span>
+              <span className="rounded bg-black/30 px-2 py-1"><Coins value={reward.coins} prefix="+" /></span>
               <span className="rounded bg-black/30 px-2 py-1">+{reward.trainerXp} TR XP</span>
               {Object.entries(reward.items).map(([id, qty]) => (
                 <span key={id} className="rounded bg-black/30 px-2 py-1">
@@ -771,7 +773,7 @@ export function TrainerBattleSurface({
                 Catch one Pokémon
               </span>
               <span className="pkr-fine font-bold tabular-nums" style={{ color: 'var(--pkr-ink-gold)' }}>
-                Coins: ₽{currency}
+                Coins: <Coins value={currency} />
               </span>
             </div>
             <p className="pkr-fine" style={{ color: 'var(--pkr-ink-muted)' }}>
@@ -877,8 +879,8 @@ export function TrainerBattleSurface({
                       !b.unlocked
                         ? 'Locked — level up trainer to unlock'
                         : !canAfford
-                        ? `Need ₽${b.price} (have ₽${currency})`
-                        : `Buy ${b.id.replace(/-/g, ' ')} for ₽${b.price}`
+                        ? `Need ${formatCoinsExact(b.price)} (have ${formatCoinsExact(currency)})`
+                        : `Buy ${b.id.replace(/-/g, ' ')} for ${formatCoinsExact(b.price)}`
                     }
                   >
                     <img
@@ -888,7 +890,7 @@ export function TrainerBattleSurface({
                       alt={b.id}
                       style={{ imageRendering: 'pixelated', opacity: disabled ? 0.6 : 1 }}
                     />
-                    <span style={{ color: 'var(--pkr-ink-gold)' }}>₽{b.price}</span>
+                    <span style={{ color: 'var(--pkr-ink-gold)' }}>{formatCoins(b.price)}</span>
                   </button>
                 );
               })}
@@ -969,7 +971,7 @@ export function TrainerBattleSurface({
           title={(state.currency ?? 0) < rematchCost ? 'Not enough coins to heal for a rematch' : undefined}
           onClick={onRematch}
         >
-          {rematchCost > 0 ? `Heal & rematch · ₽${rematchCost.toLocaleString()}` : 'Rematch'}
+          {rematchCost > 0 ? `Heal & rematch · ${formatCoins(rematchCost)}` : 'Rematch'}
         </button>
       ) : null}
       <button
