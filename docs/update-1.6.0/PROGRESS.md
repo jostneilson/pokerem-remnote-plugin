@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T1.6 (68c4ffc)
-- In progress: T2.1
-- Next exact step: T2.1: XP Share in encounter.ts study XP (equal per member, lead x1.2) and KO split 60/40 in battle.ts defeatEncounter; see SPEC L17
+- Last finished: T2.3 (eae52a9)
+- In progress: T2.4
+- Next exact step: T2.4: buddy miss halving in moveMechanics.ts (~145) via Fighter.isBuddy set in battle.ts/trainer.ts; XP x1.15 already in xpShare.memberXpMult; badge done on card (grid in T4.4)
 - Latest checks: 2026-11-04 after Phase 1: tsc clean, vitest 44 files / 279 tests, npm run build OK.
 
 ## Known issues
@@ -18,6 +18,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T2.3 | eae52a9 | starterBuddy.test: choose, evolve, backfill, re-pick, none |
+| T2.2 | eae52a9 | catchUpMult unit test; tag on party card |
+| T2.1 | eae52a9 | xpShare.test, collectionV5/userRequestsV5 updated; 286 tests |
 | T1.6 | 68c4ffc | shiny.test: shiny wild stays after lead faint, regular flees |
 | T1.5 | 68c4ffc | L6 curve unit points; preview + trainer path; 279 tests, tsc, build green |
 | T1.4 | commit '1.6.0 T1.1–T1.4' | levels: whole-party mean, never above avg, ~70% within 3 below (rarity.test.ts); old tests updated to the new rules |
@@ -62,10 +65,10 @@ Each task's check: rarity sims within the C2 tolerances, plus unit tests.
 
 | Task | What |
 |---|---|
-| [~] T2.1 | XP Share and KO split. |
-| [ ] T2.2 | Catch-up boost and tag. |
-| [ ] T2.3 | `starterId` with backfill. |
-| [ ] T2.4 | Buddy perks and badge. |
+| [x] T2.1 (eae52a9) | XP Share and KO split. |
+| [x] T2.2 (eae52a9) | Catch-up boost and tag. |
+| [x] T2.3 (eae52a9) | `starterId` with backfill. |
+| [~] T2.4 | Buddy perks and badge. |
 | [ ] T2.5 | Doublers apply to all XP sources, plus the doubler chip. |
 
 Each task's check: unit tests; the level bands are checked in T5.
