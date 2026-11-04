@@ -209,7 +209,6 @@ export function BattleReviewSurface({
     reducedMotion: reducedMotion === true,
     outcomeKind,
     strike: state.lastCombatStrike,
-    sceneChanged: scene.blend,
   });
 
   const frameW = useFrameWidth(outerRef, widthSourceRef);
@@ -300,7 +299,7 @@ export function BattleReviewSurface({
     return () => ro.disconnect();
   }, [onFieldEndOffsetChange]);
 
-  const impactShake = xpMoment.screenShake || fx.sceneShake;
+  const impactShake = xpMoment.screenShake;
   const chromeClassName = sidebarSplitLayout
     ? `shrink-0 z-[20] bg-[#0b0f14]/96 shadow-[0_8px_24px_rgba(0,0,0,0.65)] backdrop-blur-[2px]${impactShake ? ' animate-pkr-xp-impact' : ''}`
     : `sticky top-0 z-[20] shrink-0 bg-[#0b0f14]/96 shadow-[0_8px_24px_rgba(0,0,0,0.65)] backdrop-blur-[2px]`;

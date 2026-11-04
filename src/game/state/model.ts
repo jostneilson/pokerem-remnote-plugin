@@ -365,4 +365,16 @@ export interface PokeRemGameState {
   // ── 1.6.0 additions — all optional, normalised in `parseGameStateCore` ──
   /** Nonces of the last widget commands applied (see commandChannel.ts), so none applies twice. */
   recentCommandNonces?: string[];
+  /** 2 once `battleSceneIndex` uses the current scene list (see normalizeBattleSceneIndex). */
+  sceneIndexVersion?: number;
+  /** The area the arena is in; it moves on only after `encountersLeft` wild encounters (see AREA_* constants). */
+  area?: AreaState;
+}
+
+export interface AreaState {
+  sceneIndex: number;
+  /** Wild encounters still to happen in this area, counting the current one. */
+  encountersLeft: number;
+  /** True for the first encounter after arriving, so the UI can show the area name once. */
+  isNew?: boolean;
 }

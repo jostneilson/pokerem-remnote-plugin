@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FX_TIMELINES, fxReducer, hitTimeline, type BattleFx } from './useBattleFx';
 
-const idle: BattleFx = { shake: false, intro: false, lunge: 'idle', wildHit: false, playerHit: false, sceneShake: false };
+const idle: BattleFx = { shake: false, intro: false, lunge: 'idle', wildHit: false, playerHit: false };
 
 describe('battle field effects', () => {
   it('returns the same state for a no-op patch, so React skips the render', () => {

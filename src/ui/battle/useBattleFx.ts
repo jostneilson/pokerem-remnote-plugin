@@ -17,10 +17,9 @@ export interface BattleFx {
   lunge: 'idle' | 'player' | 'wild';
   wildHit: boolean;
   playerHit: boolean;
-  sceneShake: boolean;
 }
 
-type Channel = 'shake' | 'intro' | 'lunge' | 'hits' | 'scene';
+type Channel = 'shake' | 'intro' | 'lunge' | 'hits';
 export type FxStep = { at: number; patch: Partial<BattleFx> };
 
 const IDLE: BattleFx = {
@@ -29,7 +28,6 @@ const IDLE: BattleFx = {
   lunge: 'idle',
   wildHit: false,
   playerHit: false,
-  sceneShake: false,
 };
 
 export function fxReducer(state: BattleFx, patch: Partial<BattleFx>): BattleFx {
@@ -40,7 +38,7 @@ export function fxReducer(state: BattleFx, patch: Partial<BattleFx>): BattleFx {
 }
 
 /** Timelines, in milliseconds from the trigger. */
-export const FX_TIMELINES: Record<'shake' | 'intro' | 'lunge' | 'scene', FxStep[]> = {
+export const FX_TIMELINES: Record<'shake' | 'intro' | 'lunge', FxStep[]> = {
   /** Field shake after any battle feedback. */
   shake: [
     { at: 0, patch: { shake: true } },
@@ -56,11 +54,6 @@ export const FX_TIMELINES: Record<'shake' | 'intro' | 'lunge' | 'scene', FxStep[
     { at: 0, patch: { lunge: 'player' } },
     { at: 430, patch: { lunge: 'wild' } },
     { at: 860, patch: { lunge: 'idle' } },
-  ],
-  /** A short shake when the battle scene changes. */
-  scene: [
-    { at: 0, patch: { sceneShake: true } },
-    { at: 380, patch: { sceneShake: false } },
   ],
 };
 
@@ -109,15 +102,12 @@ export function useBattleFx({
   reducedMotion,
   outcomeKind,
   strike,
-  sceneChanged,
 }: {
   feedbackSeq: number;
   hasEncounter: boolean;
   reducedMotion: boolean;
   outcomeKind: BattleOutcomeKind;
   strike: CombatStrikeSnapshot | null | undefined;
-  /** Truthy (a new object) each time the scene crossfade starts. */
-  sceneChanged: unknown;
 }): BattleFx {
   const { fx, play, cancel, dispatch } = useFxTimeline();
   const lastCombatSeq = useRef(0);
@@ -152,9 +142,6 @@ export function useBattleFx({
     play('hits', hitTimeline(strike.playerDamage ?? 0, strike.wildDamage ?? 0));
   }, [feedbackSeq, hasEncounter, reducedMotion, outcomeKind, strike, play, cancel, dispatch]);
 
-  useEffect(() => {
-    if (sceneChanged && !reducedMotion) play('scene', FX_TIMELINES.scene);
-  }, [sceneChanged, reducedMotion, play]);
 
   return fx;
 }

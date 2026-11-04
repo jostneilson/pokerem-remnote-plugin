@@ -25,9 +25,16 @@ import {
 } from '../../engine/studyDifficulty';
 import { REVIEWS_PER_ENCOUNTER } from '../../constants';
 import { trainerLevelFromXp } from '../../engine/trainerLevel';
-import { normalizeBattleSceneIndex } from '../../engine/battleAmbience';
+import {
+  AREA_MAX_ENCOUNTERS,
+  SCENE_INDEX_VERSION,
+  clampBattleSceneIndex,
+  normalizeBattleSceneIndex,
+  rollAreaLength
+} from '../../engine/battleAmbience';
 import type { RouteFindRollResult } from '../../engine/routeFinds';
 import type {
+  AreaState,
   PokeRemGameState,
   BattleOutcomeKind,
   CombatStrikeSnapshot,
@@ -282,6 +289,17 @@ function normalizeCommandNonces(raw: unknown): string[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 40);
   return ids.length ? ids.slice(-RECENT_COMMAND_NONCE_LIMIT) : undefined;
+}
+
+/** The saved area, or a fresh one in the current scene (older saves, damaged data). */
+export function normalizeArea(raw: unknown, sceneIndex: number): AreaState {
+  const a = raw && typeof raw === 'object' ? (raw as Partial<AreaState>) : {};
+  const left =
+    typeof a.encountersLeft === 'number' && Number.isFinite(a.encountersLeft)
+      ? Math.max(0, Math.min(AREA_MAX_ENCOUNTERS, Math.floor(a.encountersLeft)))
+      : rollAreaLength(Math.random);
+  // The area always matches the scene on screen, so the two can never disagree.
+  return { sceneIndex, encountersLeft: left, ...(a.isNew === true ? { isNew: true } : {}) };
 }
 
 function normalizeEquippedStyle(raw: unknown, owned: unknown): string | undefined {
@@ -762,7 +780,12 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
       typeof o.studyCardWeight === 'number' ? o.studyCardWeight : 1
     ),
     studyDifficultyConfigured: o.studyDifficultyConfigured === true,
-    battleSceneIndex: normalizeBattleSceneIndex(o.battleSceneIndex),
+    // The legacy remap shifts indexes, so it runs once per save; after that the index is only clamped.
+    battleSceneIndex:
+      (o as { sceneIndexVersion?: unknown }).sceneIndexVersion === SCENE_INDEX_VERSION
+        ? clampBattleSceneIndex(o.battleSceneIndex)
+        : normalizeBattleSceneIndex(o.battleSceneIndex),
+    sceneIndexVersion: SCENE_INDEX_VERSION,
     dailyStats: normalizeDailyStats(o.dailyStats),
     wildReviewAccum:
       typeof o.wildReviewAccum === 'number' && Number.isFinite(o.wildReviewAccum)
@@ -830,12 +853,14 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
       typeof o.wildIdleCards === 'number' && Number.isFinite(o.wildIdleCards)
         ? Math.max(0, Math.floor(o.wildIdleCards))
         : 0,
+    area: undefined,
     recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {
     state.selectedTab = 'status';
   }
+  state.area = normalizeArea((o as { area?: unknown }).area, state.battleSceneIndex);
   state.collectionDex = registerOwnedSpecies(state.collectionDex, ownedMons(state));
   state.achievements = deriveAchievements(state);
 

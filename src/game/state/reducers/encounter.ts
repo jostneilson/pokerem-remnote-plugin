@@ -1,7 +1,7 @@
 import type { ItemId } from '../../data/items';
 import { recommendedBall, spawnEncounter, wildCatchChancePreview } from '../../engine/encounters';
 import { isEventSpecies } from '../../engine/speciesPool';
-import { ticketScene } from '../../engine/sinks';
+import { ROUTE_BIOME_BY_ID, ticketScene } from '../../engine/sinks';
 import { CURRENCY_REWARDS } from '../../engine/shop';
 import {
   clampStudyReviews,
@@ -28,9 +28,9 @@ import {
   parseTrainerFrequencyKey,
   type TrainerFrequencyKey,
 } from '../../engine/trainerBattles';
-import { BATTLE_SCENE_COUNT } from '../../engine/battleAmbience';
+import { BATTLE_SCENE_COUNT, rollAreaLength } from '../../engine/battleAmbience';
 import { rollTravelRouteFind } from '../../engine/routeFinds';
-import type { PokeRemGameState, XpDoublerTier } from '../model';
+import type { AreaState, PokeRemGameState, XpDoublerTier } from '../model';
 import {
   type QueueCardCompleteOptions,
   activePokemon,
@@ -251,14 +251,9 @@ export function onQueueCardComplete(
         next = startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
       } else {
         const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
-        // A different scene each time; the scene sets which types are likely to appear.
-        const prevScene = next.battleSceneIndex ?? 0;
-        // A route ticket picks from its biome's scenes; otherwise any scene but the last one.
         const ticket = next.routeTicket && next.routeTicket.remaining > 0 ? next.routeTicket : null;
-        const bgNext =
-          (ticket ? ticketScene(ticket.biome, prevScene, Math.random) : null) ??
-          (prevScene + 1 + Math.floor(Math.random() * (BATTLE_SCENE_COUNT - 1))) %
-            BATTLE_SCENE_COUNT;
+        const area = nextArea(next.area, next.battleSceneIndex ?? 0, ticket?.biome ?? null, Math.random);
+        const bgNext = area.sceneIndex;
         if (ticket)
           next = {
             ...next,
@@ -280,6 +275,7 @@ export function onQueueCardComplete(
           currentEncounter: enc,
           selectedTab: 'status',
           battleSceneIndex: bgNext,
+          area,
           encountersSinceShiny: enc.shiny ? 0 : (next.encountersSinceShiny ?? 0) + 1,
           wildIdleCards: 0,
           lastBattleResult: null,
@@ -392,6 +388,25 @@ function keepTeamBattleReady(state: PokeRemGameState): PokeRemGameState {
     party: state.party.map((p) => ({ ...p, currentHp: Math.max(1, Math.ceil(p.maxHp / 2)), condition: undefined })),
     ...bumpBattleOutcome(state, 'none', 'Your team rested while you studied and is ready again at half HP.'),
   };
+}
+
+/**
+ * The area for the wild about to spawn. The arena stays put for the area's 5–8 encounters, then moves to a
+ * different scene (so it never changes mid-encounter or on a plain card). A route ticket keeps you in its biome.
+ */
+export function nextArea(
+  current: AreaState | undefined,
+  sceneIndex: number,
+  ticketBiome: string | null,
+  rng: () => number
+): AreaState {
+  const inTicketBiome = ticketBiome ? (ROUTE_BIOME_BY_ID.get(ticketBiome)?.scenes.includes(sceneIndex) ?? false) : true;
+  const left = current?.encountersLeft ?? 0;
+  if (left > 1 && inTicketBiome) return { sceneIndex, encountersLeft: left - 1 };
+  const scene =
+    (ticketBiome ? ticketScene(ticketBiome, sceneIndex, rng) : null) ??
+    (sceneIndex + 1 + Math.floor(rng() * (BATTLE_SCENE_COUNT - 1))) % BATTLE_SCENE_COUNT;
+  return { sceneIndex: scene, encountersLeft: rollAreaLength(rng), isNew: true };
 }
 
 export function activateXpDoubler(state: PokeRemGameState, tier: XpDoublerTier): PokeRemGameState {
