@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T2.5 (3141bec)
-- In progress: T3.1
-- Next exact step: T3.1: create src/game/engine/rocket.ts per SPEC A9 + Appendix R (18 type grunts, ace pools, ROCKET_SHARE 0.33, type rotation); wire into trainer spawn in trainerBattles.ts
+- Last finished: T3.5 (97001c9)
+- In progress: T3.2
+- Next exact step: T3.2 UI: Rocket Radar chip (U9) on Play under the trek strip + Trainer screen; then T3.6 TrainerBattleSurface: ace-only catch offer, Leader 'see the prize' button, PRIZE chip, run confirm, intro wipe (U7/U8)
 - Latest checks: 2026-11-04 after Phase 2: tsc clean, vitest 288 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,10 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T3.5 | 97001c9 | buildEnemyForDex 1/250 shiny; trainerEnemyAsEncounter keeps shiny |
+| T3.4 | 97001c9 | rocket.test: prize pendingPrize, never flees/KO, reload, shiny 20%±2 |
+| T3.3 | 97001c9 | rocket.test: leader after 5 wins, elite, avg+4, loss keeps leaderReady |
+| T3.1 | 97001c9 | rocket.test (8): teams, aces, rotation, ace-only catch |
 | T2.5 | 3141bec | type-share doubled test; chip checked in preview at 280px (wraps, no overflow); build OK |
 | T2.4 | 91ed5da | combatV5 buddy accuracy test; xpShare buddy mult; 287 tests. Battle HUD ♥ comes with T6.7 |
 | T2.3 | eae52a9 | starterBuddy.test: choose, evolve, backfill, re-pick, none |
@@ -79,11 +83,11 @@ Each task's check: unit tests; the level bands are checked in T5.
 
 | Task | What |
 |---|---|
-| [~] T3.1 | `rocket.ts`: 18 grunts, ace pools, share and type rotation. |
-| [ ] T3.2 | Radar state and chip. |
-| [ ] T3.3 | Leader battle. |
-| [ ] T3.4 | Leader prize encounter: never flees, 1/5 shiny. |
-| [ ] T3.5 | Shiny trainer Pokémon. |
+| [x] T3.1 (97001c9) | `rocket.ts`: 18 grunts, ace pools, share and type rotation. |
+| [~] T3.2 | Radar state and chip. |
+| [x] T3.3 (97001c9) | Leader battle. |
+| [x] T3.4 (97001c9) | Leader prize encounter: never flees, 1/5 shiny. |
+| [x] T3.5 (97001c9) | Shiny trainer Pokémon. |
 | [ ] T3.6 | Rocket intro and prize reveal presentation. |
 
 Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
