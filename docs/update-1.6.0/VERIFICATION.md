@@ -34,3 +34,7 @@ This is an acceptance record, not a claim that all gates passed. Source checkpoi
 T5.7 and T7.1 are not complete. See DECISIONS → Needs owner for inherited out-of-Appendix-T values and the capacity target conflict. The user has been asked about the inherited XP/lucky choices; no answer has arrived. Local release packaging may be prepared for review with these holds stated, but must not be presented as verified marketplace readiness.
 
 The preserved parked patch has blank diff-context lines that `git diff --check` reports as trailing spaces. Do not strip those context markers or silently rewrite the owner's preserved patch; this is distinct from new source-code whitespace.
+
+## T7.3 release candidate readback
+
+`npm run release` passed at `4e5a153`: versions 1.6.0, types, 53 files / 337 tests, local listing check, manifest validation, production build and ZIP. Archive 13,021,686 bytes; SHA256 `b0e58df6984d79f7d4573be635054ac0f95c697046bae2c3d4745ee929c7ec6f`. ZIP README and three current screenshot bytes match local source; pinned screenshots match Git commit `129a6dd3f0daff5174281288375e2e20b38fca74`. Public loading and every acceptance hold above remain open. No current release was installed into RemNote.

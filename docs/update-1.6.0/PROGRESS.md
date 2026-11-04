@@ -140,8 +140,8 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 |---|---|
 | [!] T7.1 | Full Verification pass (below), with results logged. |
 | [x] T7.2 (129a6dd screenshots; docs follow-up) | CHANGELOG, README and manifest, new screenshots. |
-| [x] T7.3 (local release gate passed; commit follows) | Version 1.6.0 in all 4 places; `npm run release`. |
-| [ ] T7.4 | Final hand-off update: "Ready for owner review; nothing pushed". |
+| [x] T7.3 (4e5a153) | Version 1.6.0 in all 4 places; `npm run release`. |
+| [x] T7.4 (handoff complete; release holds remain) | Final hand-off update: "Ready for owner review; nothing pushed". |
 
 **Phase 6 — Teams and themes (moved to 1.6.1, after the 1.6.0 release)**
 
@@ -167,3 +167,5 @@ Full 1.6.1 checklist: `RELEASE_1.6.1.md`. WIP for T6.1 is saved as `parked/T6.1-
 - Next: proceed to unblocked Phase 7 preparation, keeping release holds; do not claim native/visual acceptance. No push, tag, publish, reset, stash, or root AGENTS edit.
 
 - T7.3: all four version sources align on 1.6.0; `npm run release` exit 0 (337 tests, types, version check, listing check, validation, production build, ZIP). ZIP manifest/README/three new screenshots read back against source. This is a candidate under the T5.7/T7.1 holds, not publication acceptance.
+
+- T7.4: handoff updated with exact ZIP digest, local commits, stale/full report boundary, owner holds and the stopped Claude session’s newer A17 edits. Phrase “ready for owner review” does not waive T5.7/T7.1.
