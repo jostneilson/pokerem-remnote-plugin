@@ -5,10 +5,10 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T0.6 (commit '1.6.0 T0.6')
-- In progress: T0.7
-- Next exact step: fix tier:'Common' on headline legendaries/mythicals in src/game/data/pokedex.ts (use classification); add __fixtures__/save-1.5.0.json from a late-game sim save + round-trip test
-- Latest checks: 2026-11-04 baseline tsc clean, vitest 40 files / 251 tests green.
+- Last finished: T0.7 (commit '1.6.0 T0.7')
+- In progress: T1.1
+- Next exact step: rarity.ts: per-encounter calibrated odds (p_enc = 3/N cards). Remove shinyOddsForPacing multiplier in encounters.ts; shiny = 1/250 per encounter at any pacing
+- Latest checks: 2026-11-04 after Phase 0: tsc clean, vitest 44 files / 270 tests, npm run build OK.
 
 ## Known issues
 
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T0.7 | commit '1.6.0 T0.7' | species tier derived from classification (27 fixed); save-1.5.0.json fixture (1,500 cards, 282 in storage, shiny, doublers) round-trips intact; tsc, 44 files/270 tests, build green |
 | T0.6 | commit '1.6.0 T0.6' | harness runs 6 policies × 3 pacings with a sim clock; quick report generated; baseline saved as BALANCE_BASELINE_1.5.0.md |
 | T0.5 | commit '1.6.0 T0.5' | balance.ts + rarity.ts hold today's values; reducers read them; 43 files/266 tests unchanged and green |
 | T0.4 | commit '1.6.0 T0.4' | coins.test.ts (999/1.0k/1.5k/15k/152k/1.2M, negatives, exact); grep finds no raw ₽ renders left |
@@ -36,13 +37,13 @@ Update this file before starting and after finishing every task. Commit it with 
 | [x] T0.4 (commit '1.6.0 T0.4') | `formatCoins` adopted at every call site. | Unit tests at 999, 1,000, 1,550, 15,200 and 1.2M; grep finds no raw currency renders. |
 | [x] T0.5 (commit '1.6.0 T0.5') | `balance.ts` and `rarity.ts` holding today's values; no behaviour change. | Existing tests unchanged and green. |
 | [x] T0.6 (commit '1.6.0 T0.6') | Balance harness with 6 policies, plus a `balance:tune` script producing BALANCE_REPORT. | Report generated. |
-| [~] T0.7 | Legendary tier data fix; 1.5.0 save fixture plus tests. | Fixture round-trips. |
+| [x] T0.7 (commit '1.6.0 T0.7') | Legendary tier data fix; 1.5.0 save fixture plus tests. | Fixture round-trips. |
 
 **Phase 1 — Rarity and encounters**
 
 | Task | What |
 |---|---|
-| [ ] T1.1 | Per-encounter calibrated odds; pacing multiplier removed. |
+| [~] T1.1 | Per-encounter calibrated odds; pacing multiplier removed. |
 | [ ] T1.2 | Galarian birds at 1/250 cards, with team weighting. |
 | [ ] T1.3 | Wild legendary rate cut to ~1/2,500 cards; fix the uncaught-bias completeness check. |
 | [ ] T1.4 | Wild level distribution (70/30). |

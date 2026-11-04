@@ -24,8 +24,23 @@ import { REGIONAL_FORMS } from './regionalForms';
 
 export { STARTER_DEX_ALL };
 
+const CLASS_TIER: Partial<Record<FullSpeciesData['classification'], FullSpeciesData['tier']>> = {
+  legendary: 'Legendary',
+  mythical: 'Mythical',
+  'ultra-beast': 'Ultra'
+};
+
+/**
+ * The generated Pokédex keeps legacy tiers, and 27 headline legendaries (Mewtwo, Lugia, Rayquaza…) came through
+ * as "Common". Their PokéAPI classification is right, so it sets the tier for every non-ordinary species.
+ */
+function withClassTier(s: FullSpeciesData): FullSpeciesData {
+  const tier = CLASS_TIER[s.classification];
+  return tier && tier !== s.tier ? { ...s, tier } : s;
+}
+
 /** Every species PokéRem knows: the National Dex roster plus regional forms (Galarian birds). */
-export const SPECIES_LIST: FullSpeciesData[] = [...FULL_POKEDEX, ...REGIONAL_FORMS];
+export const SPECIES_LIST: FullSpeciesData[] = [...FULL_POKEDEX, ...REGIONAL_FORMS].map(withClassTier);
 export const SPECIES_BY_DEX = new Map(SPECIES_LIST.map((s) => [s.dexNum, s]));
 
 const NATIONAL_DEX = new Map(REGIONAL_FORMS.map((f) => [f.dexNum, f.nationalDex]));

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The battle arena no longer changes on every card.** An old save migration was re-running on every read and stepping the arena along. You now stay in an area for 5–8 wild encounters, and the arena only moves on between encounters, with a small "→ area name" note and no shake.
+- **XP Doublers (and any other tap) can't be lost any more.** The sidebar, queue strip and popup now send their actions to one place that saves them in order with your card reviews, so a review can no longer overwrite a doubler you just switched on.
+- **Mewtwo, Lugia, Rayquaza and 24 other headline legendaries and mythicals** were tagged as common, so they missed their "(Legendary)" label and bonus XP. They're tagged correctly now.
+
+### Changed
+
+- **Money reads at a glance:** ₽999, then ₽1.5k, ₽15k, ₽152k and ₽1.2M. Hover or use a screen reader for the exact amount.
+
 ## [1.5.0] - 2026-11-03
 
 ### Added
