@@ -1,7 +1,7 @@
 import { coinsSpoken, formatCoins } from '../format/coins';
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
-import type { OwnedPokemon } from '../../game/state/model';
+import type { OwnedPokemon, PokeRemGameState } from '../../game/state/model';
 import type { PokemonType } from '../../game/data/species';
 import { ITEMS, ITEM_BY_ID } from '../../game/data/items';
 import { checkItemEvolution } from '../../game/engine/evolution';
@@ -13,6 +13,9 @@ import { Panel } from '../components/Panel';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { GameIcon } from '../components/GameIcon';
 import { PartyPokemonCard } from '../components/PartyPokemonCard';
+import { TransferConfirm } from '../components/TransferConfirm';
+import { UpgradeSheet } from '../components/UpgradeSheet';
+import { transferCoins, transferPreview } from '../../game/engine/transfer';
 import { catchUpGap } from '../../game/engine/xpShare';
 import { PokemonGrowthPanel } from '../components/PokemonGrowthPanel';
 import { PokemonAppraisal } from '../components/PokemonAppraisal';
@@ -177,10 +180,16 @@ export function PartyScreen({
   bag, onEvolve, evolutionBlocked = false, evolutionMessage,
   currency = 0, onPowerUp, onToggleFavorite, powerUpBlocked = false, onBottleCap, onHeal, healBlocked = false, onSetAutoMoves, onTutor,
   starterId,
+  gameState,
+  onTransfer,
 }: {
   rootURL: string | undefined;
   /** Your original starter (buddy): ♥ badge on its card. */
   starterId?: string;
+  /** Full save, for transfer previews. */
+  gameState?: PokeRemGameState;
+  /** Transfer Pokémon away for coins and type-matched XP (replaces Release). */
+  onTransfer?: (ids: string[]) => void;
   bag?: Record<string, number>;
   onEvolve?: (pokemonId: string, itemId: string) => void;
   evolutionBlocked?: boolean;
@@ -219,6 +228,8 @@ export function PartyScreen({
   const [showStorage, setShowStorage] = useState(false);
   const [replaceStorageId, setReplaceStorageId] = useState<string | null>(null);
   const [releaseTarget, setReleaseTarget] = useState<{ id: string; name: string } | null>(null);
+  const [transferIds, setTransferIds] = useState<string[] | null>(null);
+  const [upgradeId, setUpgradeId] = useState<string | null>(null);
   const [movePickerPokemonId, setMovePickerPokemonId] = useState<string | null>(null);
   const [moveReplacePrompt, setMoveReplacePrompt] = useState<{ pokemonId: string; moveId: string } | null>(null);
   const [search, setSearch] = useState('');
@@ -518,7 +529,17 @@ export function PartyScreen({
                   {party.length >= 6 && onSwapStorageForParty ? 'To party (swap…)' : 'To party'}
                 </button>
               ) : null}
-              {onRelease ? (
+              {onTransfer ? (
+                <button
+                  type="button"
+                  disabled={p.favorite === true || (isParty && party.length <= 1)}
+                  title={p.favorite ? 'Unfavourite ★ first' : isParty && party.length <= 1 ? 'Your last party Pokémon' : undefined}
+                  onClick={() => setTransferIds([p.id])}
+                  className="pkr-btn-destructive disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Transfer…
+                </button>
+              ) : onRelease ? (
                 <button
                   type="button"
                   disabled={p.favorite === true || (isParty && party.length <= 1)}
@@ -537,29 +558,63 @@ export function PartyScreen({
 
     const healItem = isParty && onHeal ? bestHealItemFor(bag ?? {}, p) : null;
     const needsCare = p.currentHp < p.maxHp;
-    const actions =
-      isParty && ((!isActive && p.currentHp > 0) || (onHeal && needsCare)) ? (
-        <>
-          {!isActive && p.currentHp > 0 ? (
-            <button type="button" className="pkr-btn-primary" onClick={() => onSwitch(p.id)} aria-label={`Make ${displayName} your lead`}>
-              Lead
-            </button>
-          ) : null}
-          {onHeal && needsCare ? (
-            <button
-              type="button"
-              className="pkr-btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={!healItem || healBlocked}
-              title={healBlocked ? 'Finish the trainer battle first' : healItem ? undefined : p.currentHp <= 0 ? 'No Revives in your bag' : 'No potions in your bag'}
-              onClick={() => onHeal(p.id)}
-              aria-label={healItem ? `Use ${ITEM_BY_ID.get(healItem)?.name} on ${displayName}` : `Heal ${displayName}`}
-            >
-              {p.currentHp <= 0 ? 'Revive' : 'Heal'}
-              {healItem && healItem !== 'revive' ? ` · ${ITEM_BY_ID.get(healItem)?.name}` : ''}
-            </button>
-          ) : null}
-        </>
-      ) : undefined;
+    const lastParty = isParty && party.length <= 1;
+    const payout = transferCoins(p);
+    // Lead / Upgrade / Transfer (SPEC U1). Storage cards swap Lead for "To party".
+    const actions = (
+      <div className="pkr-card-actions3">
+        {isParty ? (
+          <button
+            type="button"
+            className="pkr-act-btn pkr-act-btn--lead"
+            disabled={isActive || p.currentHp <= 0}
+            onClick={() => onSwitch(p.id)}
+            aria-label={isActive ? `${displayName} is leading` : `Make ${displayName} your lead`}
+          >
+            {isActive ? 'Leading' : p.currentHp <= 0 ? 'Fainted' : 'Lead'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="pkr-act-btn pkr-act-btn--lead"
+            disabled={!onMoveToParty || (party.length >= 6 && !onSwapStorageForParty)}
+            onClick={() => {
+              if (party.length >= 6) {
+                if (onSwapStorageForParty) setReplaceStorageId(p.id);
+              } else onMoveToParty?.(p.id);
+            }}
+          >
+            {party.length >= 6 ? 'Swap in' : 'To party'}
+          </button>
+        )}
+        <button
+          type="button"
+          className={`pkr-act-btn pkr-act-btn--upgrade${!preview || currency < preview.cost ? ' pkr-act-btn--muted' : ''}`}
+          onClick={() => setUpgradeId(p.id)}
+          aria-label={preview ? `Upgrade ${displayName}: Power Up costs ${coinsSpoken(preview.cost)}` : `Upgrade ${displayName}`}
+        >
+          Upgrade
+          <small>{preview ? formatCoins(preview.cost) : 'Max'}</small>
+        </button>
+        {onTransfer ? (
+          <button
+            type="button"
+            className="pkr-act-btn pkr-act-btn--transfer"
+            disabled={lastParty}
+            title={lastParty ? 'Your last party Pokémon' : p.favorite ? 'Unfavourite ★ first' : undefined}
+            onClick={() => setTransferIds([p.id])}
+            aria-label={`Transfer ${displayName} for ${coinsSpoken(payout)}`}
+          >
+            Transfer
+            <small>+{formatCoins(payout)}</small>
+          </button>
+        ) : null}
+      </div>
+    );
+    const quickHeal =
+      isParty && onHeal && needsCare && healItem && !healBlocked
+        ? { onHeal: () => onHeal(p.id), title: `Use ${ITEM_BY_ID.get(healItem)?.name} on ${displayName}` }
+        : undefined;
 
     return (
       <PartyPokemonCard
@@ -573,11 +628,15 @@ export function PartyScreen({
         onToggle={() => setExpanded(isExpanded ? null : p.id)}
         detail={detail}
         onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(p.id) : undefined}
+        quickHeal={quickHeal}
         catchUp={isParty && catchUpGap(p, party) > 0}
         buddy={!!starterId && starterId === p.id}
       />
     );
   }
+
+  const upgradeMon = upgradeId ? [...party, ...storage].find((x) => x.id === upgradeId) : undefined;
+  const upgradeIsParty = !!upgradeMon && party.some((x) => x.id === upgradeMon.id);
 
   const replaceModalMon =
     moveReplacePrompt && [...party, ...storage].find((x) => x.id === moveReplacePrompt.pokemonId);
@@ -720,6 +779,34 @@ export function PartyScreen({
         <label className="pkr-collection-tools__favorites"><input type="checkbox" checked={favoritesOnly} onChange={(e) => setFavoritesOnly(e.target.checked)} /> Favorites only</label>
       </section>
 
+      {transferIds && gameState && onTransfer ? (
+        <TransferConfirm
+          preview={transferPreview(gameState, transferIds)}
+          onCancel={() => setTransferIds(null)}
+          onConfirm={() => {
+            onTransfer(transferIds);
+            setTransferIds(null);
+            setExpanded(null);
+          }}
+        />
+      ) : null}
+      {upgradeMon ? (
+        <UpgradeSheet
+          rootURL={rootURL}
+          pokemon={upgradeMon}
+          bag={bag ?? {}}
+          currency={currency}
+          blocked={powerUpBlocked}
+          evolutionBlocked={evolutionBlocked}
+          onPowerUp={onPowerUp}
+          onEvolve={upgradeIsParty ? onEvolve : undefined}
+          onOpenDetail={() => {
+            setExpanded(upgradeMon.id);
+            setUpgradeId(null);
+          }}
+          onClose={() => setUpgradeId(null)}
+        />
+      ) : null}
       {releaseTarget && onRelease ? (
         <div
           className="fixed inset-0 z-[110] flex items-end justify-center p-2 sm:items-center"

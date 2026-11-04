@@ -4082,3 +4082,204 @@ body,:host { font-family:var(--pkr-font-body); }
     animation: pkr-rocket-out 1ms linear 1000ms forwards;
   }
 }
+
+/* ── 1.6.0 semantic tokens (SPEC Appendix U); themes override these (T6.x) ── */
+:root {
+  --pkr-btn-lead: #3768c9;
+  --pkr-btn-upgrade: #2f8f45;
+  --pkr-btn-transfer: #b8432f;
+  --pkr-btn-ink: #fffaf0;
+  --pkr-coin: #fbbf24;
+}
+
+/* Party card action row (SPEC U1): Lead / Upgrade / Transfer, equal width. */
+.pkr-card-actions3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+.pkr-act-btn {
+  display: flex;
+  min-height: 32px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 3px 2px;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: var(--pkr-radius-md);
+  color: var(--pkr-btn-ink);
+  font-family: var(--pkr-font-body);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 var(--pkr-bevel-light), inset 0 -2px 0 var(--pkr-bevel-dark);
+  cursor: pointer;
+}
+.pkr-act-btn small {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  opacity: 0.92;
+  white-space: nowrap;
+}
+.pkr-act-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+.pkr-act-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.pkr-act-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.pkr-act-btn--muted {
+  opacity: 0.55;
+}
+.pkr-act-btn--lead {
+  background: var(--pkr-btn-lead);
+}
+.pkr-act-btn--upgrade {
+  background: var(--pkr-btn-upgrade);
+}
+.pkr-act-btn--transfer {
+  background: var(--pkr-btn-transfer);
+}
+
+/* Heal "+" on the HP bar (SPEC U1). */
+.pkr-hp-heal {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: var(--pkr-radius-md);
+  background: var(--pkr-btn-upgrade);
+  color: var(--pkr-btn-ink);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 var(--pkr-bevel-light), inset 0 -2px 0 var(--pkr-bevel-dark);
+  cursor: pointer;
+}
+.pkr-hp-heal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Upgrade sheet (U2) and Transfer confirm (U3): portaled, so they set their own font and colours. */
+.pkr-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+}
+.pkr-sheet-backdrop--center {
+  align-items: center;
+  padding: 12px;
+}
+.pkr-sheet {
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 12px;
+  border: 2px solid var(--pkr-arcade-border);
+  background: var(--pkr-arcade-ink);
+  color: var(--pkr-ink-text);
+  font-family: var(--pkr-font-body);
+  font-size: 13px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.65);
+}
+.pkr-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pkr-sheet__head strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--pkr-ink-bright);
+}
+.pkr-sheet__close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--pkr-arcade-border);
+  background: transparent;
+  color: var(--pkr-ink-text);
+  font-size: 16px;
+  cursor: pointer;
+}
+.pkr-sheet__row {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--pkr-arcade-border);
+  background: #1a1f3a;
+  color: var(--pkr-ink-bright);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: left;
+  box-shadow: inset 0 1px 0 var(--pkr-bevel-light), inset 0 -2px 0 var(--pkr-bevel-dark);
+  cursor: pointer;
+}
+.pkr-sheet__row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pkr-sheet__row span:last-child {
+  color: var(--pkr-coin);
+  white-space: nowrap;
+}
+.pkr-sheet__note {
+  margin-top: 6px;
+  color: var(--pkr-ink-muted);
+}
+.pkr-transfer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+.pkr-transfer-list span {
+  padding: 2px 6px;
+  border: 1px solid var(--pkr-arcade-border);
+  background: #1a1f3a;
+}
+.pkr-warn-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+.pkr-warn-chip {
+  padding: 2px 6px;
+  border: 1px solid #d39c35;
+  background: #3a2a06;
+  color: #fde68a;
+  font-weight: 900;
+}
+.pkr-sheet__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pkr-sheet__actions button {
+  flex: 1;
+  min-height: 36px;
+}

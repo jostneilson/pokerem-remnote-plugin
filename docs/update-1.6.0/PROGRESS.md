@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T3.6 (ee5f71d)
-- In progress: T4.1
-- Next exact step: T4.1: transferPokemon(state, ids[]) in reducers/collection.ts per SPEC A5/L7 (payout tiers in BALANCE.transfer, type-share XP via applyTypeShareXpBoost-like path doubled, guards: favourite, last party member); transfer.test.ts
+- Last finished: T4.1 (c557d21)
+- In progress: T4.2
+- Next exact step: T4.2: PartyPokemonCard three-button row (U1) + Upgrade sheet (U2) + HP + heal button; replace Lead/Heal actions in PartyScreen.tsx ~520-560
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T4.1 | c557d21 | transfer.test (5): payout, Common<100, XP split, guards, warnings, buddy end; 301 tests |
 | T3.6 | ee5f71d | preview: grunt intro (reduced motion clears at 1s), leader win -> See the Leader's prize, prize PRIZE badge + 2-tap give up; 296 tests, build OK |
 | T3.2 | ee5f71d | Radar chip on Play + Trainer; preview checked |
 | T3.5 | 97001c9 | buildEnemyForDex 1/250 shiny; trainerEnemyAsEncounter keeps shiny |
@@ -98,8 +99,8 @@ Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 
 | Task | What |
 |---|---|
-| [~] T4.1 | `transferPokemon` reducer, payout and XP. |
-| [ ] T4.2 | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
+| [x] T4.1 (c557d21) | `transferPokemon` reducer, payout and XP. |
+| [~] T4.2 | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
 | [ ] T4.3 | Transfer confirm with warning chips. |
 | [ ] T4.4 | View all grid: sort and filter. |
 | [ ] T4.5 | Multi-select and bulk bar. |

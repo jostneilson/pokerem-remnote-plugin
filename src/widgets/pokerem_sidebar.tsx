@@ -398,6 +398,8 @@ function PokeRemSidebar() {
                   rootURL={plugin.rootURL}
                   party={state.party}
                   starterId={state.starterId}
+                  gameState={state}
+                  onTransfer={(ids) => void dispatch(gameCommand('transferPokemon', ids))}
                   bag={state.bag}
                   currency={state.currency}
                   powerUpBlocked={!!state.currentEncounter || !!state.currentTrainerBattle || !!state.pendingCaughtMon}
