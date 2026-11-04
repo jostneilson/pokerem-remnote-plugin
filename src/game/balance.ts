@@ -128,7 +128,12 @@ export function rollBounty(rng: () => number = Math.random): number | undefined 
 }
 
 /** Type theme shop (SPEC A12/U11, 1.6.1). `price` is tunable ₽35–60k; a voucher takes `voucherOff` off one theme. */
-export const THEME_SHOP = { price: 45_000, voucherOff: 0.2 };
+export const THEME_SHOP = { price: 45_000, voucherOff: 0.2, bonus: 1.25 };
+
+/** Theme bonus (SPEC A12): ×1.25 when the equipped theme's type is one of the foe's types, else ×1. */
+export function themeMult(themeActive: string | undefined, types: readonly string[]): number {
+  return themeActive && types.includes(themeActive) ? THEME_SHOP.bonus : 1;
+}
 
 /** Price of one theme, with or without a voucher (rounded to ₽100). */
 export function themePrice(useVoucher = false): number {

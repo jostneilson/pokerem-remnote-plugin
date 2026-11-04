@@ -3,7 +3,7 @@ import { advanceResearch } from '../../engine/research';
 import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { capacityGain, fitFoundItems } from '../../engine/capacity';
 import { scaledXp } from '../../engine/xpShare';
-import { BALANCE, catchCoins } from '../../balance';
+import { BALANCE, catchCoins, themeMult } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
 import { isPerfectIVs, rollIVs, battleStats } from '../../engine/pokemonStats';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -304,10 +304,12 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
   const mon = ownedFromEncounter(enc);
   // Daily first catch: ×3 trainer XP and ₽500 (SPEC B3).
   const firstToday = isDailyFirst(base, 'firstCatch');
-  const coins = catchCoins(enc.level, enc.dexNum) + (enc.bounty ?? 0) + (firstToday ? DAILY_FIRST_COINS : 0);
-  const catchTrainerXp = TRAINER_XP_SOURCES.catch * (firstToday ? DAILY_FIRST_XP_MULT : 1);
+  // Theme bonus (SPEC A12): ×1.25 catch coins, trainer XP and type-share XP when the theme matches.
+  const theme = themeMult(base.themeActive, enc.types);
+  const coins = Math.round(catchCoins(enc.level, enc.dexNum) * theme) + (enc.bounty ?? 0) + (firstToday ? DAILY_FIRST_COINS : 0);
+  const catchTrainerXp = Math.round(TRAINER_XP_SOURCES.catch * (firstToday ? DAILY_FIRST_XP_MULT : 1) * theme);
   const caughtInfo = {
-    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, coins),
+    lastBattleResult: { ...battleResult(base, 'catch', enc, mon, mon, 0, coins), ...(theme > 1 ? { themeBonus: base.themeActive } : {}) },
     shinyLog: enc.shiny
       ? [
           ...(base.shinyLog ?? []),
@@ -347,7 +349,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
       enc.types,
       mon.id,
       enc.level,
-      base
+      base,
+      theme
     );
     return withTouch(
       addTrainerXp(
@@ -376,7 +379,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
     enc.types,
     mon.id,
     enc.level,
-    base
+    base,
+    theme
   );
   return withTouch(
     addTrainerXp(
@@ -446,7 +450,9 @@ export function applyTypeShareXpBoost(
   excludeId?: string,
   targetLevel: number = 5,
   /** For the doubler, catch-up and buddy multipliers (every XP source gets them). */
-  state?: PokeRemGameState
+  state?: PokeRemGameState,
+  /** Extra multiplier, e.g. the theme bonus. */
+  mult = 1
 ): TypeShareXpResult {
   if (!targetTypes || targetTypes.length === 0) {
     return { party, storagePokemon, boostedCount: 0 };
@@ -457,7 +463,7 @@ export function applyTypeShareXpBoost(
   const storageBoost = Math.max(b.typeShareStorageBase, b.typeShareStorageBase + Math.floor(targetLevel * b.typeShareStoragePerLevel));
   let boostedCount = 0;
   const xpFor = (mon: OwnedPokemon, boost: number) =>
-    state ? scaledXp(state, mon, boost * b.typeShareMult) : Math.round(boost * b.typeShareMult);
+    state ? scaledXp(state, mon, boost * b.typeShareMult * mult) : Math.round(boost * b.typeShareMult * mult);
 
   const nextParty = party.map((mon) => {
     if (mon.id === excludeId) return mon;

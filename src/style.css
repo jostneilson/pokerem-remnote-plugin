@@ -4374,3 +4374,4 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-theme-detail__actions .pkr-game-btn, .pkr-theme-preview-chip .pkr-game-btn { min-height: 32px; padding: 4px 10px; font-size: var(--pkr-text-label); }
 .pkr-theme-preview-chip { position: sticky; top: 4px; z-index: 3; display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border: 2px solid var(--pkr-accent); background: var(--pkr-panel); color: var(--pkr-ink); font-size: var(--pkr-text-label); font-weight: 900; box-shadow: 0 0 0 3px var(--pkr-glow); }
 .pkr-theme-preview-chip span { flex: 1; }
+.pkr-theme-bonus-tag{display:inline-block;padding:1px 6px;border:1px solid var(--pkr-accent);background:var(--pkr-panel-2);color:var(--pkr-accent-2);font-size:var(--pkr-text-micro);font-weight:900;letter-spacing:.5px}

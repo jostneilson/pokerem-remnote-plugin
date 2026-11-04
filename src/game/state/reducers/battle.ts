@@ -1,6 +1,6 @@
 import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
 import { STORAGE_FULL_MESSAGE, catchBlockedByStorage } from '../../engine/capacity';
-import { BALANCE, defeatCoins as defeatCoinsFor } from '../../balance';
+import { BALANCE, defeatCoins as defeatCoinsFor, themeMult } from '../../balance';
 import { resolveExchange, WILD_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { isGuaranteedCatch, wildCatchChancePreview } from '../../engine/encounters';
 import { getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
@@ -15,6 +15,7 @@ import { moveDisplayName } from '../../engine/combatExchange';
 import { chooseFoeMove } from '../../engine/foeAi';
 import type {
   PokeRemGameState,
+  BattleResult,
   BattleOutcomeKind,
   CombatStrikeSnapshot,
   OwnedPokemon,
@@ -343,12 +344,14 @@ export function defeatEncounter(
         }
       : null;
 
-  let trainerXpGain = TRAINER_XP_SOURCES.defeat;
+  // Theme bonus (SPEC A12): ×1.25 defeat coins, trainer XP and type-share XP when the theme matches.
+  const theme = themeMult(state.themeActive, state.currentEncounter.types);
+  let trainerXpGain = Math.round(TRAINER_XP_SOURCES.defeat * theme);
   if (leveledUp) trainerXpGain += TRAINER_XP_SOURCES.levelUp;
   if (evolvedMon) trainerXpGain += TRAINER_XP_SOURCES.evolution;
 
   const defeatCoins =
-    defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) +
+    Math.round(defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) * theme) +
     (state.currentEncounter.bounty ?? 0) +
     (firstToday ? DAILY_FIRST_COINS : 0);
   const typeBoost = applyTypeShareXpBoost(
@@ -357,7 +360,8 @@ export function defeatEncounter(
     state.currentEncounter.types,
     state.activePokemonId,
     state.currentEncounter.level,
-    state
+    state,
+    theme
   );
 
   let afterDefeat: PokeRemGameState = {
@@ -378,7 +382,7 @@ export function defeatEncounter(
     },
     lastBattleResult:
       leadBefore && leadAfter
-        ? battleResult(
+        ? withThemeTag(battleResult(
             state,
             'defeat',
             state.currentEncounter,
@@ -387,7 +391,7 @@ export function defeatEncounter(
             xpGain,
             defeatCoins,
             evolvedMon ? (evolvedMon as OwnedPokemon).name : undefined
-          )
+          ), theme > 1 ? state.themeActive : undefined)
         : null,
   };
 
@@ -430,4 +434,9 @@ export function switchActivePokemon(state: PokeRemGameState, pokemonId: string):
   const found = state.party.some((p) => p.id === pokemonId);
   if (!found) return state;
   return withTouch({ ...state, activePokemonId: pokemonId, selectedTab: 'status' });
+}
+
+/** Tag a result card with the theme whose bonus applied. */
+function withThemeTag(r: BattleResult, theme: string | undefined): BattleResult {
+  return theme ? { ...r, themeBonus: theme } : r;
 }

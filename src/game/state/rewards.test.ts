@@ -104,3 +104,32 @@ describe('achievement and trainer-level payouts (SPEC B5)', () => {
     expect(withTouch(next).currency).toBe(next.currency);
   });
 });
+
+describe('theme bonus (SPEC A12)', () => {
+  const done = { day: todayKey(), firstCatch: true, firstDefeat: true };
+  const themed = (theme?: string): PokeRemGameState => ({ ...withWild(), daily: done, themesOwned: theme ? [theme] : [], themeActive: theme });
+
+  it('a matching theme pays ×1.25 defeat coins and tags the result card', () => {
+    const plain = defeatEncounter(themed());
+    const electric = defeatEncounter(themed('Electric'));
+    expect(plain.currency).toBe(defeatCoins(10, 25));
+    expect(electric.currency).toBe(Math.round(defeatCoins(10, 25) * 1.25));
+    expect(electric.lastBattleResult?.themeBonus).toBe('Electric');
+    expect(plain.lastBattleResult?.themeBonus).toBeUndefined();
+    expect(electric.trainerXp ?? 0).toBeGreaterThan(plain.trainerXp ?? 0);
+  });
+
+  it('a theme of another type changes nothing', () => {
+    const fire = defeatEncounter(themed('Fire'));
+    expect(fire.currency).toBe(defeatCoins(10, 25));
+    expect(fire.lastBattleResult?.themeBonus).toBeUndefined();
+  });
+
+  it('a matching theme pays ×1.25 catch coins', () => {
+    const spy = vi.spyOn(Math, 'random').mockReturnValue(0.01);
+    const caught = catchEncounter(themed('Electric'), 'poke-ball');
+    spy.mockRestore();
+    expect(caught.lastBattleResult?.themeBonus).toBe('Electric');
+    expect(caught.lastBattleResult?.coins).toBe(Math.round(catchCoins(10, 25) * 1.25));
+  });
+});

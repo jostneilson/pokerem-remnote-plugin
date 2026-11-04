@@ -116,6 +116,8 @@ export interface BattleResult {
   perfectIvs?: boolean;
   /** Bounty included in `coins`. */
   bounty?: number;
+  /** Equipped theme type whose ×1.25 bonus applied (SPEC A12). */
+  themeBonus?: string;
 }
 
 export interface ShinyLogEntry {
