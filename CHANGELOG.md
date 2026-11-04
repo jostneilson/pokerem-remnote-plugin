@@ -12,10 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The battle arena no longer changes on every card.** An old save migration was re-running on every read and stepping the arena along. You now stay in an area for 5–8 wild encounters, and the arena only moves on between encounters, with a small "→ area name" note and no shake.
 - **XP Doublers (and any other tap) can't be lost any more.** The sidebar, queue strip and popup now send their actions to one place that saves them in order with your card reviews, so a review can no longer overwrite a doubler you just switched on.
 - **Mewtwo, Lugia, Rayquaza and 24 other headline legendaries and mythicals** were tagged as common, so they missed their "(Legendary)" label and bonus XP. They're tagged correctly now.
+- **A shiny no longer runs away when your lead faints.** It waits for your next Pokémon, just like a shiny legendary.
+- **Status conditions help when catching a trainer's Pokémon**, the same as with wild ones.
 
 ### Changed
 
 - **Money reads at a glance:** ₽999, then ₽1.5k, ₽15k, ₽152k and ₽1.2M. Hover or use a screen reader for the exact amount.
+- **Rare Pokémon are rarer, and the same on every pacing.** Odds are now set per wild encounter, so a slower pacing (more cards per encounter) also means fewer rarities. At Medium: a shiny 1 in 250 encounters, a Galarian bird about 1 in 250 cards (after your first 100), and another wild legendary, mythical or Ultra Beast about 1 in 2,500 cards. Pseudo-legendaries and other rare species turn up half as often in the wild.
+- **Legendaries are hard to catch.** Legendary, mythical, Ultra Beast and Galarian bird catches start at 2% at full HP and climb to about 25% near 1 HP. Great Balls (×1.25), Ultra Balls (×1.5), sleep or freeze (×1.5) and paralysis, poison or burn (×1.25) help, up to 40%. A shiny legendary is still a sure catch.
+- **Wild levels follow your whole party's average.** Most wilds are at or a little below it, and about a third are weaker, at a level that suits their species. New catches no longer outclass the team you've raised.
 
 ## [1.5.0] - 2026-11-03
 

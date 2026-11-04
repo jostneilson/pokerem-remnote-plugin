@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { chooseStarter, createInitialStateV4 } from '../state/store';
 import { seededRng } from '../sim/simulate';
-import { spawnEncounter } from './encounters';
+import type { BattleCondition, EncounterPokemon } from '../state/model';
+import { legendaryCatchChance, spawnEncounter, wildCatchChancePreview, type CatchBall } from './encounters';
 import {
   BIRD_CHANCE,
   EVENT_CHANCE,
@@ -131,5 +132,37 @@ describe('wild levels follow the party average (SPEC L18)', () => {
     }
     expect(near / n).toBeGreaterThan(0.68);
     expect(near / n).toBeLessThan(0.76);
+  });
+});
+
+describe('legendary-class catch curve (L6)', () => {
+  const at = (h: number, ball: CatchBall = 'poke-ball', condition?: BattleCondition) =>
+    legendaryCatchChance(Math.round(h * 1000), 1000, ball, condition);
+
+  it('rises from 2% at full HP to ~25% at 1 HP with a Poké Ball', () => {
+    expect(at(1)).toBeCloseTo(0.02, 3);
+    expect(at(0.5)).toBeCloseTo(0.047, 3);
+    expect(at(0.25)).toBeCloseTo(0.102, 3); // SPEC quotes ~9.9%; the locked formula gives 10.2% (DECISIONS)
+    expect(at(0.1)).toBeCloseTo(0.173, 3);
+    expect(legendaryCatchChance(1, 1000, 'poke-ball')).toBeCloseTo(0.25, 3);
+  });
+
+  it('applies ball and status multipliers, capped at 40%', () => {
+    expect(at(0.5, 'great-ball')).toBeCloseTo(at(0.5) * 1.25, 6);
+    expect(at(0.5, 'ultra-ball')).toBeCloseTo(at(0.5) * 1.5, 6);
+    expect(at(0.5, 'poke-ball', { ailment: 'sleep' } as BattleCondition)).toBeCloseTo(at(0.5) * 1.5, 6);
+    expect(at(0.5, 'poke-ball', { ailment: 'burn' } as BattleCondition)).toBeCloseTo(at(0.5) * 1.25, 6);
+    expect(legendaryCatchChance(1, 1000, 'ultra-ball', { ailment: 'sleep' } as BattleCondition)).toBe(0.4);
+  });
+
+  it('is what the Catch preview shows for legendary-class wilds, and shiny ones stay guaranteed', () => {
+    const mewtwo = { dexNum: 150, name: 'Mewtwo', level: 50, maxHp: 200, currentHp: 100, types: ['Psychic'], tier: 'Legendary' } as EncounterPokemon;
+    expect(wildCatchChancePreview(mewtwo, undefined, 'poke-ball')).toBeCloseTo(legendaryCatchChance(100, 200, 'poke-ball'), 6);
+    const bird = { ...mewtwo, dexNum: 10169, name: 'Galarian Articuno' };
+    expect(wildCatchChancePreview(bird, undefined, 'poke-ball')).toBeLessThan(0.05);
+    expect(wildCatchChancePreview({ ...mewtwo, shiny: true }, undefined, 'poke-ball')).toBe(1);
+    // Everyday wilds keep the old formula.
+    const rattata = { ...mewtwo, dexNum: 19, name: 'Rattata', types: ['Normal'], tier: 'Common' } as EncounterPokemon;
+    expect(wildCatchChancePreview(rattata, undefined, 'poke-ball')).toBeGreaterThan(0.5);
   });
 });

@@ -172,6 +172,30 @@ export function computeCatchChance(ballBonus: number, baseCatchRate: number | un
   return Math.min(0.92, (rate / 255) * (1 + ballBonus) * hpFactor * statusMult);
 }
 
+/** Ball multiplier on the legendary-class curve. */
+export const LEGENDARY_BALL_MULT: Record<CatchBall, number> = { 'poke-ball': 1, 'great-ball': 1.25, 'ultra-ball': 1.5 };
+export const LEGENDARY_CATCH_CAP = 0.4;
+const LEGENDARY_CURVE_K = 4;
+
+/**
+ * Legendary, Mythical, Ultra Beast and Galarian bird catch chance: 2% at full HP rising steeply to ~25% at
+ * 1 HP (Poké Ball), times ball and status multipliers, capped at 40%. `hp` of 1 or less counts as empty.
+ */
+export function legendaryCatchChance(currentHp: number, maxHp: number, ball: CatchBall, condition?: BattleCondition): number {
+  const h = currentHp <= 1 || maxHp <= 0 ? 0 : Math.max(0, Math.min(1, currentHp / maxHp));
+  const k = LEGENDARY_CURVE_K;
+  const base = 0.02 + (0.23 * (Math.exp(k * (1 - h)) - 1)) / (Math.exp(k) - 1);
+  return Math.min(LEGENDARY_CATCH_CAP, base * LEGENDARY_BALL_MULT[ball] * legendaryStatusMultiplier(condition));
+}
+
+/** Status multiplier on the legendary-class curve: asleep or frozen ×1.5, paralysed, poisoned or burned ×1.25. */
+export function legendaryStatusMultiplier(condition: BattleCondition | undefined): number {
+  const a = condition?.ailment;
+  if (a === 'sleep' || a === 'freeze') return 1.5;
+  if (a === 'paralysis' || a === 'poison' || a === 'burn') return 1.25;
+  return 1;
+}
+
 /** Main-series status catch bonus: asleep or frozen ×2, paralysed, poisoned or burned ×1.5. */
 export function catchStatusMultiplier(condition: BattleCondition | undefined): number {
   const a = condition?.ailment;
@@ -225,6 +249,7 @@ export function wildCatchChancePreview(
   ball: CatchBall,
 ): number {
   if (isGuaranteedCatch(enc)) return 1;
+  if (isEventSpecies(enc.dexNum)) return legendaryCatchChance(enc.currentHp, enc.maxHp, ball, enc.condition);
   const baseCatchRate = SPECIES_BY_DEX.get(enc.dexNum)?.baseCatchRate;
   const hpRatio = enc.maxHp > 0 ? enc.currentHp / enc.maxHp : 1;
   return computeCatchChance(BALL_CATCH_BONUS[ball] + catchTypeBonus(active, enc.types), baseCatchRate, hpRatio, catchStatusMultiplier(enc.condition));

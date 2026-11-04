@@ -202,7 +202,8 @@ function applyCombatTurnInner(
     playerEffectiveness: getEffectiveness(MOVES[chosen]!.type, enc.types),
     wildEffectiveness: getEffectiveness(MOVES[wildMove]!.type, active.types),
   };
-  if (exchange.player.currentHp <= 0 && guaranteed)
+  // Any shiny (and every shiny Legendary) waits for your next Pokémon instead of fleeing.
+  if (exchange.player.currentHp <= 0 && (guaranteed || enc.shiny === true))
     return withTouch({
       ...state,
       party,

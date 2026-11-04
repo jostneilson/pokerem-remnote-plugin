@@ -1,7 +1,13 @@
 import { SPECIES_BY_DEX } from '../data/species';
 import type { PokemonType } from '../data/species';
-import { catchTypeBonus, computeCatchChance } from './encounters';
-import { encounterBaseLevel, pickEverydaySpecies } from './speciesPool';
+import {
+  BALL_CATCH_BONUS,
+  catchStatusMultiplier,
+  catchTypeBonus,
+  computeCatchChance,
+  legendaryCatchChance
+} from './encounters';
+import { encounterBaseLevel, isEventSpecies, pickEverydaySpecies } from './speciesPool';
 import { battleStats, rollIVs } from './pokemonStats';
 import { MOVES } from '../data/moves';
 import { optimalMoveset } from './movesetOptimizer';
@@ -342,11 +348,16 @@ export function trainerCatchChance(
   ball: 'poke-ball' | 'great-ball' | 'ultra-ball',
   tier: TrainerTier,
 ): number {
-  const ballBonus = ball === 'ultra-ball' ? 0.4 : ball === 'great-ball' ? 0.2 : 0;
+  if (isEventSpecies(enemy.dexNum)) return legendaryCatchChance(enemy.currentHp, enemy.maxHp, ball, enemy.condition);
   const tierBonus = TRAINER_CATCH_BONUS[tier];
   const baseCatchRate = SPECIES_BY_DEX.get(enemy.dexNum)?.baseCatchRate;
   const hpRatio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
-  return computeCatchChance(ballBonus + tierBonus + catchTypeBonus(active, enemy.types), baseCatchRate, hpRatio);
+  return computeCatchChance(
+    BALL_CATCH_BONUS[ball] + tierBonus + catchTypeBonus(active, enemy.types),
+    baseCatchRate,
+    hpRatio,
+    catchStatusMultiplier(enemy.condition)
+  );
 }
 
 /** Convert a trainer enemy slot into a spawnable {@link EncounterPokemon} after a successful catch. */
