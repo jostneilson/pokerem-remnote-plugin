@@ -1,3 +1,5 @@
+import { SPECIES_BY_DEX } from './data/species';
+
 /*
  * Every reward weight in one place: coins, XP and the variable cash rolls. The balance harness
  * (`src/game/sim/balance.ts`, `npm run balance:tune`) tunes the values marked tunable in
@@ -9,13 +11,25 @@ export type TransferTier = 'Common' | 'Uncommon' | 'Rare' | 'Baby' | 'Ultra' | '
 
 export const BALANCE = {
   coins: {
-    /** Per reviewed card, × the study card weight. */
-    review: 25,
-    defeatBase: 250,
-    defeatPerLevel: 10,
-    catchBase: 100,
-    catchPerLevel: 0,
-    run: 25
+    /** Per reviewed card, × the study card weight. Tunable 5–25. */
+    review: 10,
+    /** Defeat: base + per level, × species tier. Tunable 30–150 / 3–15. */
+    defeatBase: 60,
+    defeatPerLevel: 8,
+    /** Catch: always below defeat at every level. */
+    catchBase: 40,
+    catchPerLevel: 5,
+    run: 25,
+    /** Ultra Beast ×3, Legendary ×5, Mythical ×6 on both defeat and catch coins. */
+    tierMult: { Ultra: 3, Legendary: 5, Mythical: 6 } as Partial<Record<string, number>>
+  },
+  /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */
+  quests: {
+    scale: 1,
+    dailyMin: 800,
+    dailyMax: 1800,
+    weeklyMin: 5000,
+    weeklyMax: 8000
   },
   xp: {
     /** Study XP per card for every party member (XP Share). Tunable 0.6–3. */
@@ -65,16 +79,28 @@ export const BALANCE = {
   studyCash: [
     { upTo: 0.0005, min: 10_000, max: 25_000, tier: 'Jackpot' },
     { upTo: 0.0055, min: 2000, max: 5000, tier: 'Rare find' },
-    { upTo: 0.0455, min: 350, max: 850, tier: 'Lucky find' }
+    { upTo: 0.0455, min: 300, max: 800, tier: 'Lucky find' }
   ] as readonly { upTo: number; min: number; max: number; tier: string }[]
 };
 
-/** Coins for knocking out a wild Pokémon. */
-export function defeatCoins(level: number): number {
-  return BALANCE.coins.defeatBase + Math.floor(level * BALANCE.coins.defeatPerLevel);
+const tierMult = (dexNum?: number) => {
+  if (dexNum == null) return 1;
+  return BALANCE.coins.tierMult[SPECIES_BY_DEX.get(dexNum)?.tier ?? ''] ?? 1;
+};
+
+/** Coins for knocking out a wild Pokémon (`dexNum` applies the species tier multiplier). */
+export function defeatCoins(level: number, dexNum?: number): number {
+  return Math.round((BALANCE.coins.defeatBase + Math.floor(level * BALANCE.coins.defeatPerLevel)) * tierMult(dexNum));
 }
 
-/** Coins for catching a wild Pokémon. */
-export function catchCoins(level: number): number {
-  return BALANCE.coins.catchBase + Math.floor(level * BALANCE.coins.catchPerLevel);
+/** Coins for catching a wild Pokémon; always below `defeatCoins` for the same Pokémon. */
+export function catchCoins(level: number, dexNum?: number): number {
+  return Math.round((BALANCE.coins.catchBase + Math.floor(level * BALANCE.coins.catchPerLevel)) * tierMult(dexNum));
+}
+
+/** A quest's coins, scaled and kept inside its period's band. */
+export function questCoins(period: 'daily' | 'weekly', listed: number): number {
+  const q = BALANCE.quests;
+  const [min, max] = period === 'daily' ? [q.dailyMin, q.dailyMax] : [q.weeklyMin, q.weeklyMax];
+  return Math.round(Math.max(min, Math.min(max, listed)) * q.scale);
 }

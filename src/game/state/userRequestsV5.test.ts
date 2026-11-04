@@ -1,3 +1,4 @@
+import { catchCoins, defeatCoins } from '../balance';
 import { describe, it, expect, vi } from 'vitest';
 import {
   chooseStarter,
@@ -57,15 +58,17 @@ describe('User specific requirements in 1.4.0', () => {
 
       expect(currencyFromDefeat).toBeGreaterThan(currencyFromCatch);
       expect(xpFromDefeat).toBeGreaterThan(xpFromCatch);
-      expect(currencyFromDefeat).toBeGreaterThanOrEqual(250);
-      expect(currencyFromCatch).toBe(CURRENCY_REWARDS.catch);
+      // 1.6.0 (SPEC C2): defeat ₽60 + 8×L, catch ₽40 + 5×L.
+      expect(currencyFromDefeat).toBe(defeatCoins(10, 25));
+      expect(currencyFromCatch).toBe(catchCoins(10, 25));
     });
   });
 
   describe('Rewards and bonuses give way more money', () => {
     it('provides high value cash rewards across review, bonuses, and trainer wins', () => {
-      expect(CURRENCY_REWARDS.defeat).toBeGreaterThanOrEqual(250);
-      expect(CURRENCY_REWARDS.review).toBeGreaterThanOrEqual(25);
+      // 1.6.0 rebalanced coins (SPEC C2): a smaller card trickle, defeats always beat catches.
+      expect(CURRENCY_REWARDS.review).toBeGreaterThanOrEqual(5);
+      for (const lv of [1, 10, 50, 100]) expect(defeatCoins(lv)).toBeGreaterThan(catchCoins(lv));
 
       const rng = (...values: number[]) => {
         let i = 0;
@@ -82,7 +85,7 @@ describe('User specific requirements in 1.4.0', () => {
 
       const luckyFind = rollStudyCashBonus(rng(0.02, 0));
       expect(luckyFind.tier).toBe('Lucky find');
-      expect(luckyFind.amount).toBeGreaterThanOrEqual(350);
+      expect(luckyFind.amount).toBeGreaterThanOrEqual(300);
 
       const eliteReward = generateTrainerRewards('elite', 20);
       expect(eliteReward.coins).toBeGreaterThanOrEqual(1500);

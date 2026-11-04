@@ -2,6 +2,7 @@
  * Daily and weekly quests: a few rotating goals measured as progress since the period began
  * (a snapshot of lifetime counters), each with a generous coin and item reward.
  */
+import { questCoins } from '../balance';
 import type { ItemId } from '../data/items';
 import type { PokeRemGameState } from '../state/model';
 
@@ -128,7 +129,7 @@ export function questViews(s: PokeRemGameState): QuestView[] {
   return activeQuests(qs).map((q) => {
     const base = q.period === 'daily' ? qs.dayBase : qs.weekBase;
     const current = Math.max(0, Math.min(q.target, now[q.metric] - (base[q.metric] ?? 0)));
-    return { ...q, current, done: current >= q.target, claimed: qs.claimed.includes(q.id) };
+    return { ...q, coins: questCoins(q.period, q.coins), current, done: current >= q.target, claimed: qs.claimed.includes(q.id) };
   });
 }
 

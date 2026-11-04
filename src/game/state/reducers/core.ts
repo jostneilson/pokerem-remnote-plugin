@@ -271,7 +271,7 @@ export function battleResult(
 export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeRemGameState {
   const mon = ownedFromEncounter(enc);
   const caughtInfo = {
-    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, catchCoins(enc.level)),
+    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, catchCoins(enc.level, enc.dexNum)),
     shinyLog: enc.shiny
       ? [
           ...(base.shinyLog ?? []),
@@ -294,8 +294,8 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
   const rewards = {
     ...caughtInfo,
     totalCaught: (base.totalCaught ?? 0) + 1,
-    currency: (base.currency ?? 0) + catchCoins(enc.level),
-    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + catchCoins(enc.level),
+    currency: (base.currency ?? 0) + catchCoins(enc.level, enc.dexNum),
+    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + catchCoins(enc.level, enc.dexNum),
     dailyStats: { ...ds, catches: ds.catches + 1 },
   };
 

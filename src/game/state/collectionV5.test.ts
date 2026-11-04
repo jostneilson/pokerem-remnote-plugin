@@ -122,7 +122,7 @@ describe('v5 catches, rewards, and study XP', () => {
     const rng = (...values: number[]) => { let i = 0; return () => values[i++] ?? 0; };
     expect(rollStudyCashBonus(rng(0.000499, 0))).toEqual({ amount: 10000, tier: 'Jackpot' });
     expect(rollStudyCashBonus(rng(0.0005, 0))).toEqual({ amount: 2000, tier: 'Rare find' });
-    expect(rollStudyCashBonus(rng(0.0055, 0))).toEqual({ amount: 350, tier: 'Lucky find' });
+    expect(rollStudyCashBonus(rng(0.0055, 0))).toEqual({ amount: 300, tier: 'Lucky find' });
     expect(rollStudyCashBonus(rng(0.0455, 0))).toEqual({ amount: 0 });
     expect(rollStudyCashBonus(rng(0, 0.999999))).toEqual({ amount: 25000, tier: 'Jackpot' });
   });
