@@ -369,6 +369,8 @@ export interface PokeRemGameState {
   sceneIndexVersion?: number;
   /** The area the arena is in; it moves on only after `encountersLeft` wild encounters (see AREA_* constants). */
   area?: AreaState;
+  /** Owned id of the player's original starter (the Buddy; evolution keeps the id). */
+  starterId?: string;
 }
 
 export interface AreaState {
