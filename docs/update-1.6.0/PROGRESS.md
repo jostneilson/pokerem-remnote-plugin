@@ -5,9 +5,9 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T4.3 (6bcfc3a)
-- In progress: T4.4
-- Next exact step: T4.4: src/ui/screens/CollectionGridScreen.tsx per U4 (windowed grid, sort/filter/search), opened from a 'View all' button in the Party header; then T4.5 select mode + bulk bar (U5)
+- Last finished: T4.5 (37be92f)
+- In progress: T4.6
+- Next exact step: T4.6: capacity caps (L13): storage 60+10/5 trainer lv + storageBonus, bag 200+20/5 lv + bagBonus (key items excluded); shop upgrades; meters; grandfathering; capacity.test.ts
 - Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
 
 ## Known issues
@@ -18,6 +18,8 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | Commit | Verified |
 |---|---|---|
+| T4.5 | 37be92f | preview: select mode, keep-best picks 421, bulk Transfer opens one confirm with totals |
+| T4.4 | 37be92f | preview 280/320/400: 520 tiles, ~21-30 rendered, sort/filter, tap opens detail, no h-scroll; collectionGrid.test.ts |
 | T4.3 | 6bcfc3a | preview: Transfer confirm shows payout + copy; Esc closes; warnings unit-tested |
 | T4.2 | 6bcfc3a | preview 320px: three buttons, + heal, Upgrade sheet opens (Power Up / Tutor) |
 | T4.1 | c557d21 | transfer.test (5): payout, Common<100, XP split, guards, warnings, buddy end; 301 tests |
@@ -104,9 +106,9 @@ Each task's check: `rocket.test.ts`, plus a hostsim dev scenario.
 | [x] T4.1 (c557d21) | `transferPokemon` reducer, payout and XP. |
 | [x] T4.2 (6bcfc3a) | Three-button card, Upgrade sheet, heal `+` on the HP bar. |
 | [x] T4.3 (6bcfc3a) | Transfer confirm with warning chips. |
-| [~] T4.4 | View all grid: sort and filter. |
-| [ ] T4.5 | Multi-select and bulk bar. |
-| [ ] T4.6 | Capacity caps, meters, upgrades, grandfathering. |
+| [x] T4.4 (37be92f) | View all grid: sort and filter. |
+| [x] T4.5 (37be92f) | Multi-select and bulk bar. |
+| [~] T4.6 | Capacity caps, meters, upgrades, grandfathering. |
 | [ ] T4.7 | Full-storage catch flow and bag-full ₽ conversion. |
 
 Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
