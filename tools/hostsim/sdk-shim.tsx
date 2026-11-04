@@ -9,6 +9,7 @@ import { render } from 'react-dom';
 export const AppEvents = {
   QueueCompleteCard: 'QueueCompleteCard',
   StorageSyncedChange: 'StorageSyncedChange',
+  MessageBroadcast: 'messaging.broadcast',
 } as const;
 export const WidgetLocation = {
   RightSidebar: 'RightSidebar',
@@ -69,6 +70,8 @@ function rpc(method: string, ...args: unknown[]): Promise<any> {
 const eventListeners = new Set<{ event: string; cb: EventCallbackFn }>();
 listeners.add((d) => {
   if (d.evt === 'queue') for (const l of eventListeners) if (l.event === AppEvents.QueueCompleteCard) l.cb(d.payload);
+  // Like RemNote: broadcast listeners get `{ message }`. The key is ignored here (every listener hears every message).
+  if (d.evt === 'broadcast') for (const l of eventListeners) if (l.event === AppEvents.MessageBroadcast) l.cb({ message: d.message });
 });
 
 const noopNamespace = () => new Proxy({}, { get: () => async () => undefined });
@@ -94,7 +97,9 @@ const plugin: any = {
   },
   event: {
     addListener: (event: string, _key: unknown, cb: EventCallbackFn) => { eventListeners.add({ event, cb }); },
-    removeListener: () => undefined,
+    removeListener: (event: string, _key: unknown, cb: EventCallbackFn) => {
+      for (const l of eventListeners) if (l.event === event && l.cb === cb) eventListeners.delete(l);
+    },
   },
   window: noopNamespace(),
   widget: noopNamespace(),

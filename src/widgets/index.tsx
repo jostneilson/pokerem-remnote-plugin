@@ -7,7 +7,8 @@ import {
 } from '@remnote/plugin-sdk';
 import { STORAGE_KEY } from '../game/constants';
 import { runSingleReview } from '../game/pipeline';
-import { runQueueAction, type QueueAction } from '../game/queueActions';
+import { startCommandHost } from '../game/commandChannel';
+import { runQueueActionInHost, type QueueAction } from '../game/queueActions';
 import {
   QUEUE_COMPLETE_RECENT_SESSION_KEY,
   extractQueueCompleteDedupeKey,
@@ -35,11 +36,12 @@ import '../index.css';
 
 let queueReviewChain: Promise<void> = Promise.resolve();
 let queueListener: EventCallbackFn | undefined;
+let stopCommandHost: (() => void) | undefined;
 
 /** Run a wild-battle command here in the plugin host, so it works whether or not the sidebar is open. */
 async function queueCommand(plugin: ReactRNPlugin, action: QueueAction) {
   try {
-    const next = await runQueueAction(plugin, action);
+    const next = await runQueueActionInHost(plugin, action);
     if (!next) await plugin.app.toast('No wild Pokémon to battle right now.');
   } catch (e) {
     console.error('[PokéRem] Queue command failed', e);
@@ -109,6 +111,12 @@ async function onActivate(plugin: ReactRNPlugin) {
   }
 
   await safely('first-run welcome', () => welcomeOnFirstRun(plugin));
+
+  // Widgets send their state changes here, so every save is written by this one host (see commandChannel.ts).
+  await safely('command host', async () => {
+    stopCommandHost?.();
+    stopCommandHost = startCommandHost(plugin);
+  });
 
   queueListener = (event: unknown) => {
     queueReviewChain = queueReviewChain.then(async () => {
@@ -312,6 +320,8 @@ async function onDeactivate(plugin: ReactRNPlugin) {
     plugin.event.removeListener(AppEvents.QueueCompleteCard, undefined, queueListener);
     queueListener = undefined;
   }
+  stopCommandHost?.();
+  stopCommandHost = undefined;
 
   try {
     await plugin.app.unregisterWidget('pokerem_sidebar', WidgetLocation.RightSidebar);

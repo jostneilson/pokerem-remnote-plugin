@@ -362,4 +362,7 @@ export interface PokeRemGameState {
   trainerCardStyle?: string;
   /** Generations enabled in settings, saved so achievements can see them. */
   enabledGenerations?: number[];
+  // ── 1.6.0 additions — all optional, normalised in `parseGameStateCore` ──
+  /** Nonces of the last widget commands applied (see commandChannel.ts), so none applies twice. */
+  recentCommandNonces?: string[];
 }

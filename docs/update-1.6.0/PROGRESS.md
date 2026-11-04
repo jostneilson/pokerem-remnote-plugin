@@ -12,7 +12,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Known issues
 
-- (none yet)
+- Owner check in native RemNote (old testing deck): open the browser console, tap a few sidebar actions; there must be no "[PokéRem] The plugin host did not answer" warning. If there is, the fallback still saves correctly but the cross-iframe race protection is off on that host.
 
 ## Done log
 
@@ -25,7 +25,7 @@ Update this file before starting and after finishing every task. Commit it with 
 
 | Task | What | Acceptance check |
 |---|---|---|
-| [x] T0.1 | Create the 5 hand-off files from this plan; capture the owner's verbatim text from the transcript. | Files exist; SPEC covers every A/B/C item. |
+| [x] T0.1 (57d9151) | Create the 5 hand-off files from this plan; capture the owner's verbatim text from the transcript. | Files exist; SPEC covers every A/B/C item. |
 | [~] T0.2 | Single-writer command channel: sidebar, popup and strip actions route to the index host. | `singleWriter.test.ts` passes; manual hostsim check that no action is lost. |
 | [ ] T0.3 | Scene migration fix (`sceneIndexVersion`), plus `area` state and the area chip. | `sceneMigration.test.ts`; parse 50× is stable. |
 | [ ] T0.4 | `formatCoins` adopted at every call site. | Unit tests at 999, 1,000, 1,550, 15,200 and 1.2M; grep finds no raw currency renders. |

@@ -6,7 +6,8 @@ import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, us
 import { usePokeRemBattleActions } from '../hooks/usePokeRemBattleActions';
 import { REVIEWS_PER_ENCOUNTER, STORAGE_KEY, SYNC_BROADCAST_KEY, getSyncedGameRaw } from '../game/constants';
 import { POKEREM_AUTHOR } from '../releaseMeta';
-import { withSyncedGameWrite } from '../game/state/syncedGameWriteLock';
+import { submitGameCommands } from '../game/commandChannel';
+import { gameCommand, type GameCommand } from '../game/commands';
 import {
   chooseStarter,
   claimAchievement,
@@ -166,7 +167,7 @@ function PokeRemSidebar() {
   /** Full plugin root — width tracks RemNote’s sidebar pane for layout + ResizeObserver. */
   const sidebarRootRef = useRef<HTMLDivElement | null>(null);
 
-  const battle = usePokeRemBattleActions(plugin, (next) => setState(next));
+  const battle = usePokeRemBattleActions(plugin, (next) => setState(next), state);
 
   const refreshFromStorage = useCallback(async () => {
     const raw = await getSyncedGameRaw(plugin);
@@ -294,22 +295,14 @@ function PokeRemSidebar() {
     void refreshFromStorage();
   });
 
-  const applyReducer = async (fn: (s: PokeRemGameState) => PokeRemGameState) => {
+  /** Send one change to the plugin host (the single writer; see commandChannel.ts) and show the saved result. */
+  const dispatch = async (command: GameCommand) => {
     if (savingRef.current || !loaded) return;
     savingRef.current = true;
     setSaving(true);
     setSaveError('');
     try {
-      const next = await withSyncedGameWrite(async () => {
-        const raw = await getSyncedGameRaw(plugin);
-        const prev = parseGameState(raw);
-        const n = fn(prev);
-        if (n === prev) return prev;
-        await plugin.storage.setSynced(STORAGE_KEY, n);
-        try { await plugin.messaging.broadcast({ channel: SYNC_BROADCAST_KEY, at: n.lastUpdatedAt }); } catch { /* non-fatal */ }
-        return n;
-      });
-      setState(next);
+      setState(await submitGameCommands(plugin, [command]));
     } catch (error) {
       console.error('[PokéRem] Action save failed', error);
       setSaveError('That action could not be saved. Please try again.');
@@ -356,7 +349,7 @@ function PokeRemSidebar() {
         <div className="mx-2 mt-2">
           <WhatsNewCard
             seenVersion={state.whatsNewSeenVersion}
-            onDismiss={() => void applyReducer((s) => acknowledgeWhatsNew(s, POKEREM_VERSION))}
+            onDismiss={() => void dispatch(gameCommand('acknowledgeWhatsNew', POKEREM_VERSION))}
           />
         </div>
       ) : null}
@@ -392,7 +385,7 @@ function PokeRemSidebar() {
                 weight: state.studyCardWeight,
               }}
               onConfigureStudy={(preset, custom) =>
-                void applyReducer((s) => configureStudyDifficulty(s, preset, custom))
+                void dispatch(gameCommand('configureStudyDifficulty', preset, custom))
               }
             />
           ) : (
@@ -407,47 +400,43 @@ function PokeRemSidebar() {
                   bag={state.bag}
                   currency={state.currency}
                   powerUpBlocked={!!state.currentEncounter || !!state.currentTrainerBattle || !!state.pendingCaughtMon}
-                  onPowerUp={(id,level)=>void applyReducer(s=>powerUpPokemon(s,id,level))}
-                  onToggleFavorite={(id)=>void applyReducer(s=>togglePokemonFavorite(s,id))}
+                  onPowerUp={(id,level)=>void dispatch(gameCommand('powerUpPokemon', id,level))}
+                  onToggleFavorite={(id)=>void dispatch(gameCommand('togglePokemonFavorite', id))}
                   evolutionBlocked={!!state.currentEncounter || !!state.currentTrainerBattle}
                   evolutionMessage={state.lastOutcomeKind === 'evolution' ? state.lastBattleLog : undefined}
-                  onEvolve={(pid, item) => void applyReducer(s => useEvolutionStone(s, pid, item))}
-                  onBottleCap={(pid, item, stat) => void applyReducer(s => useBottleCap(s, pid, item, stat))}
-                  onTutor={(pid, moveId) => void applyReducer(s => teachTutorMove(s, pid, moveId))}
-                  onHeal={(pid) => void applyReducer((s) => quickHealPokemon(s, pid))}
-                  onSetAutoMoves={(pid, on) => void applyReducer((s) => setAutoMoves(s, pid, on))}
+                  onEvolve={(pid, item) => void dispatch(gameCommand('useEvolutionStone', pid, item))}
+                  onBottleCap={(pid, item, stat) => void dispatch(gameCommand('useBottleCap', pid, item, stat))}
+                  onTutor={(pid, moveId) => void dispatch(gameCommand('teachTutorMove', pid, moveId))}
+                  onHeal={(pid) => void dispatch(gameCommand('quickHealPokemon', pid))}
+                  onSetAutoMoves={(pid, on) => void dispatch(gameCommand('setAutoMoves', pid, on))}
                   healBlocked={!!state.currentTrainerBattle}
                   storagePokemon={state.storagePokemon}
                   activeId={state.activePokemonId}
-                  onSwitch={(id) => void applyReducer((s) => switchActivePokemon(s, id))}
-                  onForgetMove={(pid, mid) => void applyReducer((s) => forgetMoveAction(s, pid, mid))}
-                  onLearnMove={(pid, mid, rep) => void applyReducer((s) => learnMoveAction(s, pid, mid, rep))}
-                  onRename={(pid, name) => void applyReducer((s) => renamePokemon(s, pid, name))}
-                  onRelease={(pid) => void applyReducer((s) => releasePokemon(s, pid))}
-                  onMoveToStorage={(pid) => void applyReducer((s) => moveToStorage(s, pid))}
-                  onMoveToParty={(pid) => void applyReducer((s) => moveToParty(s, pid))}
-                  onSwapStorageForParty={(sid, rid) => void applyReducer((s) => swapPartyWithStorage(s, sid, rid))}
+                  onSwitch={(id) => void dispatch(gameCommand('switchActivePokemon', id))}
+                  onForgetMove={(pid, mid) => void dispatch(gameCommand('forgetMoveAction', pid, mid))}
+                  onLearnMove={(pid, mid, rep) => void dispatch(gameCommand('learnMoveAction', pid, mid, rep))}
+                  onRename={(pid, name) => void dispatch(gameCommand('renamePokemon', pid, name))}
+                  onRelease={(pid) => void dispatch(gameCommand('releasePokemon', pid))}
+                  onMoveToStorage={(pid) => void dispatch(gameCommand('moveToStorage', pid))}
+                  onMoveToParty={(pid) => void dispatch(gameCommand('moveToParty', pid))}
+                  onSwapStorageForParty={(sid, rid) => void dispatch(gameCommand('swapPartyWithStorage', sid, rid))}
                 />
               ) : null}
               {effectiveTab === 'bag' || effectiveTab === 'shop' ? (
                 <ItemsScreen
                   initialView={effectiveTab === 'shop' ? 'shop' : 'inventory'}
                   reducedMotion={reducedMotion}
-                  onBuy={(itemId, qty) => void applyReducer((s) => buyItem(s, itemId, qty))}
-                  onBuyRouteTicket={(id) => void applyReducer((s) => buyRouteTicket(s, id))}
-                  onBuyCardStyle={(id) => void applyReducer((s) => buyCardStyle(s, id))}
-                  onEquipCardStyle={(id) => void applyReducer((s) => equipCardStyle(s, id))}
+                  onBuy={(itemId, qty) => void dispatch(gameCommand('buyItem', itemId, qty))}
+                  onBuyRouteTicket={(id) => void dispatch(gameCommand('buyRouteTicket', id))}
+                  onBuyCardStyle={(id) => void dispatch(gameCommand('buyCardStyle', id))}
+                  onEquipCardStyle={(id) => void dispatch(gameCommand('equipCardStyle', id))}
                   rootURL={plugin.rootURL}
                   state={state}
                   onUseItem={(itemId, targetId) =>
-                    void applyReducer((s) =>
-                      itemId === 'rare-candy' || itemId === 'exp-candy-s'
-                        ? useLeadUtilityItem(s, itemId, targetId)
-                        : useHealingItem(s, itemId as any, targetId),
-                    )
+                    void dispatch(gameCommand('useBagItem', itemId, targetId))
                   }
                   onActivateXpDoubler={(tier) =>
-                    void applyReducer((s) => activateXpDoubler(s, tier))
+                    void dispatch(gameCommand('activateXpDoubler', tier))
                   }
                 />
               ) : null}
@@ -467,20 +456,20 @@ function PokeRemSidebar() {
                   state={state}
                   reducedMotion={reducedMotion}
                   onClaimAchievement={(id) => {
-                    void applyReducer((s) => claimAchievement(s, id));
+                    void dispatch(gameCommand('claimAchievement', id));
                   }}
                   onClaimAllAchievements={() => {
-                    void applyReducer((s) => claimAllAchievements(s));
+                    void dispatch(gameCommand('claimAllAchievements'));
                   }}
-                  onClaimQuest={(id) => void applyReducer((s) => claimQuest(s, id))}
-                  onClaimAllQuests={() => void applyReducer((s) => claimAllQuests(s))}
+                  onClaimQuest={(id) => void dispatch(gameCommand('claimQuest', id))}
+                  onClaimAllQuests={() => void dispatch(gameCommand('claimAllQuests'))}
                   rewards={
                     <RewardsScreen
                       embedded
                       state={state}
                       reducedMotion={reducedMotion}
-                      onClaimReward={(level) => void applyReducer((s) => claimTrainerReward(s, level))}
-                      onClaimAll={() => void applyReducer((s) => claimAllTrainerRewards(s))}
+                      onClaimReward={(level) => void dispatch(gameCommand('claimTrainerReward', level))}
+                      onClaimAll={() => void dispatch(gameCommand('claimAllTrainerRewards'))}
                     />
                   }
                 />
@@ -520,30 +509,30 @@ function PokeRemSidebar() {
       style={ambienceStyle}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      {loaded && (state.currentTrainerBattle || state.currentEncounter || state.pendingCaughtMon) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void applyReducer(s => setTab(s, 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
+      {loaded && (state.currentTrainerBattle || state.currentEncounter || state.pendingCaughtMon) && (showSettings || effectiveTab !== 'status') ? <button type="button" className="pkr-return-battle" onClick={() => {setShowSettings(false); void dispatch(gameCommand('setTab', 'status'));}}>{state.currentTrainerBattle ? 'TRAINER CHALLENGE' : 'WILD ENCOUNTER'} · Return to Play</button> : null}
       {saveError ? <div className="pkr-save-feedback" role="alert">{saveError}</div> : null}
       {evolutions[0] ? <EvolutionScene key={evolutions[0].key} event={evolutions[0]} rootURL={plugin.rootURL} reducedMotion={reducedMotion} onDone={nextEvolution} /> : null}
       {/* ── Starter selection ── */}
       {!loaded ? <div className="pkr-loading" role="status"><span>Loading your adventure…</span><div className="pkr-loading-skeleton" /><div className="pkr-loading-skeleton" /></div> : !state.starterChosen ? (
         <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
-          <StarterPickerScreen rootURL={plugin.rootURL} onChoose={(dex) => void applyReducer((s) => chooseStarter(s, dex))} />
+          <StarterPickerScreen rootURL={plugin.rootURL} onChoose={(dex) => void dispatch(gameCommand('chooseStarter', dex))} />
         </div>
       ) : !state.studyDifficultyConfigured ? (
         <div className="pkr-setup-scroll pkr-no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2">
           <StudyDifficultyScreen
             onChoose={(preset, custom) => {
-              void applyReducer((s) => configureStudyDifficulty(s, preset, custom));
+              void dispatch(gameCommand('configureStudyDifficulty', preset, custom));
             }}
           />
         </div>
       ) : (
         <>
                 <SidebarNavigation active={effectiveTab} settings={showSettings} rewardsAttention={rewardsTabAttention} progressAttention={progressTabGlow}
-        onSelect={(tab) => { setShowSettings(false); void applyReducer((s) => setTab(s, tab)); }}
+        onSelect={(tab) => { setShowSettings(false); void dispatch(gameCommand('setTab', tab)); }}
         onSettings={() => setShowSettings((v) => !v)} />
           {/* Menus use the full panel; Play owns the arena. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            {!showSettings && effectiveTab === 'status' ? <QuickCarePanel state={state} busy={saving || battle.battleBusy} onApply={(fn) => void applyReducer(fn)} /> : null}
+            {!showSettings && effectiveTab === 'status' ? <QuickCarePanel state={state} busy={saving || battle.battleBusy} onApply={(command) => void dispatch(command)} /> : null}
             {!showSettings && effectiveTab === 'status' && state.currentTrainerBattle && !state.pendingCaughtMon ? (
               <div className={scrollAreaClass}>
                 <TrainerBattleSurface
@@ -551,16 +540,16 @@ function PokeRemSidebar() {
                   state={state}
                   rootURL={plugin.rootURL}
                   reducedMotion={reducedMotion}
-                  onLockTeam={(ids) => void applyReducer((s) => lockTrainerTeam(s, ids))}
+                  onLockTeam={(ids) => void dispatch(gameCommand('lockTrainerTeam', ids))}
                   busy={saving}
-                  onCombatTurn={(mid) => void applyReducer((s) => applyTrainerCombatTurn(s, mid))}
+                  onCombatTurn={(mid) => void dispatch(gameCommand('applyTrainerCombatTurn', mid))}
                   onClaimCatch={(idx, ball) =>
-                    void applyReducer((s) => claimTrainerCatch(s, idx, ball))
+                    void dispatch(gameCommand('claimTrainerCatch', idx, ball))
                   }
-                  onDismissCatchOffer={() => void applyReducer((s) => dismissTrainerCatchOffer(s))}
-                  onBuyBall={(id) => void applyReducer((s) => buyItem(s, id))}
-                  onClose={() => void applyReducer((s) => closeTrainerBattle(s))}
-                  onRematch={() => void applyReducer((s) => rematchTrainer(s))}
+                  onDismissCatchOffer={() => void dispatch(gameCommand('dismissTrainerCatchOffer'))}
+                  onBuyBall={(id) => void dispatch(gameCommand('buyItem', id))}
+                  onClose={() => void dispatch(gameCommand('closeTrainerBattle'))}
+                  onRematch={() => void dispatch(gameCommand('rematchTrainer'))}
                   rematchCost={trainerRematchCost(state)}
                   ballPrices={[
                     { id: 'poke-ball', price: 100, unlocked: true },
@@ -600,17 +589,17 @@ function PokeRemSidebar() {
                 pendingCaughtMon={state.pendingCaughtMon ?? null}
                 partyForReplace={state.party}
                 activePartyId={state.activePokemonId}
-                onPendingCatchReplace={(pid) => void applyReducer((s) => resolvePendingCaughtReplace(s, pid))}
-                onPendingCatchCancel={() => void applyReducer((s) => cancelPendingCaught(s))}
-                onCatchScope={() => void applyReducer((s) => consumeCatchScopeScan(s))}
+                onPendingCatchReplace={(pid) => void dispatch(gameCommand('resolvePendingCaughtReplace', pid))}
+                onPendingCatchCancel={() => void dispatch(gameCommand('cancelPendingCaught'))}
+                onCatchScope={() => void dispatch(gameCommand('consumeCatchScopeScan'))}
                 encounterPacingModulo={encounterPacingModulo}
                 wildReviewWeight={wildReviewWeight}
-                onAcknowledgeRouteFind={() => void applyReducer((s) => acknowledgeRouteFindNotice(s))}
+                onAcknowledgeRouteFind={() => void dispatch(gameCommand('acknowledgeRouteFindNotice'))}
                 showDailyHeaderStats={showDailyHeaderStats}
-                onDismissMainNotice={(id) => void applyReducer((s) => dismissMainNotice(s, id))}
-                onClaimMainNotice={(id) => void applyReducer((s) => claimMainNotice(s, id))}
-                onClaimAllRewards={() => void applyReducer((s) => claimAllRewards(s))}
-                onDismissResult={() => void applyReducer((s) => dismissBattleResult(s))}
+                onDismissMainNotice={(id) => void dispatch(gameCommand('dismissMainNotice', id))}
+                onClaimMainNotice={(id) => void dispatch(gameCommand('claimMainNotice', id))}
+                onClaimAllRewards={() => void dispatch(gameCommand('claimAllRewards'))}
+                onDismissResult={() => void dispatch(gameCommand('dismissBattleResult'))}
                 pendingRewards={pendingRewardCount(state)}
                 sidebarSplitLayout={({ sticky, lower }) => (
                   <>

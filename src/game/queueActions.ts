@@ -5,6 +5,8 @@ import { recommendedBall } from './engine/encounters';
 import type { PokeRemGameState } from './state/model';
 import { activePokemon, applyCombatTurn, cancelPendingCaught, catchEncounter, parseGameState, quickHealLead, runFromEncounter } from './state/store';
 import { withSyncedGameWrite } from './state/syncedGameWriteLock';
+// Circular with commandChannel → commands → this file; only used inside functions, so load order is safe.
+import { submitGameCommands } from './commandChannel';
 
 /** Wild-battle actions the queue strip, encounter popup and RemNote commands can run with the sidebar closed. */
 export type QueueAction = 'catch' | 'fight' | 'auto' | 'run' | 'heal' | 'store';
@@ -30,8 +32,18 @@ export function applyQueueAction(state: PokeRemGameState, action: QueueAction): 
   return next;
 }
 
-/** Read, apply and save one queue action under the synced-write lock. Returns the saved state, or null if nothing changed. */
+/**
+ * Run one queue action from a widget through the plugin host (the single writer; see commandChannel.ts).
+ * Returns the saved state, or null if nothing changed.
+ */
 export async function runQueueAction(plugin: RNPlugin, action: QueueAction): Promise<PokeRemGameState | null> {
+  const before = parseGameState(await getSyncedGameRaw(plugin));
+  const next = await submitGameCommands(plugin, [{ name: 'queueAction', args: [action] }]);
+  return JSON.stringify(next) === JSON.stringify(before) ? null : next;
+}
+
+/** The host's own path (commands, queue menu entries): apply directly under its write lock. */
+export async function runQueueActionInHost(plugin: RNPlugin, action: QueueAction): Promise<PokeRemGameState | null> {
   return withSyncedGameWrite(async () => {
     const prev = parseGameState(await getSyncedGameRaw(plugin));
     const next = applyQueueAction(prev, action);

@@ -1,24 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RNPlugin } from '@remnote/plugin-sdk';
 import { getBattleFlowPhase } from '../game/battleFlow';
-import { STORAGE_KEY, SYNC_BROADCAST_KEY, getSyncedGameRaw } from '../game/constants';
+import { submitGameCommands } from '../game/commandChannel';
+import { gameCommand, type GameCommand } from '../game/commands';
 import type { PokeRemGameState } from '../game/state/model';
-import { withSyncedGameWrite } from '../game/state/syncedGameWriteLock';
 import { planAutoAttack } from '../game/engine/autoAttack';
 import { BRAND } from '../ui/theme/gameTheme';
-import { recommendedBall, type CatchBall } from '../game/engine/encounters';
-import {
-  applyCombatTurn,
-  catchEncounter,
-  parseGameState,
-  runFromEncounter,
-} from '../game/state/store';
+import type { CatchBall } from '../game/engine/encounters';
 import { shouldShowPokeRemNotification } from '../game/notificationGate';
 
 export function usePokeRemBattleActions(
   plugin: RNPlugin,
   onStateCommitted: (next: PokeRemGameState) => void,
+  /** The state the player is looking at, used to tell whether an action changed anything. */
+  current?: PokeRemGameState,
 ) {
+  const beforeRef = useRef<PokeRemGameState | undefined>(current);
+  beforeRef.current = current;
   const autoToken = useRef(0);
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [autoAttackMessage, setAutoAttackMessage] = useState('');
@@ -33,7 +31,7 @@ export function usePokeRemBattleActions(
   const [busyAction, setBusyAction] = useState<null | 'catch' | 'fight' | 'run'>(null);
 
   const applyBattleAction = useCallback(
-    async (action: 'catch' | 'fight' | 'run', fn: (s: PokeRemGameState) => PokeRemGameState) => {
+    async (action: 'catch' | 'fight' | 'run', command: GameCommand) => {
       if (busyRef.current) {
         return;
       }
@@ -41,22 +39,10 @@ export function usePokeRemBattleActions(
       setBattleBusy(true);
       setBusyAction(action);
       try {
-        const { prev, next, wrote } = await withSyncedGameWrite(async () => {
-          const raw = await getSyncedGameRaw(plugin);
-          const prevInner = parseGameState(raw);
-          const nextInner = fn(prevInner);
-          if (nextInner === prevInner) {
-            return { prev: prevInner, next: nextInner, wrote: false };
-          }
-          await plugin.storage.setSynced(STORAGE_KEY, nextInner);
-          try {
-            await plugin.messaging.broadcast({ channel: SYNC_BROADCAST_KEY, at: nextInner.lastUpdatedAt });
-          } catch {
-            /* non-fatal */
-          }
-          return { prev: prevInner, next: nextInner, wrote: true };
-        });
-        if (!wrote) {
+        const prev = beforeRef.current;
+        const next = await submitGameCommands(plugin, [command]);
+        if (prev && JSON.stringify(next) === JSON.stringify(prev)) {
+          onStateCommitted(next);
           return undefined;
         }
         onStateCommitted(next);
@@ -70,7 +56,7 @@ export function usePokeRemBattleActions(
           if (next.lastOutcomeKind === 'faint') {
             await plugin.app.toast(next.lastBattleLog || 'Your Pokemon fainted!');
           }
-          const prevAch = Object.values(prev.achievements).filter(Boolean).length;
+          const prevAch = prev ? Object.values(prev.achievements).filter(Boolean).length : 0;
           const nextAch = Object.values(next.achievements).filter(Boolean).length;
           if (nextAch > prevAch) {
             await plugin.app.toast(`Achievement unlocked! (${nextAch} total)`);
@@ -109,14 +95,12 @@ export function usePokeRemBattleActions(
         if (!plan.moveId) break;
         await new Promise(resolve => window.setTimeout(resolve, 900));
         if (token !== autoToken.current) break;
-        const next = await applyBattleAction('fight', current => {
-          // Recheck inside the save lock: another window may have changed the encounter.
-          if (token !== autoToken.current || current.activePokemonId !== expected.activePokemonId ||
-              JSON.stringify(current.currentEncounter) !== JSON.stringify(expected.currentEncounter)) return current;
-          const fresh = planAutoAttack(current);
-          setAutoAttackMessage(fresh.message);
-          return fresh.moveId ? applyCombatTurn(current, fresh.moveId, true) : current;
-        });
+        const next = await applyBattleAction(
+          'fight',
+          // Applied by the host only if the lead and encounter are still the ones planned against.
+          gameCommand('autoAttackStep', expected.activePokemonId ?? '', JSON.stringify(expected.currentEncounter))
+        );
+        if (next) setAutoAttackMessage(planAutoAttack(next).message);
         if (token !== autoToken.current) break;
         if (!next) { setAutoAttackMessage('Auto attack stopped. Check the encounter before continuing.'); break; }
         expected = next;
@@ -130,24 +114,20 @@ export function usePokeRemBattleActions(
   /** Throw `ball`, or the recommended one (cheapest with a reasonable chance) when none is given. */
   const makeCatch = useCallback((ball?: CatchBall) => {
     stopAutoAttack();
-    void applyBattleAction('catch', (s) => {
-      if (!s.currentEncounter) return s;
-      const lead = s.party.find((p) => p.id === s.activePokemonId);
-      return catchEncounter(s, ball ?? recommendedBall(s.bag, s.currentEncounter, lead));
-    });
+    void applyBattleAction('catch', gameCommand('catchWithBall', ball));
   }, [applyBattleAction, stopAutoAttack]);
 
   const makeFightMove = useCallback(
     (moveId?: string) => {
       stopAutoAttack();
-      void applyBattleAction('fight', (s) => applyCombatTurn(s, moveId));
+      void applyBattleAction('fight', gameCommand('applyCombatTurn', moveId));
     },
     [applyBattleAction, stopAutoAttack],
   );
 
   const makeRun = useCallback(() => {
     stopAutoAttack();
-    void applyBattleAction('run', (s) => runFromEncounter(s));
+    void applyBattleAction('run', gameCommand('runFromEncounter'));
   }, [applyBattleAction, stopAutoAttack]);
 
   return {

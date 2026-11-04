@@ -275,6 +275,15 @@ function normalizeCardStyles(raw: unknown): string[] | undefined {
   return ids.length ? ids : undefined;
 }
 
+/** Most recent command nonces kept in the save (see commandChannel.ts). */
+export const RECENT_COMMAND_NONCE_LIMIT = 30;
+
+function normalizeCommandNonces(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 40);
+  return ids.length ? ids.slice(-RECENT_COMMAND_NONCE_LIMIT) : undefined;
+}
+
 function normalizeEquippedStyle(raw: unknown, owned: unknown): string | undefined {
   if (typeof raw !== 'string' || raw === 'classic') return undefined;
   return normalizeCardStyles(owned)?.includes(raw) ? raw : undefined;
@@ -821,6 +830,7 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
       typeof o.wildIdleCards === 'number' && Number.isFinite(o.wildIdleCards)
         ? Math.max(0, Math.floor(o.wildIdleCards))
         : 0,
+    recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {
