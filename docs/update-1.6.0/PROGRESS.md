@@ -169,3 +169,5 @@ Full 1.6.1 checklist: `RELEASE_1.6.1.md`. WIP for T6.1 is saved as `parked/T6.1-
 - T7.3: all four version sources align on 1.6.0; `npm run release` exit 0 (337 tests, types, version check, listing check, validation, production build, ZIP). ZIP manifest/README/three new screenshots read back against source. This is a candidate under the T5.7/T7.1 holds, not publication acceptance.
 
 - T7.4: handoff updated with exact ZIP digest, local commits, stale/full report boundary, owner holds and the stopped Claude session’s newer A17 edits. Phrase “ready for owner review” does not waive T5.7/T7.1.
+
+- T5.7 follow-up: fixed overlapping battle/variable income categories, added base-card and spending diagnostics, tightened the battle-share regression to 30–50%. Types, 53 files / 338 tests, build pass. Full balance acceptance is still open; the prior focused report predates this measurement correction.

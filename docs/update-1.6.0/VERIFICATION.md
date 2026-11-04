@@ -37,4 +37,8 @@ The preserved parked patch has blank diff-context lines that `git diff --check` 
 
 ## T7.3 release candidate readback
 
-`npm run release` passed at `4e5a153`: versions 1.6.0, types, 53 files / 337 tests, local listing check, manifest validation, production build and ZIP. Archive 13,021,686 bytes; SHA256 `b0e58df6984d79f7d4573be635054ac0f95c697046bae2c3d4745ee929c7ec6f`. ZIP README and three current screenshot bytes match local source; pinned screenshots match Git commit `129a6dd3f0daff5174281288375e2e20b38fca74`. Public loading and every acceptance hold above remain open. No current release was installed into RemNote.
+`npm run release` passed at `4e5a153`: versions 1.6.0, types, 53 files / 337 tests, local listing check, manifest validation, production build and ZIP. Archive 13,021,686 bytes; SHA256 `67a59a98d8eceaf6137e827cf7d95e1985385cbce0f7866721ebc8db41d08a63`. ZIP README and three current screenshot bytes match local source; pinned screenshots match Git commit `129a6dd3f0daff5174281288375e2e20b38fca74`. Public loading and every acceptance hold above remain open. No current release was installed into RemNote.
+
+## Measurement follow-up
+
+Income shares no longer count bounties/Rocket caches in both battle and variable columns. Real spend by action source and base card-trickle diagnostic were added. Battle-share regression now uses 30–50%; tsc, 338 tests and build pass (`/private/tmp/pokerem-160-mix-tests.log`, `/private/tmp/pokerem-160-mix-build.log`). Full matrix for these inputs is still required. The earlier focused sample cannot establish current shares.

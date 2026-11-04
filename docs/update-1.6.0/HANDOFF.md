@@ -2,10 +2,12 @@
 
 ## LIVE STATE (2026-11-04 continuation; read this first)
 
+- Latest continuation: income-mix categories now subtract variable battle rewards instead of counting them twice; spending and card-trickle diagnostics added. Battle-share regression now checks the real 30–50% band. Cached Prettier used (single quotes, no trailing commas). Latest gates: tsc, 53 files / 338 tests, production build pass. Full matrix still pending.
+
 **1.6.0 ready for owner review; nothing pushed. This is a held candidate, NOT full release acceptance.**
 
 - Worktree `update-next`, branch `update/next`. Local checkpoints: `b63b5b2` T5.7 WIP, `e1d0ff2` T7.1 evidence, `129a6dd` listing images, `dfafc15` T7.2 listing docs, `4e5a153` T7.3 version/release gate. T5.7 and T7.1 remain unresolved; no scope was waived.
-- All four version sources are **1.6.0**. `npm run release` exit 0: version alignment, types, 53 files / 337 tests, local listing validation, production build and ZIP. ZIP `PluginZip.zip`: 13,021,686 bytes, SHA256 `b0e58df6984d79f7d4573be635054ac0f95c697046bae2c3d4745ee929c7ec6f`. Manifest, README and three new screenshots read back against source. Two Webpack size warnings remain.
+- All four version sources are **1.6.0**. `npm run release` exit 0: version alignment, types, 53 files / 337 tests, local listing validation, production build and ZIP. ZIP `PluginZip.zip`: 13,021,686 bytes, SHA256 `67a59a98d8eceaf6137e827cf7d95e1985385cbce0f7866721ebc8db41d08a63`. Manifest, README and three new screenshots read back against source. Two Webpack size warnings remain.
 - The new image URLs point to local screenshot commit `129a6dd3f0daff5174281288375e2e20b38fca74`. The bytes match that Git object. Public loading is unverified and cannot be claimed until the owner publishes the exact commit; no remote writes were made.
 - Original tuner PID 55610 finished normally (1099 s). A later owned run was cancelled under Jost's explicit permission; no balance job is active at this checkpoint. Preserve ignored `.cache/balance/` samples. Current runner has source-keyed atomic checkpoints, focused runs, two workers by default, and tested clean cancellation. Default full verification is six policies × three pacings × twenty seeds × sixty days. It verifies chosen values; automatic grid search is still missing.
 - Harness repairs: revive through the real existing action after protected-encounter wipes; count all daily milestone payouts; exclude Leader prizes from wild-legendary counts. `evidence/balance-focused-repaired.md` records the subsequent sample and its failures. BALANCE_REPORT is explicitly marked as the older inherited full after-run, not current acceptance. Run the full current matrix before accepting T5.7.

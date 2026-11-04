@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catchCoins, defeatCoins } from '../balance';
+import { BALANCE, catchCoins, defeatCoins } from '../balance';
 import { evaluateBands, runBalance, type BalanceRun } from './balance';
 
 /*
@@ -18,13 +18,21 @@ const sample = () => {
 const band = (id: string) => sample().find((b) => b.id === id);
 
 describe('balance bands (Medium, 2 seeds × 60 days)', () => {
-  it.each(['level@500', 'level@1000', 'level@3000', 'keep-gap@1000', 'catch-gap'])('%s is in band', (id) => {
-    expect(band(id)?.pass, `${id} measured ${band(id)?.measured}`).toBe(true);
-  }, 120_000);
+  it.each(['level@500', 'level@1000', 'level@3000', 'keep-gap@1000', 'catch-gap'])(
+    '%s is in band',
+    (id) => {
+      expect(band(id)?.pass, `${id} measured ${band(id)?.measured}`).toBe(true);
+    },
+    120_000
+  );
 
-  it.each(['mix-claims', 'mix-variable', 'variance', 'abuse'])('%s is in band', (id) => {
-    expect(band(id)?.pass, `${id} measured ${band(id)?.measured}`).toBe(true);
-  }, 120_000);
+  it.each(['mix-claims', 'mix-variable', 'variance', 'abuse'])(
+    '%s is in band',
+    (id) => {
+      expect(band(id)?.pass, `${id} measured ${band(id)?.measured}`).toBe(true);
+    },
+    120_000
+  );
 
   // The early-income ceiling is the actual C2 bound, not the inherited relaxed 12.5k guard.
   it('early recurring income stays within the band', () => {
@@ -33,23 +41,37 @@ describe('balance bands (Medium, 2 seeds × 60 days)', () => {
     expect(v).toBeLessThanOrEqual(10_000);
   }, 120_000);
 
-  it('battles are the biggest share but not over 55%', () => {
-    const v = Number(band('mix-battles')!.measured.replace(/[^\d]/g, ''));
-    expect(v).toBeGreaterThanOrEqual(30);
-    expect(v).toBeLessThanOrEqual(55);
+  it('battle base rewards stay within the actual 30–50% band', () => {
+    expect(band('mix-battles')?.pass, band('mix-battles')?.measured).toBe(true);
+  }, 120_000);
+
+  it('separates battle-variable rewards and records real spending', () => {
+    sample();
+    for (const run of runs) {
+      expect(run.variableBattleCoins).toBeGreaterThanOrEqual(0);
+      expect(run.variableBattleCoins).toBeLessThanOrEqual(run.variableCoins);
+      expect(run.cardTrickle).toBe(run.final.cardsReviewed * BALANCE.coins.review);
+      expect(
+        Object.values(run.coinsSpentBySource).reduce((sum, value) => sum + value, 0)
+      ).toBeGreaterThan(0);
+    }
   }, 120_000);
 
   it('books all trainer-level and achievement milestones on their actual day', () => {
     sample();
     for (const run of runs) {
-      expect(run.days.reduce((sum, day) => sum + day.milestoneCoins, 0)).toBe(run.coinsBySource.milestones);
+      expect(run.days.reduce((sum, day) => sum + day.milestoneCoins, 0)).toBe(
+        run.coinsBySource.milestones
+      );
     }
   }, 120_000);
 
   it('simulated players can recover instead of stalling forever at a protected encounter', () => {
     sample();
     for (const run of runs) {
-      expect(run.final.currentEncounter && run.final.party.every((mon) => mon.currentHp <= 0)).not.toBe(true);
+      expect(
+        run.final.currentEncounter && run.final.party.every((mon) => mon.currentHp <= 0)
+      ).not.toBe(true);
     }
   }, 120_000);
 
