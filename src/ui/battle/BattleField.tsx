@@ -78,7 +78,7 @@ export function BattleField({
   const [sceneFailed, setSceneFailed] = useState(false);
   const singleBgStyle = sceneFailed
     ? ({
-        background: amb.sceneFallbackGradient,
+        backgroundImage: amb.sceneFallbackGradient,
         backgroundSize: '100% 100%',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',

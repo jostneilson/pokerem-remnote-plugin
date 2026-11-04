@@ -139,7 +139,7 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | Task | What |
 |---|---|
 | [!] T7.1 | Full Verification pass (below), with results logged. |
-| [ ] T7.2 | CHANGELOG, README and manifest, new screenshots. |
+| [~] T7.2 | CHANGELOG, README and manifest, new screenshots. |
 | [ ] T7.3 | Version 1.6.0 in all 4 places; `npm run release`. |
 | [ ] T7.4 | Final hand-off update: "Ready for owner review; nothing pushed". |
 
