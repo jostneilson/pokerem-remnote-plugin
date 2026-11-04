@@ -62,7 +62,14 @@ export interface BalanceRun {
   legendaries: number;
   /** Cards reviewed while the wild-legendary gate (party L25+, 500 cards) was open. */
   legendaryCards: number;
+  /** Started Leader battles (not merely prize encounters observed on a later card). */
   rocketLeaders: number;
+  leaderWins: number;
+  trainerBattles: number;
+  trainerWins: number;
+  ordinaryCombatTurns: number;
+  ordinaryLeadFaints: number;
+  firstShinyDay: number | null;
   /** Mean level gap: new catch level minus party average at the time. */
   catchGap: number;
   /** First day storage reached capacity (null = never). */
@@ -227,11 +234,19 @@ export function runBalance(
       legendaries: 0,
       legendaryCards: 0,
       rocketLeaders: 0,
+      leaderWins: 0,
+      trainerBattles: 0,
+      trainerWins: 0,
+      ordinaryCombatTurns: 0,
+      ordinaryLeadFaints: 0,
+      firstShinyDay: null,
       catchGap: 0,
       storageFullDay: null,
       final: s
     };
     const gaps: number[] = [];
+    const startedTrainers = new Set<string>();
+    const resolvedTrainers = new Set<string>();
     /** Apply a step and book the coins it earned to `source`. */
     /** Coins for trainer levels gained since `from` (paid automatically, booked as milestones). */
     const levelCoins = (from: number) => {
@@ -287,10 +302,12 @@ export function runBalance(
           out.encounters++;
           const plain = !isEventSpecies(enc.dexNum) && !enc.pendingPrize;
           if (plain) out.plainEncounters++;
-          if (plain && enc.shiny) out.shinies++;
+          if (plain && enc.shiny) {
+            out.shinies++;
+            if (out.firstShinyDay === null) out.firstShinyDay = day + 1;
+          }
           if (GALARIAN_BIRDS.has(enc.dexNum)) out.birds++;
           else if (isEventSpecies(enc.dexNum) && !enc.pendingPrize) out.legendaries++;
-          if (enc.pendingPrize) out.rocketLeaders++;
         }
         const resultSeq = s.lastBattleResult?.seq;
         if (enc && policy !== 'idle') playWild(policy);
@@ -396,6 +413,11 @@ export function runBalance(
           if (s.totalCaught > caughtBefore && !special) gaps.push(wild.level - avg);
         } else {
           step('defeat', (x) => store.applyCombatTurn(x));
+          if (!special) {
+            out.ordinaryCombatTurns++;
+            if ((s.party.find((mon) => mon.id === lead.id)?.currentHp ?? 0) <= 0)
+              out.ordinaryLeadFaints++;
+          }
           turns++;
         }
         if (s.pendingCaughtMon)
@@ -417,10 +439,24 @@ export function runBalance(
           .map((m) => m.id);
         step('trainer', (x) => store.lockTrainerTeam(x, ids));
       }
+      b = s.currentTrainerBattle;
+      if (b?.phase === 'active' && !startedTrainers.has(b.id)) {
+        startedTrainers.add(b.id);
+        out.trainerBattles++;
+        if (b.rocket?.kind === 'leader') out.rocketLeaders++;
+      }
       let turns = 0;
       while ((b = s.currentTrainerBattle) && b.phase === 'active' && turns < MAX_TURNS * 3) {
         step('trainer', (x) => store.applyTrainerCombatTurn(x));
         turns++;
+      }
+      b = s.currentTrainerBattle;
+      if (b && (b.phase === 'post_win' || b.phase === 'post_loss') && !resolvedTrainers.has(b.id)) {
+        resolvedTrainers.add(b.id);
+        if (b.phase === 'post_win') {
+          out.trainerWins++;
+          if (b.rocket?.kind === 'leader') out.leaderWins++;
+        }
       }
       const loot = s.currentTrainerBattle?.rocket
         ? s.currentTrainerBattle.rewardSnapshot
@@ -591,6 +627,80 @@ export function evaluateBands(runs: BalanceRun[], pacing: PacingId = 'medium'): 
       pass: true
     });
   }
+  const engaged = runs.filter((r) => r.pacing === pacing && r.policy !== 'idle');
+  const attempts = engaged.reduce((sum, r) => sum + r.trainerBattles, 0);
+  if (attempts)
+    band(
+      'trainer-win-rate',
+      'trainer win rate 0.5–0.95',
+      engaged.reduce((sum, r) => sum + r.trainerWins, 0) / attempts,
+      0.5,
+      0.95,
+      (v) => v.toFixed(3)
+    );
+  const leaders = engaged.reduce((sum, r) => sum + r.rocketLeaders, 0);
+  if (leaders) {
+    band(
+      'leader-win-rate',
+      'Leader win rate 0.4–0.75',
+      engaged.reduce((sum, r) => sum + r.leaderWins, 0) / leaders,
+      0.4,
+      0.75,
+      (v) => v.toFixed(3)
+    );
+    band(
+      'leader-cadence',
+      'Leader every 5–9 study days',
+      engaged.reduce((sum, r) => sum + r.days.length, 0) / leaders,
+      5,
+      9,
+      (v) => v.toFixed(1)
+    );
+  }
+  const fighters = by('fighter');
+  const ordinaryFights = fighters.reduce((sum, r) => sum + r.plainEncounters - r.shinies, 0);
+  if (ordinaryFights) {
+    band(
+      'wild-turns',
+      'ordinary wild fights 2–4 turns',
+      fighters.reduce((sum, r) => sum + r.ordinaryCombatTurns, 0) / ordinaryFights,
+      2,
+      4,
+      (v) => v.toFixed(2)
+    );
+    band(
+      'wild-faint',
+      'lead faint rate <0.12',
+      fighters.reduce((sum, r) => sum + r.ordinaryLeadFaints, 0) / ordinaryFights,
+      0,
+      0.12,
+      (v) => v.toFixed(3)
+    );
+  }
+  if (engaged.length) {
+    const firstDays = engaged
+      .map((r) => r.firstShinyDay ?? r.days.length + 1)
+      .sort((a, b) => a - b);
+    const middle = Math.floor(firstDays.length / 2);
+    const median =
+      firstDays.length % 2 ? firstDays[middle]! : (firstDays[middle - 1]! + firstDays[middle]!) / 2;
+    band(
+      'first-shiny-median',
+      'median first ordinary shiny day 3–8 (censored none > run length)',
+      median,
+      3,
+      8
+    );
+  }
+  if (keep.length)
+    band(
+      'storage-keep-team',
+      'keep-team never fills storage',
+      keep.filter((r) => r.storageFullDay !== null).length,
+      0,
+      0,
+      (v) => `${v} runs filled`
+    );
   const farmer = by('farmer');
   const fighter = by('fighter');
   if (farmer.length && fighter.length) {

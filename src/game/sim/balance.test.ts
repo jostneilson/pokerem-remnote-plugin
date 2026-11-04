@@ -75,6 +75,21 @@ describe('balance bands (Medium, 2 seeds × 60 days)', () => {
     }
   }, 120_000);
 
+  it('records combat and first-shiny evidence without counting prizes as Leader challenges', () => {
+    sample();
+    for (const run of runs) {
+      expect(run.trainerWins).toBeLessThanOrEqual(run.trainerBattles);
+      expect(run.leaderWins).toBeLessThanOrEqual(run.rocketLeaders);
+      expect(run.rocketLeaders).toBeLessThanOrEqual(run.trainerBattles);
+      expect(run.ordinaryLeadFaints).toBeLessThanOrEqual(run.ordinaryCombatTurns);
+      expect(
+        run.firstShinyDay === null
+          ? run.shinies === 0
+          : run.firstShinyDay >= 1 && run.firstShinyDay <= run.days.length
+      ).toBe(true);
+    }
+  }, 120_000);
+
   it('defeating always pays more than catching', () => {
     for (let lv = 1; lv <= 100; lv++) expect(defeatCoins(lv)).toBeGreaterThan(catchCoins(lv));
   });

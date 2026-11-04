@@ -42,3 +42,7 @@ The preserved parked patch has blank diff-context lines that `git diff --check` 
 ## Measurement follow-up
 
 Income shares no longer count bounties/Rocket caches in both battle and variable columns. Real spend by action source and base card-trickle diagnostic were added. Battle-share regression now uses 30–50%; tsc, 338 tests and build pass (`/private/tmp/pokerem-160-mix-tests.log`, `/private/tmp/pokerem-160-mix-build.log`). Full matrix for these inputs is still required. The earlier focused sample cannot establish current shares.
+
+## Automatic search implementation
+
+`sim/tuning.ts` and `--grid=FILE` now implement bounded grid search. Five focused tests pass (locked keys/ranges, Cartesian expansion/deduplication, true review reward path, restoration on error, ranking/missing coverage). All gates pass: types, 54 files / 344 tests, production build. A four-candidate one-day idle worker smoke produced no recommendation because the required metrics were missing, as intended. This is implementation evidence, not a real economy search or full-matrix acceptance.
