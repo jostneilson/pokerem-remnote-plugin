@@ -12,13 +12,13 @@ export type TransferTier = 'Common' | 'Uncommon' | 'Rare' | 'Baby' | 'Ultra' | '
 export const BALANCE = {
   coins: {
     /** Per reviewed card, × the study card weight. Tunable 5–25. */
-    review: 6,
+    review: 16,
     /** Defeat: base + per level, × species tier. Tunable 30–150 / 3–15. */
     defeatBase: 30,
-    defeatPerLevel: 4,
+    defeatPerLevel: 3.5,
     /** Catch: always below defeat at every level. */
-    catchBase: 2,
-    catchPerLevel: 0.5,
+    catchBase: 0,
+    catchPerLevel: 0.25,
     run: 25,
     /** Ultra Beast ×3, Legendary ×5, Mythical ×6 on both defeat and catch coins. */
     tierMult: { Ultra: 3, Legendary: 5, Mythical: 6 } as Partial<Record<string, number>>
@@ -40,7 +40,7 @@ export const BALANCE = {
   trainerLevelCoinPerLevel: 100,
   /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */
   quests: {
-    scale: 0.8,
+    scale: 0.6,
     dailyMin: 800,
     dailyMax: 1800,
     weeklyMin: 5000,

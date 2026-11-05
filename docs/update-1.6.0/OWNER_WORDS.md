@@ -55,3 +55,7 @@ also add to the plan to have the battle arena design to be redone so that the po
 ## 2026-11-04, answer to the Codex question about the inherited XP damp / KO floor / lucky odds (3:50 PM, relayed to Claude verbatim)
 
 > Approve the inherited XP/lucky-odds changes
+
+## 2026-11-04, money trade-off (Claude asked: A current ₽6/card, or B ₽16/card with less from late-game sources)
+
+> Option B (₽16/card)
