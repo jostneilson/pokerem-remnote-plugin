@@ -1,5 +1,12 @@
+import type { PokemonType } from '../../data/species';
+import { normalizeResearch } from '../../engine/research';
+import { normalizeDaily } from '../../engine/daily';
+import type { TeamId } from '../../engine/rarity';
 import { ivsFor, battleStats } from '../../engine/pokemonStats';
 import { EVOLUTION_TABLE } from '../../data/evolutions';
+import { isStarterLine } from '../../engine/evolution';
+import { normalizeRocketState } from '../../engine/rocket';
+import { ALL_TYPES } from '../../data/typeChart';
 import { ITEM_BY_ID, STARTING_BAG, type ItemId } from '../../data/items';
 import { SPECIES_BY_DEX } from '../../data/species';
 import { ACHIEVEMENT_DEFS, deriveAchievements } from '../../engine/achievements';
@@ -25,9 +32,16 @@ import {
 } from '../../engine/studyDifficulty';
 import { REVIEWS_PER_ENCOUNTER } from '../../constants';
 import { trainerLevelFromXp } from '../../engine/trainerLevel';
-import { normalizeBattleSceneIndex } from '../../engine/battleAmbience';
+import {
+  AREA_MAX_ENCOUNTERS,
+  SCENE_INDEX_VERSION,
+  clampBattleSceneIndex,
+  normalizeBattleSceneIndex,
+  rollAreaLength
+} from '../../engine/battleAmbience';
 import type { RouteFindRollResult } from '../../engine/routeFinds';
 import type {
+  AreaState,
   PokeRemGameState,
   BattleOutcomeKind,
   CombatStrikeSnapshot,
@@ -36,6 +50,7 @@ import type {
   ShinyLogEntry,
   MainNoticeItem,
   OwnedPokemon,
+  RocketBattleInfo,
   SectionTab,
   TrainerBattleState,
   TrainerBattleStats,
@@ -46,6 +61,27 @@ import type {
   XpDoublerEntry,
   XpDoublerTier,
 } from '../model';
+import { formatCoins } from '../../../ui/format/coins';
+import { BAG_UPGRADE_MAX, STORAGE_UPGRADE_MAX, fitFoundItems } from '../../engine/capacity';
+
+/** Lifetime catches per type: known types, non-negative integers. */
+function normalizeTypeCatches(raw: unknown): Partial<Record<PokemonType, number>> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Partial<Record<PokemonType, number>> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (SPECIES_TYPES.has(k) && typeof v === 'number' && Number.isFinite(v) && v > 0) out[k as PokemonType] = Math.floor(v);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Bought capacity slots: an integer in 0..max; anything else is dropped. */
+function normalizeBonus(raw: unknown, max: number): number | undefined {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return undefined;
+  const n = Math.max(0, Math.min(max, Math.floor(raw)));
+  return n > 0 ? n : undefined;
+}
+
+const SPECIES_TYPES = new Set<string>(ALL_TYPES);
 
 export function sanitizeEncounterHp(enc: EncounterPokemon): EncounterPokemon {
   const maxHp = Math.max(1, Math.floor(enc.maxHp));
@@ -192,13 +228,15 @@ export function applyRouteFindToState(
   state: PokeRemGameState,
   roll: RouteFindRollResult
 ): PokeRemGameState {
-  const bag = { ...state.bag };
-  bag[roll.itemId] = (bag[roll.itemId] ?? 0) + roll.quantity;
+  const fit = fitFoundItems(state, { [roll.itemId]: roll.quantity });
+  const notice = fit.converted > 0 ? { ...roll.notice, subline: `${roll.notice.subline} Bag full → ${formatCoins(fit.coins)}` } : roll.notice;
   return {
     ...state,
-    bag,
+    bag: fit.bag,
+    currency: (state.currency ?? 0) + fit.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + fit.coins,
     routeFindNoticeSeq: (state.routeFindNoticeSeq ?? 0) + 1,
-    routeFindNotice: roll.notice,
+    routeFindNotice: notice,
   };
 }
 
@@ -273,6 +311,53 @@ function normalizeCardStyles(raw: unknown): string[] | undefined {
     ),
   ];
   return ids.length ? ids : undefined;
+}
+
+/** Most recent command nonces kept in the save (see commandChannel.ts). */
+export const RECENT_COMMAND_NONCE_LIMIT = 30;
+
+function normalizeCommandNonces(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 40);
+  return ids.length ? ids.slice(-RECENT_COMMAND_NONCE_LIMIT) : undefined;
+}
+
+/** Creation time encoded in an owned id (`pk_<ms>_…`); unknown ids sort last. */
+function idTime(id: string): number {
+  const m = /^pk_(\d+)_/.exec(id);
+  return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Your original starter. Keeps a saved id while that Pokémon is still owned; otherwise picks the
+ * earliest-caught owned Pokémon from a starter's evolution line (evolving keeps the id, so it's still there).
+ */
+export function normalizeStarterId(raw: unknown, state: PokeRemGameState): string | undefined {
+  const owned = [...state.party, ...state.storagePokemon];
+  if (typeof raw === 'string' && owned.some((p) => p.id === raw)) return raw;
+  // Empty = the starter was transferred: no buddy any more.
+  if (raw === '') return '';
+  let best: OwnedPokemon | undefined;
+  for (const p of owned) {
+    if (!isStarterLine(p.dexNum)) continue;
+    if (!best || idTime(p.id) < idTime(best.id)) best = p;
+  }
+  return best?.id;
+}
+
+function normalizeTeam(raw: unknown): TeamId | undefined {
+  return raw === 'ember' || raw === 'tide' || raw === 'volt' ? raw : undefined;
+}
+
+/** The saved area, or a fresh one in the current scene (older saves, damaged data). */
+export function normalizeArea(raw: unknown, sceneIndex: number): AreaState {
+  const a = raw && typeof raw === 'object' ? (raw as Partial<AreaState>) : {};
+  const left =
+    typeof a.encountersLeft === 'number' && Number.isFinite(a.encountersLeft)
+      ? Math.max(0, Math.min(AREA_MAX_ENCOUNTERS, Math.floor(a.encountersLeft)))
+      : rollAreaLength(Math.random);
+  // The area always matches the scene on screen, so the two can never disagree.
+  return { sceneIndex, encountersLeft: left, ...(a.isNew === true ? { isNew: true } : {}) };
 }
 
 function normalizeEquippedStyle(raw: unknown, owned: unknown): string | undefined {
@@ -420,6 +505,8 @@ function normalizeEncounter(raw: unknown): EncounterPokemon | null {
     shiny,
     ivs: ivsFor({ dexNum, ivs: e.ivs as any }),
     condition: e.condition as any,
+    ...(e.pendingPrize === true ? { pendingPrize: true } : {}),
+    ...(typeof e.bounty === 'number' && Number.isFinite(e.bounty) && e.bounty > 0 ? { bounty: Math.min(100000, Math.floor(e.bounty)) } : {}),
   });
 }
 
@@ -594,7 +681,16 @@ function normalizeTrainerEnemyMon(raw: unknown): TrainerEnemyMon | null {
     defeated,
     ivs: ivsFor({ dexNum, ivs: e.ivs as any }),
     condition: e.condition as any,
+    ...(e.shiny === true ? { shiny: true } : {}),
   };
+}
+
+function normalizeRocketBattleInfo(raw: unknown): RocketBattleInfo | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  if (r.kind !== 'grunt' && r.kind !== 'leader') return undefined;
+  const type = typeof r.type === 'string' && SPECIES_TYPES.has(r.type) ? (r.type as RocketBattleInfo['type']) : undefined;
+  return { kind: r.kind, ...(type ? { type } : {}) };
 }
 
 function normalizeTrainerIdentity(raw: unknown): TrainerIdentity | null {
@@ -661,6 +757,8 @@ function normalizeTrainerBattleState(raw: unknown): TrainerBattleState | null {
       ? t.phase
       : 'team_select';
   const tier: TrainerTier = t.tier === 'elite' ? 'elite' : 'standard';
+  const rocket = normalizeRocketBattleInfo(t.rocket);
+  const prize = rocket?.kind === 'leader' ? normalizeEncounter(t.prize) : null;
   const activeEnemyIndex =
     typeof t.activeEnemyIndex === 'number' && Number.isFinite(t.activeEnemyIndex)
       ? Math.max(0, Math.min(2, Math.floor(t.activeEnemyIndex)))
@@ -692,6 +790,8 @@ function normalizeTrainerBattleState(raw: unknown): TrainerBattleState | null {
       typeof t.feedbackSeq === 'number' && Number.isFinite(t.feedbackSeq)
         ? Math.max(0, Math.floor(t.feedbackSeq))
         : 0,
+    ...(rocket ? { rocket } : {}),
+    ...(prize ? { prize: { ...prize, pendingPrize: true } } : {}),
   };
 }
 
@@ -753,7 +853,12 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
       typeof o.studyCardWeight === 'number' ? o.studyCardWeight : 1
     ),
     studyDifficultyConfigured: o.studyDifficultyConfigured === true,
-    battleSceneIndex: normalizeBattleSceneIndex(o.battleSceneIndex),
+    // The legacy remap shifts indexes, so it runs once per save; after that the index is only clamped.
+    battleSceneIndex:
+      (o as { sceneIndexVersion?: unknown }).sceneIndexVersion === SCENE_INDEX_VERSION
+        ? clampBattleSceneIndex(o.battleSceneIndex)
+        : normalizeBattleSceneIndex(o.battleSceneIndex),
+    sceneIndexVersion: SCENE_INDEX_VERSION,
     dailyStats: normalizeDailyStats(o.dailyStats),
     wildReviewAccum:
       typeof o.wildReviewAccum === 'number' && Number.isFinite(o.wildReviewAccum)
@@ -821,11 +926,27 @@ function parseGameStateCore(o: any, legacySchema: number): PokeRemGameState {
       typeof o.wildIdleCards === 'number' && Number.isFinite(o.wildIdleCards)
         ? Math.max(0, Math.floor(o.wildIdleCards))
         : 0,
+    area: undefined,
+    team: normalizeTeam((o as { team?: unknown }).team),
+    teamPrompted: (o as { teamPrompted?: unknown }).teamPrompted === true || undefined,
+    recentCommandNonces: normalizeCommandNonces((o as { recentCommandNonces?: unknown }).recentCommandNonces),
+    rocket: normalizeRocketState((o as { rocket?: unknown }).rocket),
+    totalTransferred:
+      typeof o.totalTransferred === 'number' && Number.isFinite(o.totalTransferred) ? Math.max(0, Math.floor(o.totalTransferred)) : undefined,
+    daily: normalizeDaily(o.daily),
+    research: normalizeResearch(o.research),
+    typeCatches: normalizeTypeCatches(o.typeCatches),
+    storageBonus: normalizeBonus(o.storageBonus, STORAGE_UPGRADE_MAX),
+    bagBonus: normalizeBonus(o.bagBonus, BAG_UPGRADE_MAX),
+    themeVouchers: normalizeBonus(o.themeVouchers, 50),
+    ...normalizeThemes(o.themesOwned, o.themeActive),
     schemaVersion: 5,
   };
   if (state.selectedTab === 'battle') {
     state.selectedTab = 'status';
   }
+  state.area = normalizeArea((o as { area?: unknown }).area, state.battleSceneIndex);
+  state.starterId = normalizeStarterId((o as { starterId?: unknown }).starterId, state);
   state.collectionDex = registerOwnedSpecies(state.collectionDex, ownedMons(state));
   state.achievements = deriveAchievements(state);
 
@@ -902,4 +1023,11 @@ export function normalizeEnabledGenerations(raw: unknown): number[] | undefined 
 
 export function ownedMons(state: PokeRemGameState): (OwnedPokemon | null | undefined)[] {
   return [...state.party, ...state.storagePokemon, state.pendingCaughtMon];
+}
+
+/** `themesOwned` keeps valid type themes only (deduped); `themeActive` must be owned (SPEC save-field table). */
+function normalizeThemes(owned: unknown, active: unknown): { themesOwned?: string[]; themeActive?: string } {
+  if (!Array.isArray(owned)) return { themesOwned: undefined, themeActive: undefined };
+  const themesOwned = [...new Set(owned.filter((t): t is string => typeof t === 'string' && (ALL_TYPES as string[]).includes(t)))];
+  return { themesOwned, themeActive: typeof active === 'string' && themesOwned.includes(active) ? active : undefined };
 }

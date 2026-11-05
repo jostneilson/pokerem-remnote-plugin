@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { EncounterPokemon, OwnedPokemon } from '../../game/state/model';
 import { itemIconUrl } from '../../game/sprites';
 import type { CatchBall } from '../../game/engine/encounters';
@@ -36,7 +37,10 @@ export function BattleCommandMenu({
   onRun,
   onToggleAutoAttack,
   onCatchScope,
+  onStorageFull,
 }: {
+  /** Set when storage is full and this wild can't go over the cap: Catch opens the transfer grid instead. */
+  onStorageFull?: () => void;
   rootURL: string | undefined;
   active: OwnedPokemon;
   wild: EncounterPokemon | null;
@@ -55,20 +59,28 @@ export function BattleCommandMenu({
   autoAttackMessage?: string;
   onThrow: (ball: CatchBall) => void;
   onFight: () => void;
-  onRun: () => void;
+  /** `giveUpPrize` is set once the player confirms giving up the Rocket Leader's prize. */
+  onRun: (giveUpPrize?: boolean) => void;
   onToggleAutoAttack?: () => void;
   onCatchScope?: () => void;
 }) {
   const busy = (a: BusyAction) => battleBusy && busyAction === a;
   const lead = active.nickname || active.name;
+  const isPrize = wild?.pendingPrize === true;
+  const [confirmGiveUp, setConfirmGiveUp] = useState(false);
+  useEffect(() => setConfirmGiveUp(false), [wild?.dexNum, wild?.pendingPrize]);
   return (
     <div className="space-y-2">
       <div className={`pkr-battle-prompt${wild?.shiny ? ' pkr-battle-prompt--shiny' : ''}`}>
         <TypedLine
           text={
-            wild?.shiny
-              ? `✦ A shiny ${wild.name} appeared! What will ${lead} do?`
-              : `What will ${lead} do?`
+            confirmGiveUp
+              ? 'Give up the prize? It won’t come back.'
+              : isPrize
+                ? `THE LEADER’S PRIZE: ${wild!.shiny ? '✦ shiny ' : ''}${wild!.name}! What will ${lead} do?`
+                : wild?.shiny
+                  ? `✦ A shiny ${wild.name} appeared! What will ${lead} do?`
+                  : `What will ${lead} do?`
           }
           reducedMotion={reducedMotion}
         />
@@ -76,10 +88,12 @@ export function BattleCommandMenu({
       <div className="flex min-h-[58px] flex-row items-stretch gap-2">
         <button
           type="button"
-          disabled={!canCatch || battleBusy}
-          onClick={() => onThrow(suggestedBall)}
+          disabled={onStorageFull ? battleBusy : !canCatch || battleBusy}
+          onClick={() => (onStorageFull ? onStorageFull() : onThrow(suggestedBall))}
           aria-label={
-            suggestedPct != null
+            onStorageFull
+              ? 'Storage full. Open Transfer to make room'
+              : suggestedPct != null
               ? `Catch with ${CATCH_BALL_STOCK.find((b) => b.key === suggestedBall)?.label}, ${suggestedPct}% chance`
               : 'Catch'
           }
@@ -87,9 +101,11 @@ export function BattleCommandMenu({
         >
           <GameIcon name="pokeball" size={15} className="shrink-0" />
           <div className="pkr-cmd__label whitespace-nowrap uppercase leading-none">
-            {busy('catch') ? '…' : 'Catch'}
+            {busy('catch') ? '…' : onStorageFull ? 'Storage full' : 'Catch'}
           </div>
-          {suggestedPct != null ? (
+          {onStorageFull ? (
+            <div className="pkr-catch-odds">· Transfer</div>
+          ) : suggestedPct != null ? (
             <div className="pkr-catch-odds">
               {guaranteedCatch ? 'Sure catch!' : `${suggestedPct}%`}
             </div>
@@ -109,12 +125,19 @@ export function BattleCommandMenu({
         <button
           type="button"
           disabled={battleBusy}
-          onClick={onRun}
+          onClick={() => {
+            if (!isPrize) return onRun();
+            if (!confirmGiveUp) return setConfirmGiveUp(true);
+            setConfirmGiveUp(false);
+            onRun(true);
+          }}
+          onBlur={() => setConfirmGiveUp(false)}
+          aria-label={isPrize ? (confirmGiveUp ? 'Confirm: give up the prize' : 'Run (gives up the prize)') : 'Run'}
           className={`pkr-game-btn pkr-battle-cmd-side pkr-cmd pkr-cmd--run flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 text-center ${hoverLift}`}
         >
           <GameIcon name="flee" size={15} className="shrink-0" />
           <div className="pkr-cmd__label whitespace-nowrap uppercase leading-none">
-            {busy('run') ? '…' : 'Run'}
+            {busy('run') ? '…' : confirmGiveUp ? 'Give up' : 'Run'}
           </div>
         </button>
       </div>
@@ -171,7 +194,7 @@ export function BattleCommandMenu({
           className="mt-1 w-full rounded-md border px-2 py-1 pkr-fine font-black uppercase tracking-wide active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
           style={{
             borderColor: 'rgba(147,197,253,0.5)',
-            background: 'linear-gradient(180deg, rgba(30,58,138,0.5) 0%, rgba(15,23,42,0.85) 100%)',
+            background: 'linear-gradient(180deg, rgba(30,58,138,0.5) 0%, rgba(var(--pkr-rgb-deep),0.85) 100%)',
             color: '#bfdbfe',
             boxShadow: '0 0 10px rgba(59,130,246,0.25)',
           }}

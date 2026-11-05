@@ -67,7 +67,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
         >
           <GameIcon name="dna" size={12} className="mt-0.5 shrink-0" style={{ color: '#d8b4fe' }} />
           <span>
-            Evolves into <strong style={{ color: '#faf5ff' }}>{evoNext.intoName}</strong> at level{' '}
+            Evolves into <strong style={{ color: 'var(--pkr-ink-bright)' }}>{evoNext.intoName}</strong> at level{' '}
             <strong style={{ color: 'var(--pkr-ink-gold)' }}>{evoNext.minLevel}</strong>.
           </span>
         </div>
@@ -102,7 +102,7 @@ export function PokemonGrowthPanel({ pokemon: p }: { pokemon: OwnedPokemon }) {
               >
                 L{row.level}
               </span>
-              <span className="truncate pkr-fine font-bold" style={{ color: '#f1f5f9' }}>
+              <span className="truncate pkr-fine font-bold" style={{ color: 'var(--pkr-ink-bright)' }}>
                 {mv.name}
               </span>
               <span className="rounded border px-1 py-px pkr-fine font-bold uppercase" style={typePillStyle(mv.type)}>

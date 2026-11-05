@@ -44,12 +44,12 @@ export function PokeRemTrekStrip({
   const wrapStyle: CSSProperties = isCompact
     ? {
         borderColor: `${accent}55`,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(15,23,42,0.65) 100%)',
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(var(--pkr-rgb-deep),0.65) 100%)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(0,0,0,0.35)',
       }
     : {
         borderColor: `${accent}66`,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(15,23,42,0.72) 100%)',
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(var(--pkr-rgb-deep),0.72) 100%)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 0 rgba(0,0,0,0.35)',
       };
 
@@ -87,7 +87,7 @@ export function PokeRemTrekStrip({
                 className={dotClass}
                 style={
                   filled
-                    ? { background: '#6ee7b7', boxShadow: '0 0 6px rgba(110,231,183,0.85)' }
+                    ? { background: 'var(--pkr-ink-success)', boxShadow: '0 0 6px rgba(110,231,183,0.85)' }
                     : { background: 'rgba(255,255,255,0.22)' }
                 }
               />

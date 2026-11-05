@@ -1,3 +1,6 @@
+import { bagCap, bagCount } from '../../game/engine/capacity';
+import { CapacityMeter } from '../components/CapacityMeter';
+import { Coins } from '../components/Coins';
 import { useState } from 'react';
 import { ITEMS, type ItemData, type ItemId } from '../../game/data/items';
 import { itemIconUrl } from '../../game/sprites';
@@ -100,14 +103,14 @@ function BoostersPanel({
             className="pkr-bag-item__icon-slot"
             style={{
               background: active
-                ? 'radial-gradient(circle at 30% 25%, rgba(253,224,71,0.45) 0%, rgba(15,23,42,0.7) 75%)'
+                ? 'radial-gradient(circle at 30% 25%, rgba(253,224,71,0.45) 0%, rgba(var(--pkr-rgb-deep),0.7) 75%)'
                 : undefined,
               borderColor: active ? 'rgba(120,53,15,0.75)' : undefined,
             }}
           >
             <span
               className="text-[13px] font-black tabular-nums"
-              style={{ color: active ? '#fde68a' : '#c3cde3' }}
+              style={{ color: active ? 'var(--pkr-ink-gold)' : 'var(--pkr-ink-muted)' }}
             >
               2×
             </span>
@@ -116,7 +119,7 @@ function BoostersPanel({
             <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <span
                 className="pkr-fine font-black"
-                style={{ color: active ? '#fde68a' : '#c3cde3' }}
+                style={{ color: active ? 'var(--pkr-ink-gold)' : 'var(--pkr-ink-muted)' }}
               >
                 {active ? `${TIER_STYLE[active.tier].label} Doubler` : 'XP Doubler'}
               </span>
@@ -130,7 +133,7 @@ function BoostersPanel({
                         background: 'rgba(120,53,15,0.4)',
                       }
                     : {
-                        borderColor: 'rgba(100,116,139,0.35)',
+                        borderColor: 'rgba(var(--pkr-rgb-border),0.35)',
                         color: 'var(--pkr-ink-faint)',
                         background: 'rgba(0,0,0,0.2)',
                       }
@@ -148,7 +151,7 @@ function BoostersPanel({
                   className="pkr-meter-fill h-full transition-[width] duration-500"
                   style={{
                     width: `${activePct}%`,
-                    background: 'linear-gradient(90deg, #fde68a 0%, #f59e0b 100%)',
+                    background: 'linear-gradient(90deg, var(--pkr-ink-gold) 0%, #f59e0b 100%)',
                     boxShadow: '0 0 6px rgba(253,224,71,0.5)',
                   }}
                 />
@@ -212,15 +215,15 @@ function BoostersPanel({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="flex min-w-0 flex-wrap items-baseline gap-1.5">
-                    <span className="pkr-fine font-black" style={{ color: owned ? '#e2e8f0' : '#c3cde3' }}>
+                    <span className="pkr-fine font-black" style={{ color: owned ? 'var(--pkr-ink-text)' : 'var(--pkr-ink-muted)' }}>
                       {style.name}
                     </span>
                     <span
                       className="shrink-0 rounded px-1 py-[1px] pkr-fine font-black uppercase leading-none tracking-[0.1em]"
                       style={{
-                        background: owned ? style.chipBg : 'rgba(15,23,42,0.6)',
-                        color: owned ? style.chipText : '#c3cde3',
-                        border: owned ? 'none' : '1px solid rgba(100,116,139,0.4)',
+                        background: owned ? style.chipBg : 'rgba(var(--pkr-rgb-deep),0.6)',
+                        color: owned ? style.chipText : 'var(--pkr-ink-muted)',
+                        border: owned ? 'none' : '1px solid rgba(var(--pkr-rgb-border),0.4)',
                       }}
                     >
                       {style.label}
@@ -231,7 +234,7 @@ function BoostersPanel({
                     style={
                       owned
                         ? { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
-                        : { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
+                        : { borderColor: 'rgba(var(--pkr-rgb-border),0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
                     }
                   >
                     ×{count}
@@ -253,9 +256,9 @@ function BoostersPanel({
                   onClick={() => onActivate(tier)}
                   className="pkr-game-btn"
                   style={{
-                    borderColor: disabled ? 'rgba(100,116,139,0.5)' : '#854d0e',
+                    borderColor: disabled ? 'rgba(var(--pkr-rgb-border),0.5)' : '#854d0e',
                     background: disabled
-                      ? 'rgba(71,85,105,0.35)'
+                      ? 'rgba(var(--pkr-rgb-border-dim),0.35)'
                       : 'linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)',
                     color: disabled ? '#8296a5' : '#1c1917',
                     cursor: disabled ? 'not-allowed' : 'pointer',
@@ -323,14 +326,14 @@ function ItemRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-          <span className="min-w-0 break-words pkr-fine font-black" style={{ color: isEmpty ? '#c3cde3' : '#e2e8f0' }}>
+          <span className="min-w-0 break-words pkr-fine font-black" style={{ color: isEmpty ? 'var(--pkr-ink-muted)' : 'var(--pkr-ink-text)' }}>
             {item.name}
           </span>
           <span
             className="shrink-0 rounded-full border px-2 py-0.5 pkr-fine font-black tabular-nums"
             style={
               isEmpty
-                ? { borderColor: 'rgba(100,116,139,0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
+                ? { borderColor: 'rgba(var(--pkr-rgb-border),0.35)', color: 'var(--pkr-ink-faint)', background: 'rgba(0,0,0,0.2)' }
                 : { borderColor: 'rgba(110,231,183,0.35)', color: 'var(--pkr-ink-success)', background: 'rgba(6,78,59,0.35)' }
             }
           >
@@ -426,9 +429,9 @@ export function BagScreen({
       <div className="pkr-bag-screen-header">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
-            <GameIcon name="bag" size={20} style={{ color: 'var(--pkr-accent, #fbbf24)' }} />
+            <GameIcon name="bag" size={20} style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }} />
             <div>
-              <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, #fbbf24)' }}>
+              <div className="pkr-pixel-title pkr-fine font-black uppercase leading-tight tracking-wide" style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }}>
                 Your bag
               </div>
               <div className="pkr-fine font-semibold" style={{ color: 'var(--pkr-ink-muted)' }}>
@@ -437,13 +440,17 @@ export function BagScreen({
               </div>
             </div>
           </div>
-          <span
-            className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title pkr-fine font-black tabular-nums"
-            style={{ borderColor: 'rgba(148,163,184,0.35)', color: 'var(--pkr-ink-soft)' }}
-            title="Total item count"
-          >
-            {total} pcs
-          </span>
+          {state ? (
+            <CapacityMeter label="Bag" used={bagCount(bag)} cap={bagCap(state)} />
+          ) : (
+            <span
+              className="shrink-0 rounded-full border px-2 py-0.5 pkr-pixel-title pkr-fine font-black tabular-nums"
+              style={{ borderColor: 'rgba(148,163,184,0.35)', color: 'var(--pkr-ink-soft)' }}
+              title="Total item count"
+            >
+              {total} pcs
+            </span>
+          )}
         </div>
       </div>
 
@@ -453,7 +460,7 @@ export function BagScreen({
             <GameIcon name="coin" size={14} style={{ color: 'var(--pkr-ink-gold-strong)' }} /> Poké Dollars
           </span>
           <span className="text-base font-black tabular-nums" style={{ color: '#fef3c7' }}>
-            ₽{currency.toLocaleString()}
+            <Coins value={currency} />
           </span>
         </div>
       ) : null}

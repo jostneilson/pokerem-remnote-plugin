@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import { ITEMS, type ItemId, type ItemData } from '../data/items';
 
 /** Revive is always in stock at a fixed PokéCoin price (not daily rotation). */
@@ -60,9 +61,10 @@ export function shopPrice(itemId: string, trainerLevel: number = 1): number | nu
   return getShopInventory(trainerLevel).find((s) => s.item.id === itemId)?.price ?? null;
 }
 
+/** Flat parts of the coin rewards (the level-scaled parts live in balance.ts). */
 export const CURRENCY_REWARDS = {
-  review: 25,
-  defeat: 250,
-  catch: 100,
-  run: 25,
+  review: BALANCE.coins.review,
+  defeat: BALANCE.coins.defeatBase,
+  catch: BALANCE.coins.catchBase,
+  run: BALANCE.coins.run,
 } as const;

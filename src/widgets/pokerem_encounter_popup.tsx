@@ -1,4 +1,5 @@
 import '../style.css';
+import { useAppliedTheme } from '../ui/theme/ThemeProvider';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { renderWidget, usePlugin } from '@remnote/plugin-sdk';
 import { getSyncedGameRaw } from '../game/constants';
@@ -74,10 +75,14 @@ function EncounterPopup() {
     );
   };
 
+  const [themeId, setThemeId] = useState<string | undefined>(undefined);
+  useAppliedTheme(themeId);
+
   useEffect(() => {
     void (async () => {
       const raw = await getSyncedGameRaw(plugin);
       const state = parseGameState(raw);
+      setThemeId(state.themeActive);
       if (state.currentEncounter) {
         setEncounter(state.currentEncounter);
         setSceneIndex(state.battleSceneIndex ?? 0);
@@ -145,7 +150,7 @@ function EncounterPopup() {
           className="pkr-battle-hud relative shrink-0 self-center rounded border p-0.5"
           style={{
             borderColor: `${amb.accent}55`,
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(15,23,42,0.55) 100%)',
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(var(--pkr-rgb-deep),0.55) 100%)',
             boxShadow: `inset 0 2px 4px rgba(0,0,0,0.45), 0 0 10px ${amb.accent}22`,
           }}
         >

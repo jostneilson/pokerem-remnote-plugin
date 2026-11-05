@@ -3,6 +3,7 @@
  * both follow the same rules: no evolved species below the level it evolves at, rarity per species
  * (not per tier), and themed pools per battle scene.
  */
+import { WILD_RARE_CATCH_RATE, WILD_RARE_WEIGHT } from './rarity';
 import type { OwnedPokemon } from '../state/model';
 import type { PokemonType } from '../data/species';
 import { SPECIES_BY_DEX, SPECIES_LIST, STARTER_DEX_ALL } from '../data/species';
@@ -53,15 +54,12 @@ export function minWildLevel(dexNum: number, seen: Set<number> = new Set()): num
 }
 
 /**
- * Party level that encounters scale from: the mean of your three strongest party members, so a
- * bench of freshly caught Lv2s can't drag every encounter down. Empty party: 5.
+ * Party level that encounters scale from: the mean of the whole party (SPEC L18). Everyday wilds never go
+ * above it, so a newly caught Pokémon is never stronger than the team you've raised. Empty party: 5.
  */
 export function encounterBaseLevel(party: OwnedPokemon[]): number {
   if (party.length === 0) return 5;
-  const levels = party
-    .map((p) => (typeof p.level === 'number' && p.level > 0 ? p.level : 1))
-    .sort((a, b) => b - a)
-    .slice(0, 3);
+  const levels = party.map((p) => (typeof p.level === 'number' && p.level > 0 ? p.level : 1));
   const mean = levels.reduce((a, b) => a + b, 0) / levels.length;
   return Math.max(1, Math.min(MAX_WILD_LEVEL, Math.round(mean)));
 }
@@ -108,7 +106,9 @@ export function speciesWeight(dexNum: number): number {
   const s = SPECIES_BY_DEX.get(dexNum);
   if (!s) return 0;
   const base = Math.max(0.12, Math.min(1, (s.baseCatchRate ?? 127) / 255));
-  return isStarterSpecies(dexNum) ? base * STARTER_WILD_WEIGHT : base;
+  if (isStarterSpecies(dexNum)) return base * STARTER_WILD_WEIGHT;
+  // Hard catches are mainly Rocket aces now (SPEC A9), so they're scarcer in the wild.
+  return (s.baseCatchRate ?? 127) <= WILD_RARE_CATCH_RATE ? base * WILD_RARE_WEIGHT : base;
 }
 
 export interface PickSpeciesOpts {

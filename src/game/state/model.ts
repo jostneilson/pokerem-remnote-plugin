@@ -1,3 +1,4 @@
+import type { TeamId } from '../engine/rarity';
 import type { QuestState } from '../engine/quests';
 import type { ItemId } from '../data/items';
 import type { PokemonType } from '../data/species';
@@ -87,8 +88,12 @@ export interface EncounterPokemon {
   maxHp: number;
   types: PokemonType[];
   tier?: string;
-  /** Rare palette swap (~1/1000). */
+  /** Rare palette swap (1 in 250 encounters). */
   shiny?: boolean;
+  /** The Rocket Leader's prize: never flees, can't be knocked out (SPEC Appendix S). */
+  pendingPrize?: boolean;
+  /** Bounty (₽) paid on top when this wild is defeated or caught (~1 in 40 wilds). */
+  bounty?: number;
 }
 
 export interface BattleResult {
@@ -109,6 +114,10 @@ export interface BattleResult {
   evolvedInto?: string;
   shiny?: boolean;
   perfectIvs?: boolean;
+  /** Bounty included in `coins`. */
+  bounty?: number;
+  /** Equipped theme type whose ×1.25 bonus applied (SPEC A12). */
+  themeBonus?: string;
 }
 
 export interface ShinyLogEntry {
@@ -186,6 +195,28 @@ export interface TrainerEnemyMon {
   moves: string[];
   /** Set true after this enemy is KO'd. */
   defeated?: boolean;
+  /** Trainer Pokémon can be shiny (1 in 250); a caught shiny stays shiny. */
+  shiny?: boolean;
+}
+
+/** Team Rocket progress (SPEC A9, Appendix S). */
+export interface RocketState {
+  /** Grunt wins this cycle; 5 brings out the Leader. Reset when the Leader is beaten. */
+  gruntWins: number;
+  /** Grunt types beaten this cycle; the next grunt uses a type not in here. */
+  typesBeaten: PokemonType[];
+  /** The next Rocket battle is the Leader (stays set after a loss, for a rematch). */
+  leaderReady: boolean;
+  leaderWins: number;
+  /** Lifetime grunt wins (research). */
+  totalGruntWins?: number;
+}
+
+/** What kind of Rocket battle this is, when it is one. */
+export interface RocketBattleInfo {
+  kind: 'grunt' | 'leader';
+  /** The grunt's type. */
+  type?: PokemonType;
 }
 
 /** Reward bundle granted on trainer battle victory (mirrored on `rewardSnapshot`). */
@@ -225,6 +256,10 @@ export interface TrainerBattleState {
   lastLog?: string;
   /** Bumped on each turn so UI can animate damage / KOs. */
   feedbackSeq: number;
+  /** Set for Team Rocket battles. */
+  rocket?: RocketBattleInfo;
+  /** Leader battles: the legendary that appears when you win (rolled at the start). */
+  prize?: EncounterPokemon;
 }
 
 /** Aggregate trainer-battle stats — drives identity overlay + achievements. */
@@ -362,4 +397,45 @@ export interface PokeRemGameState {
   trainerCardStyle?: string;
   /** Generations enabled in settings, saved so achievements can see them. */
   enabledGenerations?: number[];
+  // ── 1.6.0 additions — all optional, normalised in `parseGameStateCore` ──
+  /** Nonces of the last widget commands applied (see commandChannel.ts), so none applies twice. */
+  recentCommandNonces?: string[];
+  /** Team Rocket progress (Radar, Leader). */
+  rocket?: RocketState;
+  /** Pokémon transferred, all time (achievements). */
+  totalTransferred?: number;
+  /** Special Research (SPEC B4). `progress` = the step's counter value when the step began. */
+  research?: { lineId: string; step: number; progress: number; completed: string[]; birdPending?: boolean };
+  /** Lifetime catches per type (research steps like "Catch 10 Poison"). */
+  typeCatches?: Partial<Record<PokemonType, number>>;
+  /** Daily firsts (SPEC B3): today's first catch / first defeat already paid. */
+  daily?: { day: string; firstCatch: boolean; firstDefeat: boolean };
+  /** Type themes bought (SPEC A12). */
+  themesOwned?: string[];
+  /** Equipped type theme (SPEC A12); always one of `themesOwned`. Undefined = default arcade. */
+  themeActive?: string;
+  /** Theme discount vouchers from milestone trainer levels (10/20/30/40/50). */
+  themeVouchers?: number;
+  /** Storage slots bought in the shop (0..200, steps of 20). */
+  storageBonus?: number;
+  /** Bag slots bought in the shop (0..250, steps of 25). */
+  bagBonus?: number;
+  /** 2 once `battleSceneIndex` uses the current scene list (see normalizeBattleSceneIndex). */
+  sceneIndexVersion?: number;
+  /** The area the arena is in; it moves on only after `encountersLeft` wild encounters (see AREA_* constants). */
+  area?: AreaState;
+  /** Owned id of the player's original starter (the Buddy; evolution keeps the id). */
+  starterId?: string;
+  /** Team Valor, Mystic or Instinct (SPEC A13). Secretly favours that team's Galarian bird. */
+  team?: TeamId;
+  /** True once the one-time "Choose your team" screen has been answered. */
+  teamPrompted?: boolean;
+}
+
+export interface AreaState {
+  sceneIndex: number;
+  /** Wild encounters still to happen in this area, counting the current one. */
+  encountersLeft: number;
+  /** True for the first encounter after arriving, so the UI can show the area name once. */
+  isNew?: boolean;
 }

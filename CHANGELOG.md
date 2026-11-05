@@ -5,7 +5,48 @@ All notable changes to PokéRem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for **published** marketplace releases. During heavy development, patch bumps may be frequent.
 
-## [Unreleased]
+## [1.6.0] - Unreleased
+
+### Added
+
+- **XP Share.** Every party Pokémon now earns study XP on every card (your lead a little more), and a knockout's XP is split: 60% to your lead, the rest shared by the bench. Your whole team grows together.
+- **Catch-up boost.** A party member behind the rest earns up to ×2 XP until it catches up, shown by a small "▲ catch-up" tag on its card.
+- **Team Rocket is back, and bigger.** About a third of trainer battles are Rocket grunts. Each uses one type and leads with a rare ace of that type (pseudo-legendaries, fossils, starters) that you can try to catch after winning. They're now your main source of rare Pokémon.
+- **Rocket Radar and the Rocket Leader.** Beat five grunts (shown on the Rocket Radar) and the Rocket Leader, Corvin, challenges you. Beat him for a big coin prize and a guaranteed legendary or mythical encounter (one you haven't caught, if any are left; shiny 1 in 5). The prize never runs away; keep throwing until you catch it.
+- **Trainer Pokémon can be shiny** (1 in 250), and a shiny you catch from a trainer stays shiny.
+- **Your starter is your Buddy.** It misses half as often and earns 15% more XP, with a ♥ Buddy badge. Existing saves pick your original starter automatically, and evolving keeps the bonus.
+- **Three buttons on every Pokémon card: Lead, Upgrade and Transfer.** Upgrade opens a small sheet with Power Up (cost shown), stone evolutions, Bottle Caps and the Move Tutor. A small + on the HP bar heals a hurt Pokémon in one tap.
+- **Transfer.** Send Pokémon away for coins (more for rarer, higher-level, shiny or perfect ones) and XP for every Pokémon you own that shares a type. It asks first, and warns you about shinies, perfect IVs, legendaries, favourites and your Buddy. Your Pokédex keeps the entry.
+- **View all.** A fast grid of every Pokémon you own, with sort (level, IV, power, Dex number, type, caught, rarity), filters (shiny, perfect, legendary, favourites, duplicates, party, storage, type) and search. Tap Select (or press and hold) to pick several, then transfer, favourite or move them at once. "Select duplicates (keep best)" picks your spare copies in one tap and never picks your team, shinies, favourites or perfect Pokémon.
+- **Storage and bag space.** Storage holds 60 Pokémon and the bag 200 items, growing every 5 trainer levels, with Storage and Bag Upgrades in the Shop. Meters show how full each is. XP Doublers, Bottle Caps and evolution stones don't take bag space. Saves already over a limit keep everything.
+- **When storage is full,** Catch turns into "Storage full · Transfer" and opens your duplicates. Shinies, legendaries and the Rocket Leader's prize always get through. When your bag is full, items you find turn into coins at half their shop price.
+- **Bounties.** Now and then a wild Pokémon carries a Bounty (shown on its name plate) worth ₽1.5–4k, paid when you defeat or catch it.
+- **Lucky cards.** The hidden coin bonus on a review now shows a small gold "Lucky card!" chip above the dialogue box, and the coin counter ticks up.
+- **Daily firsts and streaks.** Your first catch and first defeat each day earn ×3 XP and ₽500, shown as two small ticks on Play. Every 7th day in a row you study pays ₽5k and a Rare XP Doubler.
+- **Special Research.** Multi-step research lines on the Trainer screen with big rewards: Field Studies and Rocket Investigation. Join a team and a third line, A Legend Takes Wing, ends with a sighting of your team's Galarian bird.
+- **Achievements and trainer levels pay coins.** Achievements pay by tier when you claim them, and every trainer level pays coins too. Milestone levels (10, 20, 30, 40, 50) give a theme voucher. There are new achievements for Team Rocket, transfers, themes, Galarian birds and your Buddy.
+
+- **Teams.** Pick Team Valor, Team Mystic or Team Instinct when you start (existing players are asked once). Your team's crest shows in the header and on your trainer card.
+- **Type themes.** Eighteen themes in the Shop, one per type, each with its own colours, pattern and gentle background motion (off with reduced motion). Try one for 15 seconds before buying, then switch freely; the default arcade look stays free. With a theme on, catching or defeating Pokémon of that type pays ×1.25 coins and XP, and theme vouchers from trainer levels take 20% off.
+- **Clearer battle layout.** Each info box now sits with its own Pokémon: the foe's above it, yours below your lead, each with a small pointer. Trainer boxes show their team's remaining Pokémon. Narrow sidebars get compact one-line boxes.
+
+### Fixed
+
+- **The battle arena no longer changes on every card.** An old save migration was re-running on every read and stepping the arena along. You now stay in an area for 5–8 wild encounters, and the arena only moves on between encounters, with a small "→ area name" note and no shake.
+- **XP Doublers (and any other tap) can't be lost any more.** The sidebar, queue strip and popup now send their actions to one place that saves them in order with your card reviews, so a review can no longer overwrite a doubler you just switched on. A doubler now doubles every kind of Pokémon XP, including the type-match bonus, and its chip shows the cards left and how many are queued.
+- **Mewtwo, Lugia, Rayquaza and 24 other headline legendaries and mythicals** were tagged as common, so they missed their "(Legendary)" label and bonus XP. They're tagged correctly now.
+- **A shiny no longer runs away when your lead faints.** It waits for your next Pokémon, just like a shiny legendary.
+- **Status conditions help when catching a trainer's Pokémon**, the same as with wild ones.
+
+### Changed
+
+- **Money reads at a glance:** ₽999, then ₽1.5k, ₽15k, ₽152k and ₽1.2M. Hover or use a screen reader for the exact amount.
+- **Rare Pokémon are rarer, and the same on every pacing.** Odds are now set per wild encounter, so a slower pacing (more cards per encounter) also means fewer rarities. At Medium: a shiny 1 in 250 encounters, a Galarian bird about 1 in 250 cards (after your first 100), and another wild legendary, mythical or Ultra Beast about 1 in 2,500 cards. Pseudo-legendaries and other rare species turn up half as often in the wild.
+- **Legendaries are hard to catch.** Legendary, mythical, Ultra Beast and Galarian bird catches start at 2% at full HP and climb to about 25% near 1 HP. Great Balls (×1.25), Ultra Balls (×1.5), sleep or freeze (×1.5) and paralysis, poison or burn (×1.25) help, up to 40%. A shiny legendary is still a sure catch.
+- **Money means more.** Rewards are balanced around a day of study: battles pay the most, then quests, research and achievements, then lucky cards and bounties. Defeating a Pokémon always pays more than catching it, and farming catches for transfers pays less than battling. The money achievements were moved to match (₽5k, 25k, 100k, 400k and 1M); any you already have stay unlocked. Your current balance is untouched.
+- **Power Up is the main way to spend.** It costs more as a Pokémon levels (about ₽3.4k at Lv20 and ₽11k at Lv40), and Rare Candy now costs ₽6,000.
+- **Levelling is slower and steadier.** At about 100 cards a day your team averages around Lv15 after 500 cards, Lv22 after 1,000, Lv38 after 3,000 and Lv50 after 6,000. Later levels take longer, so Lv100 stays a long-term goal. No Pokémon loses a level.
+- **Wild levels follow your whole party's average.** Most wilds are at or a little below it, and about a third are weaker, at a level that suits their species. New catches no longer outclass the team you've raised.
 
 ## [1.5.0] - 2026-11-03
 

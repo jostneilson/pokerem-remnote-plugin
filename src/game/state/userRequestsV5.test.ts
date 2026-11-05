@@ -1,3 +1,5 @@
+import { BALANCE } from '../balance';
+import { catchCoins, defeatCoins } from '../balance';
 import { describe, it, expect, vi } from 'vitest';
 import {
   chooseStarter,
@@ -42,6 +44,8 @@ describe('User specific requirements in 1.4.0', () => {
           currentHp: 80,
           types: ['Electric'],
         },
+        // Today's daily firsts already paid, so only the base rewards are compared.
+        daily: { day: new Date().toISOString().slice(0, 10), firstCatch: true, firstDefeat: true },
       };
 
       const defeatState = defeatEncounter(baseState);
@@ -57,38 +61,41 @@ describe('User specific requirements in 1.4.0', () => {
 
       expect(currencyFromDefeat).toBeGreaterThan(currencyFromCatch);
       expect(xpFromDefeat).toBeGreaterThan(xpFromCatch);
-      expect(currencyFromDefeat).toBeGreaterThanOrEqual(250);
-      expect(currencyFromCatch).toBe(CURRENCY_REWARDS.catch);
+      // 1.6.0 (SPEC C2): defeat ₽60 + 8×L, catch ₽40 + 5×L.
+      expect(currencyFromDefeat).toBe(defeatCoins(10, 25));
+      expect(currencyFromCatch).toBe(catchCoins(10, 25));
     });
   });
 
   describe('Rewards and bonuses give way more money', () => {
     it('provides high value cash rewards across review, bonuses, and trainer wins', () => {
-      expect(CURRENCY_REWARDS.defeat).toBeGreaterThanOrEqual(250);
-      expect(CURRENCY_REWARDS.review).toBeGreaterThanOrEqual(25);
+      // 1.6.0 rebalanced coins (SPEC C2): a smaller card trickle, defeats always beat catches.
+      expect(CURRENCY_REWARDS.review).toBeGreaterThanOrEqual(5);
+      for (const lv of [1, 10, 50, 100]) expect(defeatCoins(lv)).toBeGreaterThan(catchCoins(lv));
 
       const rng = (...values: number[]) => {
         let i = 0;
         return () => values[i++] ?? 0;
       };
 
-      const jackpot = rollStudyCashBonus(rng(0.0001, 0));
+      const jackpot = rollStudyCashBonus(rng(0.00003, 0));
       expect(jackpot.tier).toBe('Jackpot');
       expect(jackpot.amount).toBeGreaterThanOrEqual(10000);
 
-      const rareFind = rollStudyCashBonus(rng(0.002, 0));
+      const rareFind = rollStudyCashBonus(rng(0.0003, 0));
       expect(rareFind.tier).toBe('Rare find');
       expect(rareFind.amount).toBeGreaterThanOrEqual(2000);
 
-      const luckyFind = rollStudyCashBonus(rng(0.02, 0));
+      const luckyFind = rollStudyCashBonus(rng(0.003, 0));
       expect(luckyFind.tier).toBe('Lucky find');
-      expect(luckyFind.amount).toBeGreaterThanOrEqual(350);
+      expect(luckyFind.amount).toBeGreaterThanOrEqual(300);
 
       const eliteReward = generateTrainerRewards('elite', 20);
-      expect(eliteReward.coins).toBeGreaterThanOrEqual(1500);
+      expect(eliteReward.coins).toBeGreaterThanOrEqual(Math.round(1500 * BALANCE.trainerCoinScale));
 
       const standardReward = generateTrainerRewards('standard', 20);
-      expect(standardReward.coins).toBeGreaterThanOrEqual(600);
+      expect(standardReward.coins).toBeGreaterThanOrEqual(Math.round(600 * BALANCE.trainerCoinScale));
+      expect(eliteReward.coins).toBeGreaterThan(standardReward.coins);
     });
   });
 
@@ -128,7 +135,9 @@ describe('User specific requirements in 1.4.0', () => {
       expect(partyFireXpGain).toBeGreaterThan(0);
       expect(storageFireXpGain).toBeGreaterThan(0);
       expect(partyFireXpGain).toBeGreaterThan(storageFireXpGain);
-      expect(partyWaterXpGain).toBe(0);
+      // XP Share gives the whole bench a knockout share; only same-type members get the type boost on top.
+      expect(partyWaterXpGain).toBeGreaterThan(0);
+      expect(partyFireXpGain).toBeGreaterThan(partyWaterXpGain);
       expect(storageGrassXpGain).toBe(0);
     });
 
@@ -180,14 +189,18 @@ describe('User specific requirements in 1.4.0', () => {
 
     it('spawns wild Pokemon at levels matching average party level', () => {
       const partyHigh = [makeMon('p1', 1, ['Grass'], 40), makeMon('p2', 4, ['Fire'], 50)];
-      const encHigh = spawnEncounter(partyHigh, 0, [1], 0);
-      expect(encHigh.level).toBeGreaterThanOrEqual(43);
-      expect(encHigh.level).toBeLessThanOrEqual(47);
+      // 1.6.0: the party average (45) is the cap; most wilds are within 3 below it, some weaker.
+      for (let i = 0; i < 200; i++) {
+        const encHigh = spawnEncounter(partyHigh, 0, [1], 0);
+        expect(encHigh.level).toBeLessThanOrEqual(45);
+      }
 
       const partyLow = [makeMon('p1', 1, ['Grass'], 5), makeMon('p2', 4, ['Fire'], 7)];
-      const encLow = spawnEncounter(partyLow, 0, [1], 0);
-      expect(encLow.level).toBeGreaterThanOrEqual(5);
-      expect(encLow.level).toBeLessThanOrEqual(8);
+      for (let i = 0; i < 200; i++) {
+        const encLow = spawnEncounter(partyLow, 0, [1], 0);
+        expect(encLow.level).toBeGreaterThanOrEqual(1);
+        expect(encLow.level).toBeLessThanOrEqual(6);
+      }
     });
   });
 

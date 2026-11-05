@@ -1,3 +1,5 @@
+import { researchAfterClaim, researchView } from '../../engine/research';
+import { storageRoom } from '../../engine/capacity';
 import { POKEREM_VERSION } from '../../../releaseMeta';
 import { rollIVs, battleStats } from '../../engine/pokemonStats';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -6,6 +8,7 @@ import { STARTER_DEX_ALL } from '../../data/pokedex';
 import {
   ACHIEVEMENT_DEFS,
   achievementItemBonus,
+  achievementCoinReward,
   achievementTrainerXpReward,
 } from '../../engine/achievements';
 import { withOptimalMoves } from '../../engine/movesetOptimizer';
@@ -16,23 +19,22 @@ import { xpThresholdForLevel } from '../../engine/progression';
 import { STARTER_LEVEL } from '../../constants';
 import { TRAINER_REWARDS } from '../../engine/trainerLevel';
 import type { PokeRemGameState, OwnedPokemon } from '../model';
-import { addBagQuantities, addTrainerXp, dismissMainNotice, withTouch } from './core';
-import { uid } from './persistence';
+import { addBagQuantities, addTrainerXp, dismissMainNotice, growPokemonWithXp, withTouch } from './core';
+import { BALANCE } from '../../balance';
+import { transferPreview, transferXpBase } from '../../engine/transfer';
+import { scaledXp } from '../../engine/xpShare';
+import { formatCoins } from '../../../ui/format/coins';
+import { bumpBattleOutcome, uid } from './persistence';
 
 /** Claim a finished daily or weekly quest's coins and items. */
 export function claimQuest(state: PokeRemGameState, questId: string): PokeRemGameState {
   const view = questViews(state).find((q) => q.id === questId);
   if (!view || !view.done || view.claimed || !state.quests) return state;
-  const bag = { ...state.bag };
-  for (const [id, n] of Object.entries(view.items ?? {})) {
-    if (n && n > 0 && ITEM_BY_ID.has(id as ItemId))
-      bag[id as ItemId] = (bag[id as ItemId] ?? 0) + n;
-  }
+  const withItems = addBagQuantities(state, (view.items ?? {}) as Partial<Record<ItemId, number>>);
   return withTouch({
-    ...state,
-    bag,
-    currency: (state.currency ?? 0) + view.coins,
-    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + view.coins,
+    ...withItems,
+    currency: (withItems.currency ?? 0) + view.coins,
+    totalCurrencyEarned: (withItems.totalCurrencyEarned ?? 0) + view.coins,
     quests: { ...state.quests, claimed: [...state.quests.claimed, questId] },
   });
 }
@@ -42,6 +44,12 @@ export function claimAllQuests(state: PokeRemGameState): PokeRemGameState {
   return questViews(state)
     .filter((q) => q.done && !q.claimed)
     .reduce((s, q) => claimQuest(s, q.id), state);
+}
+
+/** Join a team (SPEC A13). It can't be changed: once a team is set, later calls do nothing. */
+export function chooseTeam(state: PokeRemGameState, team: string): PokeRemGameState {
+  if (state.team || (team !== 'ember' && team !== 'tide' && team !== 'volt')) return state;
+  return withTouch({ ...state, team, teamPrompted: true });
 }
 
 export function chooseStarter(state: PokeRemGameState, dexNum: number): PokeRemGameState {
@@ -75,6 +83,7 @@ export function chooseStarter(state: PokeRemGameState, dexNum: number): PokeRemG
         : state.whatsNewSeenVersion,
     party: [starter],
     activePokemonId: starter.id,
+    starterId: starter.id,
     selectedTab: 'status',
   });
 }
@@ -201,10 +210,51 @@ export function releasePokemon(state: PokeRemGameState, pokemonId: string): Poke
   return withTouch({ ...state, party, storagePokemon, activePokemonId });
 }
 
+/**
+ * Transfer Pokémon away for good (SPEC A5, L7): pays coins by tier and level (×3 shiny, ×2 HUNDO), and every
+ * owned Pokémon sharing a type gets XP (storage half). Refused if any is a favourite, it would empty the
+ * party, or one is fighting a trainer right now. The Pokédex keeps the entries.
+ */
+export function transferPokemon(state: PokeRemGameState, ids: string[]): PokeRemGameState {
+  const preview = transferPreview(state, ids);
+  if (preview.blocked) return state;
+  const leaving = new Set(preview.ids);
+  const party = state.party.filter((p) => !leaving.has(p.id));
+  const storage = state.storagePokemon.filter((p) => !leaving.has(p.id));
+  const scaled = { ...state, party, storagePokemon: storage };
+  const grow = (mon: OwnedPokemon, inParty: boolean) => {
+    let base = 0;
+    for (const m of preview.mons) {
+      if (mon.types.some((t) => m.types.includes(t))) base += transferXpBase(m) * (inParty ? 1 : BALANCE.transfer.storageXpShare);
+    }
+    return base > 0 ? growPokemonWithXp(mon, scaledXp(scaled, mon, base)).pokemon : mon;
+  };
+  const nextParty = party.map((p) => grow(p, true));
+  const nextStorage = storage.map((p) => grow(p, false));
+  const activePokemonId =
+    state.activePokemonId && leaving.has(state.activePokemonId) ? (nextParty[0]?.id ?? null) : state.activePokemonId;
+  const lostStarter = !!state.starterId && leaving.has(state.starterId);
+  const names = preview.mons.length === 1 ? preview.mons[0]!.nickname || preview.mons[0]!.name : `${preview.mons.length} Pokémon`;
+  return withTouch({
+    ...state,
+    party: nextParty,
+    storagePokemon: nextStorage,
+    activePokemonId,
+    // An empty id means "no buddy any more", so the starter backfill doesn't pick a new one.
+    ...(lostStarter ? { starterId: '' } : {}),
+    currency: (state.currency ?? 0) + preview.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + preview.coins,
+    totalTransferred: (state.totalTransferred ?? 0) + preview.mons.length,
+    ...bumpBattleOutcome(state, 'none', `Transferred ${names} for ${formatCoins(preview.coins)}.`),
+  });
+}
+
 export function moveToStorage(state: PokeRemGameState, pokemonId: string): PokeRemGameState {
   if (state.party.length <= 1) return state;
   const mon = state.party.find((p) => p.id === pokemonId);
   if (!mon) return state;
+  // Full storage takes no more (over-cap saves keep what they have).
+  if (storageRoom(state) <= 0) return state;
   const remaining = state.party.filter((p) => p.id !== pokemonId);
   let activePokemonId = state.activePokemonId;
   if (pokemonId === state.activePokemonId) {
@@ -264,6 +314,8 @@ export function claimAchievement(state: PokeRemGameState, id: string): PokeRemGa
   };
   next = addTrainerXp(next, achievementTrainerXpReward(def));
   next = addBagQuantities(next, achievementItemBonus(def));
+  const coins = achievementCoinReward(def);
+  next = { ...next, currency: (next.currency ?? 0) + coins, totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + coins };
   if (def.prestigeBadgeId) {
     const existing = next.prestigeBadges ?? [];
     if (!existing.includes(def.prestigeBadgeId)) {
@@ -346,13 +398,7 @@ export function claimTrainerReward(state: PokeRemGameState, level: number): Poke
   if (claimed.includes(level)) return state;
 
   let next = { ...state, claimedRewardLevels: [...claimed, level] };
-  if (reward.items) {
-    const bag = { ...next.bag };
-    for (const [itemId, qty] of Object.entries(reward.items)) {
-      bag[itemId as keyof typeof bag] = ((bag as any)[itemId] ?? 0) + (qty as number);
-    }
-    next = { ...next, bag };
-  }
+  if (reward.items) next = addBagQuantities(next, reward.items as Partial<Record<ItemId, number>>);
   if (reward.trainerRankTitle) {
     next = { ...next, trainerRank: reward.trainerRankTitle };
   }
@@ -371,5 +417,27 @@ export function togglePokemonFavorite(state: PokeRemGameState, id: string): Poke
     ...state,
     party: state.party.map(update),
     storagePokemon: state.storagePokemon.map(update),
+  });
+}
+
+/** Claim a finished Special Research line: coins, items, and (for the team line) your bird's sighting. */
+export function claimResearch(state: PokeRemGameState): PokeRemGameState {
+  const view = researchView(state);
+  if (!view.done) return state;
+  let next = addBagQuantities(state, view.line.items ?? {});
+  next = {
+    ...next,
+    currency: (next.currency ?? 0) + view.line.coins,
+    totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + view.line.coins,
+  };
+  const research = researchAfterClaim(next);
+  return withTouch({
+    ...next,
+    research: view.line.teamBird ? { ...research, birdPending: true } : research,
+    ...bumpBattleOutcome(
+      state,
+      'none',
+      `${view.line.title} complete! +${formatCoins(view.line.coins)}${view.line.teamBird ? ' · Your team’s bird has been sighted nearby…' : ''}`
+    ),
   });
 }

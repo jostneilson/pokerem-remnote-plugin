@@ -73,8 +73,8 @@ export function BattleMoveMenu({
               className={`pkr-game-btn pkr-battle-move-tile group flex min-h-[58px] flex-col justify-between rounded-lg border-2 px-2 py-1.5 text-left transition-[transform,filter,box-shadow] duration-150 ease-out hover:brightness-[1.06] active:translate-y-px active:scale-[0.98] disabled:opacity-35 ${hoverLift}`}
               style={{
                 borderColor: (pill?.borderColor as string) ?? 'rgba(148,163,184,0.5)',
-                background: (pill?.backgroundColor as string) ?? 'rgba(30,41,59,0.9)',
-                color: (pill?.color as string) ?? '#f8fafc',
+                background: (pill?.backgroundColor as string) ?? 'rgba(var(--pkr-rgb-panel),0.9)',
+                color: (pill?.color as string) ?? 'var(--pkr-ink-bright)',
                 boxShadow: fighting
                   ? `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px ${accent}55`
                   : `inset 0 1px 0 rgba(255,255,255,0.14), 0 2px 0 rgba(0,0,0,0.35)`,
@@ -124,7 +124,7 @@ export function BattleMoveMenu({
         className={`pkr-game-btn pkr-battle-cmd-back w-full rounded-lg border-2 px-2 py-1.5 pkr-fine font-bold transition-[transform,filter] duration-150 ease-out hover:brightness-[1.04] active:translate-y-px ${hoverLift}`}
         style={{
           borderColor: `${accent}77`,
-          background: 'linear-gradient(180deg, #334155 0%, #1e293b 100%)',
+          background: 'linear-gradient(180deg, #334155 0%, var(--pkr-themed-panel, #1e293b) 100%)',
           color: 'var(--pkr-ink-text)',
         }}
       >

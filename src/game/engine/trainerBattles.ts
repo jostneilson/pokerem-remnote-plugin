@@ -1,7 +1,15 @@
+import { BALANCE } from '../balance';
 import { SPECIES_BY_DEX } from '../data/species';
 import type { PokemonType } from '../data/species';
-import { catchTypeBonus, computeCatchChance } from './encounters';
-import { encounterBaseLevel, pickEverydaySpecies } from './speciesPool';
+import {
+  BALL_CATCH_BONUS,
+  catchStatusMultiplier,
+  catchTypeBonus,
+  computeCatchChance,
+  isGuaranteedCatch,
+  legendaryCatchChance
+} from './encounters';
+import { encounterBaseLevel, isEventSpecies, pickEverydaySpecies } from './speciesPool';
 import { battleStats, rollIVs } from './pokemonStats';
 import { MOVES } from '../data/moves';
 import { optimalMoveset } from './movesetOptimizer';
@@ -206,12 +214,15 @@ function pickFromArray<T>(arr: T[] | undefined, rng: () => number): T | undefine
   return arr[Math.floor(rng() * arr.length)];
 }
 
-interface BuildEnemyOpts {
+export interface BuildEnemyOpts {
   level: number;
   rng: () => number;
 }
 
-function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): TrainerEnemyMon | null {
+/** Trainer Pokémon can be shiny at the everyday per-encounter rate (SPEC A3). */
+export const TRAINER_SHINY_ODDS = 1 / 250;
+
+export function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): TrainerEnemyMon | null {
   const species = SPECIES_BY_DEX.get(dexNum);
   if (!species) return null;
   const lv = Math.max(1, Math.min(MAX_ENEMY_LEVEL, Math.floor(level)));
@@ -235,6 +246,7 @@ function buildEnemyForDex(dexNum: number, { level, rng }: BuildEnemyOpts): Train
     types: species.types,
     moves: finalMoves,
     defeated: false,
+    ...(rng() < TRAINER_SHINY_ODDS ? { shiny: true } : {}),
   };
 }
 
@@ -309,9 +321,11 @@ export function generateTrainerRewards(
 ): TrainerRewardSnapshot {
   const isElite = tier === 'elite';
   const lvScale = Math.max(1, averageLevel);
-  const coins = isElite
-    ? 1500 + Math.floor(lvScale * 25) + Math.floor(rng() * 300)
-    : 600 + Math.floor(lvScale * 15) + Math.floor(rng() * 150);
+  const coins = Math.round(
+    (isElite
+      ? 1500 + Math.floor(lvScale * 25) + Math.floor(rng() * 300)
+      : 600 + Math.floor(lvScale * 15) + Math.floor(rng() * 150)) * BALANCE.trainerCoinScale
+  );
   const trainerXp = isElite ? 120 : 45;
   const items: Partial<Record<string, number>> = isElite
     ? { 'great-ball': 2, 'super-potion': 2, revive: 1 }
@@ -342,11 +356,17 @@ export function trainerCatchChance(
   ball: 'poke-ball' | 'great-ball' | 'ultra-ball',
   tier: TrainerTier,
 ): number {
-  const ballBonus = ball === 'ultra-ball' ? 0.4 : ball === 'great-ball' ? 0.2 : 0;
+  if (isGuaranteedCatch(enemy)) return 1;
+  if (isEventSpecies(enemy.dexNum)) return legendaryCatchChance(enemy.currentHp, enemy.maxHp, ball, enemy.condition);
   const tierBonus = TRAINER_CATCH_BONUS[tier];
   const baseCatchRate = SPECIES_BY_DEX.get(enemy.dexNum)?.baseCatchRate;
   const hpRatio = enemy.maxHp > 0 ? enemy.currentHp / enemy.maxHp : 0;
-  return computeCatchChance(ballBonus + tierBonus + catchTypeBonus(active, enemy.types), baseCatchRate, hpRatio);
+  return computeCatchChance(
+    BALL_CATCH_BONUS[ball] + tierBonus + catchTypeBonus(active, enemy.types),
+    baseCatchRate,
+    hpRatio,
+    catchStatusMultiplier(enemy.condition)
+  );
 }
 
 /** Convert a trainer enemy slot into a spawnable {@link EncounterPokemon} after a successful catch. */
@@ -359,6 +379,7 @@ export function trainerEnemyAsEncounter(enemy: TrainerEnemyMon): EncounterPokemo
     maxHp: enemy.maxHp,
     types: enemy.types,
     ivs: enemy.ivs,
+    ...(enemy.shiny ? { shiny: true } : {}),
   };
 }
 

@@ -1,3 +1,6 @@
+import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
+import { STORAGE_FULL_MESSAGE, catchBlockedByStorage } from '../../engine/capacity';
+import { BALANCE, defeatCoins as defeatCoinsFor, themeMult } from '../../balance';
 import { resolveExchange, WILD_FOE_DAMAGE_SCALE } from '../../engine/moveMechanics';
 import { isGuaranteedCatch, wildCatchChancePreview } from '../../engine/encounters';
 import { getInitialMoves, movesetForBattle } from '../../engine/moveLearn';
@@ -6,12 +9,13 @@ import { CURRENCY_REWARDS } from '../../engine/shop';
 import { getEffectiveness } from '../../data/typeChart';
 import { xpFromPlayerAttack, xpFromTakingHit } from '../../engine/combatXp';
 import { TRAINER_XP_SOURCES } from '../../engine/trainerLevel';
-import { applyXpDoublerMultiplier } from '../../engine/xpDoublers';
+import { isBuddy, scaledXp, splitKnockoutXp } from '../../engine/xpShare';
 import { rollPostBattleScrap } from '../../engine/routeFinds';
 import { moveDisplayName } from '../../engine/combatExchange';
 import { chooseFoeMove } from '../../engine/foeAi';
 import type {
   PokeRemGameState,
+  BattleResult,
   BattleOutcomeKind,
   CombatStrikeSnapshot,
   OwnedPokemon,
@@ -43,6 +47,9 @@ function catchEncounterInner(
   ball: 'poke-ball' | 'great-ball' | 'ultra-ball'
 ): PokeRemGameState {
   if (!state.currentEncounter) return state;
+  if (catchBlockedByStorage(state, state.currentEncounter)) {
+    return withTouch({ ...state, ...bumpBattleOutcome(state, 'none', STORAGE_FULL_MESSAGE) });
+  }
   const count = state.bag[ball] ?? 0;
   if (count <= 0) {
     return withTouch({
@@ -134,7 +141,8 @@ function applyCombatTurnInner(
   const enc = sanitizeEncounterHp(enc0);
   // A shiny Legendary can never be knocked out or lost: it waits until you catch it.
   const guaranteed = isGuaranteedCatch(enc);
-  protectWild = protectWild || guaranteed;
+  // The Leader's prize can't be knocked out either: you catch it or give it up.
+  protectWild = protectWild || guaranteed || enc.pendingPrize === true;
 
   let aid = state.activePokemonId;
   if (!aid && state.party.length > 0) {
@@ -169,7 +177,7 @@ function applyCombatTurnInner(
   );
   const key = `wild:${enc.dexNum}:${enc.level}:${state.battleSceneIndex}:${state.totalCaught}:${state.totalDefeated}:${state.totalRuns}`;
   const exchange = resolveExchange(
-    active,
+    { ...active, isBuddy: isBuddy(state, active) },
     enc,
     chosen,
     wildMove,
@@ -178,10 +186,12 @@ function applyCombatTurnInner(
     protectWild,
     WILD_FOE_DAMAGE_SCALE
   );
-  const xp = applyXpDoublerMultiplier(
+  const xp = scaledXp(
     state,
-    xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
-      xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })
+    active,
+    (xpFromPlayerAttack({ damage: exchange.pDamage, moveId: chosen, defenderTypes: enc.types }) +
+      xpFromTakingHit({ damage: exchange.wDamage, wildMoveId: wildMove, playerTypes: active.types })) *
+      BALANCE.xp.fightMult
   );
   const grown = growPokemonWithXp(active, xp).pokemon;
   const updated = {
@@ -198,7 +208,8 @@ function applyCombatTurnInner(
     playerEffectiveness: getEffectiveness(MOVES[chosen]!.type, enc.types),
     wildEffectiveness: getEffectiveness(MOVES[wildMove]!.type, active.types),
   };
-  if (exchange.player.currentHp <= 0 && guaranteed)
+  // Any shiny (and every shiny Legendary) waits for your next Pokémon instead of fleeing.
+  if (exchange.player.currentHp <= 0 && (guaranteed || enc.shiny === true || enc.pendingPrize === true))
     return withTouch({
       ...state,
       party,
@@ -268,14 +279,24 @@ export function defeatEncounter(
       ...bumpBattleOutcome(state, 'defeat', `${wildName} fled — no active lead.`),
     });
   }
-  const xpGain = applyXpDoublerMultiplier(state, computeDefeatXp(state));
+  // XP Share: the lead keeps 60% of the knockout XP, the bench shares the rest.
+  // Daily first defeat: ×3 XP and ₽500 (SPEC B3).
+  const firstToday = isDailyFirst(state, 'firstDefeat');
+  const koShares = splitKnockoutXp(
+    computeDefeatXp(state) * (firstToday ? DAILY_FIRST_XP_MULT : 1),
+    state.party,
+    state.activePokemonId
+  );
+  let xpGain = 0;
   let leveledUp = false;
   let evolvedMon: OwnedPokemon | null = null;
   let evolvedFromName = '';
   let leadBefore: OwnedPokemon | null = null;
   let leadAfter: OwnedPokemon | null = null;
   const party = state.party.map((p) => {
-    if (p.id !== state.activePokemonId) return p;
+    const share = koShares.get(p.id) ?? 0;
+    if (p.id !== state.activePokemonId) return share > 0 ? growPokemonWithXp(p, scaledXp(state, p, share)).pokemon : p;
+    xpGain = scaledXp(state, p, share);
     const grown = growPokemonWithXp(p, xpGain);
     // The finishing turn may already have levelled the lead from attack XP; measure the card from before that turn.
     leadBefore = opts?.resultFrom?.id === p.id ? opts.resultFrom : p;
@@ -323,17 +344,24 @@ export function defeatEncounter(
         }
       : null;
 
-  let trainerXpGain = TRAINER_XP_SOURCES.defeat;
+  // Theme bonus (SPEC A12): ×1.25 defeat coins, trainer XP and type-share XP when the theme matches.
+  const theme = themeMult(state.themeActive, state.currentEncounter.types);
+  let trainerXpGain = Math.round(TRAINER_XP_SOURCES.defeat * theme);
   if (leveledUp) trainerXpGain += TRAINER_XP_SOURCES.levelUp;
   if (evolvedMon) trainerXpGain += TRAINER_XP_SOURCES.evolution;
 
-  const defeatCoins = CURRENCY_REWARDS.defeat + Math.floor(state.currentEncounter.level * 10);
+  const defeatCoins =
+    Math.round(defeatCoinsFor(state.currentEncounter.level, state.currentEncounter.dexNum) * theme) +
+    (state.currentEncounter.bounty ?? 0) +
+    (firstToday ? DAILY_FIRST_COINS : 0);
   const typeBoost = applyTypeShareXpBoost(
     party,
     state.storagePokemon,
     state.currentEncounter.types,
     state.activePokemonId,
-    state.currentEncounter.level
+    state.currentEncounter.level,
+    state,
+    theme
   );
 
   let afterDefeat: PokeRemGameState = {
@@ -344,6 +372,7 @@ export function defeatEncounter(
     selectedTab: 'status',
     totalDefeated: (state.totalDefeated ?? 0) + 1,
     totalEvolutions: (state.totalEvolutions ?? 0) + (evolvedMon ? 1 : 0),
+    daily: markDaily(state, 'firstDefeat'),
     currency: (state.currency ?? 0) + defeatCoins,
     totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + defeatCoins,
     ...bumpBattleOutcome(state, outcome, narr, strikeForBump),
@@ -353,7 +382,7 @@ export function defeatEncounter(
     },
     lastBattleResult:
       leadBefore && leadAfter
-        ? battleResult(
+        ? withThemeTag(battleResult(
             state,
             'defeat',
             state.currentEncounter,
@@ -362,7 +391,7 @@ export function defeatEncounter(
             xpGain,
             defeatCoins,
             evolvedMon ? (evolvedMon as OwnedPokemon).name : undefined
-          )
+          ), theme > 1 ? state.themeActive : undefined)
         : null,
   };
 
@@ -372,9 +401,18 @@ export function defeatEncounter(
   return withTouch(addTrainerXp(afterDefeat, trainerXpGain));
 }
 
-export function runFromEncounter(state: PokeRemGameState): PokeRemGameState {
+/**
+ * Run from the wild Pokémon. The Rocket Leader's prize only goes when `giveUpPrize` is set (the sidebar's
+ * confirmed "Give up"), so a stray Run from the queue strip or a shortcut can't lose it.
+ */
+export function runFromEncounter(state: PokeRemGameState, giveUpPrize = false): PokeRemGameState {
   if (!state.currentEncounter) return state;
   const name = state.currentEncounter.name;
+  if (state.currentEncounter.pendingPrize && !giveUpPrize)
+    return withTouch({
+      ...state,
+      ...bumpBattleOutcome(state, 'none', `${name} is the Leader’s prize. To give it up, use Run in the sidebar and confirm.`),
+    });
   return withTouch(
     addTrainerXp(
       {
@@ -396,4 +434,9 @@ export function switchActivePokemon(state: PokeRemGameState, pokemonId: string):
   const found = state.party.some((p) => p.id === pokemonId);
   if (!found) return state;
   return withTouch({ ...state, activePokemonId: pokemonId, selectedTab: 'status' });
+}
+
+/** Tag a result card with the theme whose bonus applied. */
+function withThemeTag(r: BattleResult, theme: string | undefined): BattleResult {
+  return theme ? { ...r, themeBonus: theme } : r;
 }

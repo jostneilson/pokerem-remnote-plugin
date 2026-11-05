@@ -13,6 +13,8 @@ export interface Fighter {
   ivs?: PokemonIVs;
   condition?: BattleCondition;
   name?: string;
+  /** Your starter: its misses are halved. */
+  isBuddy?: boolean;
 }
 
 const supportedAilments = new Set(['none', 'sleep', 'poison', 'burn', 'freeze', 'paralysis', 'confusion']);
@@ -142,7 +144,9 @@ export function resolveExchange(
     log.push(`${a.name ?? 'Pokémon'} used ${m.name}!`);
     const ac = a.condition!.stages as any,
       dc = d.condition!.stages as any;
-    const accuracy = (m.accuracy ?? 100) * stage((ac?.accuracy ?? 0) - (dc?.evasion ?? 0));
+    const raw = (m.accuracy ?? 100) * stage((ac?.accuracy ?? 0) - (dc?.evasion ?? 0));
+    // Buddy: half the miss chance, so 70% accuracy hits 85% of the time.
+    const accuracy = a.isBuddy && raw < 100 ? 100 - (100 - raw) / 2 : raw;
     if (m.accuracy != null && rng() * 100 >= accuracy) {
       log.push('The attack missed!');
       return;

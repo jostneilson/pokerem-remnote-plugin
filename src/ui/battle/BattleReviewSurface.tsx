@@ -1,3 +1,6 @@
+import { formatCoins } from '../format/coins';
+import { battleHudLayout } from './hudLayout';
+import { catchBlockedByStorage } from '../../game/engine/capacity';
 import {
   useEffect,
   useLayoutEffect,
@@ -30,6 +33,9 @@ import { estimatedQueueCompletionsUntilWild } from '../../game/wildEncounterDisp
 import { speciesLabel } from '../components/SpeciesBadge';
 import { AchievementFanfare } from '../components/AchievementFanfare';
 import { PokeRemTrekStrip } from '../components/PokeRemTrekStrip';
+import { RocketRadarChip } from '../components/RocketRadarChip';
+import { LuckyChip } from '../components/LuckyChip';
+import { DailyTicks } from '../components/DailyTicks';
 import { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 import { BRAND } from '../theme/gameTheme';
 import { BattleField } from './BattleField';
@@ -71,6 +77,7 @@ export function BattleReviewSurface({
   onCatch,
   onFightMove,
   onRun,
+  onOpenStorageTransfer,
   encounterRate,
   currency,
   reducedMotion,
@@ -117,7 +124,9 @@ export function BattleReviewSurface({
   /** Throw this ball, or the recommended one when omitted. */
   onCatch: (ball?: CatchBall) => void;
   onFightMove: (moveId: string) => void;
-  onRun: () => void;
+  onRun: (giveUpPrize?: boolean) => void;
+  /** Open the View all grid filtered to duplicates (full-storage Catch). */
+  onOpenStorageTransfer?: () => void;
   encounterRate?: number;
   currency?: number;
   reducedMotion?: boolean;
@@ -209,14 +218,16 @@ export function BattleReviewSurface({
     reducedMotion: reducedMotion === true,
     outcomeKind,
     strike: state.lastCombatStrike,
-    sceneChanged: scene.blend,
   });
 
   const frameW = useFrameWidth(outerRef, widthSourceRef);
   const layoutW = Math.max(260, frameW);
   const typeIconSize = Math.min(18, Math.max(12, Math.round(layoutW * 0.045)));
   const battleHeight = Math.max(190, Math.min(270, Math.round(layoutW * 0.58)));
-  const spriteSize = Math.max(90, Math.min(142, Math.round(layoutW * 0.3)));
+  const baseSprite = Math.max(90, Math.min(142, Math.round(layoutW * 0.3)));
+  // A17: each info box sits with its own Pokémon (foe box above the foe, yours under your lead).
+  const hudLayout = battleHudLayout({ layoutW, height: battleHeight, foeFeetShare: 0.58, foeSprite: baseSprite, allySprite: baseSprite * 1.3 });
+  const spriteSize = hudLayout.spriteSize;
   /** Corner HUD width — tied to the measured column. Half the field keeps each plate clear of the opposite sprite. */
   const hudPanelMaxPx = Math.min(190, Math.max(120, Math.round(layoutW * 0.5)));
 
@@ -300,7 +311,7 @@ export function BattleReviewSurface({
     return () => ro.disconnect();
   }, [onFieldEndOffsetChange]);
 
-  const impactShake = xpMoment.screenShake || fx.sceneShake;
+  const impactShake = xpMoment.screenShake;
   const chromeClassName = sidebarSplitLayout
     ? `shrink-0 z-[20] bg-[#0b0f14]/96 shadow-[0_8px_24px_rgba(0,0,0,0.65)] backdrop-blur-[2px]${impactShake ? ' animate-pkr-xp-impact' : ''}`
     : `sticky top-0 z-[20] shrink-0 bg-[#0b0f14]/96 shadow-[0_8px_24px_rgba(0,0,0,0.65)] backdrop-blur-[2px]`;
@@ -320,13 +331,24 @@ export function BattleReviewSurface({
       <BattleHudPlate
         {...hudChrome}
         idPrefix="w"
-        className={`left-1 top-1 sm:left-1.5${battleLinger ? ' pointer-events-none opacity-90' : ''}${fieldWild.shiny ? ' pkr-battle-hud--shiny' : ''}`}
+        className={`pkr-hud-at-foe${battleLinger ? ' pointer-events-none opacity-90' : ''}${fieldWild.shiny ? ' pkr-battle-hud--shiny' : ''}`}
+        tight={hudLayout.tight}
         interactive={!battleLinger}
         header={
           <div className="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5">
             <span className="pkr-battle-hud-role" style={{ color: amb.accentMuted }}>
-              Wild
+              {fieldWild.pendingPrize ? 'Rocket' : 'Wild'}
             </span>
+            {fieldWild.pendingPrize ? (
+              <span className="pkr-hud-badge pkr-hud-badge--prize" title="The Rocket Leader’s prize: it won’t flee">
+                Prize
+              </span>
+            ) : null}
+            {fieldWild.bounty ? (
+              <span className="pkr-bounty-chip" title="Bounty: paid when you defeat or catch it">
+                BOUNTY {formatCoins(fieldWild.bounty)}
+              </span>
+            ) : null}
             {fieldWild.tier && fieldWild.tier !== 'Common' ? (
               <span
                 className="pkr-hud-badge"
@@ -360,7 +382,9 @@ export function BattleReviewSurface({
     <BattleHudPlate
       {...hudChrome}
       idPrefix="p"
-      className={fieldWild ? 'bottom-1 right-1 sm:right-1.5' : 'left-1 top-1 sm:left-1.5'}
+      className={fieldWild ? 'pkr-hud-at-ally' : 'left-1 top-1 sm:left-1.5'}
+      tight={!!fieldWild && hudLayout.tight}
+      buddy={!!state.starterId && active.id === state.starterId}
       header={
         !inBattleField ? (
           <div className="mb-0.5 pkr-fine font-bold leading-none" style={{ color: '#a5b4fc' }}>
@@ -428,7 +452,7 @@ export function BattleReviewSurface({
           className="flex items-center justify-center gap-1 px-2 py-1 pkr-fine font-black uppercase tracking-widest"
           style={{
             background: 'linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%)',
-            color: '#faf5ff',
+            color: 'var(--pkr-ink-bright)',
             boxShadow: '0 0 12px rgba(168,85,247,0.45)',
           }}
         >
@@ -446,6 +470,7 @@ export function BattleReviewSurface({
         height={battleHeight}
         layoutW={layoutW}
         spriteSize={spriteSize}
+        hud={fieldWild ? hudLayout : undefined}
         fieldWild={fieldWild}
         linger={battleLinger}
         hasEncounter={hasEncounter}
@@ -473,6 +498,7 @@ export function BattleReviewSurface({
           borderTopWidth: 2,
         }}
       >
+        <LuckyChip reward={state.lastStudyReward} />
         <BattleMessageStack
           state={state}
           rootURL={rootURL}
@@ -535,6 +561,7 @@ export function BattleReviewSurface({
                 onRun={onRun}
                 onToggleAutoAttack={onToggleAutoAttack}
                 onCatchScope={onCatchScope}
+                onStorageFull={wild && onOpenStorageTransfer && catchBlockedByStorage(state, wild) ? onOpenStorageTransfer : undefined}
               />
             )
           ) : leadFaintedNoEncounter ? (
@@ -574,6 +601,8 @@ export function BattleReviewSurface({
                   exploreWildCompletionsRemaining === 1 ? '' : 's'
                 } until the next wild Pokémon (${progress} of ${effectiveRate} toward encounter)`}
               />
+              <RocketRadarChip rocket={state.rocket} />
+              <DailyTicks state={state} />
             </div>
           )}
           {!canCatch && hasEncounter ? (

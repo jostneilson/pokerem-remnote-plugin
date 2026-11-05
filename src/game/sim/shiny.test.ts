@@ -13,7 +13,7 @@ import { SPECIES_BY_DEX, displayDexNumber } from '../data/species';
 import { canBeShiny } from '../data/shinyArt';
 import { frontSpriteUrl } from '../sprites';
 import { isPerfectIVs } from '../engine/pokemonStats';
-import { catchEncounter, chooseStarter, createInitialStateV2, parseGameState } from '../state/store';
+import { applyCombatTurn, catchEncounter, chooseStarter, createInitialStateV2, parseGameState } from '../state/store';
 import { seededRng } from './simulate';
 import type { EncounterPokemon, OwnedPokemon } from '../state/model';
 
@@ -104,5 +104,31 @@ describe('shiny and perfect-IV Pokémon stay that way', () => {
     const s = chooseStarter(createInitialStateV2(), 4);
     const loaded = parseGameState(JSON.parse(JSON.stringify({ ...s, encountersSinceShiny: 321 })));
     expect(loaded.encountersSinceShiny).toBe(321);
+  });
+});
+
+describe('shinies survive a lead faint (A3)', () => {
+  it('a shiny everyday wild stays when your lead faints; a regular one flees', () => {
+    const base = chooseStarter(createInitialStateV2(), 4);
+    const lead = { ...base.party[0]!, level: 2, currentHp: 1 };
+    const wild = { dexNum: 19, name: 'Rattata', level: 40, maxHp: 400, currentHp: 400, types: ['Normal'], tier: 'Common' } as EncounterPokemon;
+    const fight = (shiny: boolean) =>
+      applyCombatTurn({ ...base, party: [lead], activePokemonId: lead.id, currentEncounter: { ...wild, shiny } });
+    let kept = 0;
+    let fled = 0;
+    for (let i = 0; i < 20; i++) {
+      const s = fight(true);
+      if (s.party[0]!.currentHp <= 0) {
+        expect(s.currentEncounter?.shiny).toBe(true);
+        kept++;
+      }
+      const r = fight(false);
+      if (r.party[0]!.currentHp <= 0) {
+        expect(r.currentEncounter).toBeNull();
+        fled++;
+      }
+    }
+    expect(kept).toBeGreaterThan(0);
+    expect(fled).toBeGreaterThan(0);
   });
 });

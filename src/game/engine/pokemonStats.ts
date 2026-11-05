@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import type { OwnedPokemon, PokemonIVs } from '../state/model';
 import { SPECIES_BY_DEX } from '../data/species';
 import { getUnlockedLearnsetMoveIds } from './moveLearn';
@@ -25,7 +26,7 @@ export function battleStats(mon:{id?:string;dexNum:number;level:number;ivs?:Poke
   const power=Math.floor((attack+specialAttack)*Math.sqrt(defense+specialDefense)*Math.sqrt(hp)/10);
   return {hp,attack,defense,specialAttack,specialDefense,speed,power};
 }
-export const powerUpCost=(level:number)=>100+20*level+2*level*level;
+export const powerUpCost=(level:number)=>{const c=BALANCE.powerUp;return c.base+c.perLevel*level+c.perLevelSq*level*level;};
 export function powerUpPreview(mon:OwnedPokemon) {
  const level=Math.min(100,mon.level+1),old=new Set(getUnlockedLearnsetMoveIds(mon.dexNum,mon.level));
  return {cost:powerUpCost(mon.level),level,stats:battleStats({...mon,level}),newMoves:getUnlockedLearnsetMoveIds(mon.dexNum,level).filter(m=>!old.has(m))};

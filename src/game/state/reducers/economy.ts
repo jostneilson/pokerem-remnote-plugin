@@ -1,4 +1,16 @@
+import {
+  BAG_UPGRADE_MAX,
+  BAG_UPGRADE_STEP,
+  STORAGE_UPGRADE_MAX,
+  STORAGE_UPGRADE_STEP,
+  bagRoom,
+  bagUpgradePrice,
+  isKeyItem,
+  storageUpgradePrice
+} from '../../engine/capacity';
 import { REVIVE_SHOP_PRICE, shopPrice } from '../../engine/shop';
+import { themePrice } from '../../balance';
+import { ALL_TYPES } from '../../data/typeChart';
 import { ivsFor, isPerfectIVs, battleStats, powerUpCost } from '../../engine/pokemonStats';
 import { healAmountFor, ITEM_BY_ID, type ItemId } from '../../data/items';
 import { checkItemEvolution, applyEvolution } from '../../engine/evolution';
@@ -112,6 +124,8 @@ export function buyItem(state: PokeRemGameState, itemId: string, quantity = 1): 
   if (price == null) return state;
   const total = price * qty;
   if ((state.currency ?? 0) < total) return state;
+  // A full bag blocks buys (key items never take space).
+  if (!isKeyItem(itemId) && bagRoom(state) < qty) return state;
   const bag = { ...state.bag, [itemId]: (state.bag[itemId as keyof typeof state.bag] ?? 0) + qty };
   return withTouch({
     ...state,
@@ -185,6 +199,30 @@ export function equipCardStyle(state: PokeRemGameState, styleId: string): PokeRe
   if (styleId !== 'classic' && !(state.ownedCardStyles ?? []).includes(styleId)) return state;
   const next = styleId === 'classic' ? undefined : styleId;
   return next === state.trainerCardStyle ? state : withTouch({ ...state, trainerCardStyle: next });
+}
+
+/** Buy a type theme (SPEC A12/U11) and equip it. A voucher, if used, takes 20% off and is spent. */
+export function buyTheme(state: PokeRemGameState, themeId: string, useVoucher = false): PokeRemGameState {
+  const owned = state.themesOwned ?? [];
+  const vouchers = state.themeVouchers ?? 0;
+  if (!(ALL_TYPES as string[]).includes(themeId) || owned.includes(themeId) || (useVoucher && vouchers < 1)) return state;
+  const price = themePrice(useVoucher);
+  if ((state.currency ?? 0) < price) return state;
+  return withTouch({
+    ...state,
+    currency: (state.currency ?? 0) - price,
+    themesOwned: [...owned, themeId],
+    themeActive: themeId,
+    ...(useVoucher ? { themeVouchers: vouchers - 1 } : {}),
+    totalShopPurchases: (state.totalShopPurchases ?? 0) + 1,
+  });
+}
+
+/** Equip an owned theme, or `'default'` for the free arcade look. */
+export function equipTheme(state: PokeRemGameState, themeId: string): PokeRemGameState {
+  if (themeId !== 'default' && !(state.themesOwned ?? []).includes(themeId)) return state;
+  const next = themeId === 'default' ? undefined : themeId;
+  return next === state.themeActive ? state : withTouch({ ...state, themeActive: next });
 }
 
 /** Consume exactly one compatible stone after all guards pass. No save migration. */
@@ -410,12 +448,36 @@ export const QUICK_BALL_COUNT = 5;
 /** Restock Poké Balls mid-encounter (as many of five as coins allow). */
 export function quickBuyBalls(state: PokeRemGameState): PokeRemGameState {
   const price = ITEM_BY_ID.get('poke-ball')!.price;
-  const count = Math.min(QUICK_BALL_COUNT, Math.floor((state.currency ?? 0) / price));
+  const count = Math.min(QUICK_BALL_COUNT, Math.floor((state.currency ?? 0) / price), bagRoom(state));
   if (count <= 0) return state;
   return withTouch({
     ...state,
     currency: state.currency - count * price,
     bag: { ...state.bag, 'poke-ball': (state.bag['poke-ball'] ?? 0) + count },
     totalShopPurchases: (state.totalShopPurchases ?? 0) + count,
+  });
+}
+
+/** Shop "Storage Upgrade +20" (SPEC L13). */
+export function buyStorageUpgrade(state: PokeRemGameState): PokeRemGameState {
+  const price = storageUpgradePrice(state);
+  if (price == null || (state.currency ?? 0) < price) return state;
+  return withTouch({
+    ...state,
+    currency: state.currency - price,
+    storageBonus: Math.min(STORAGE_UPGRADE_MAX, (state.storageBonus ?? 0) + STORAGE_UPGRADE_STEP),
+    totalShopPurchases: (state.totalShopPurchases ?? 0) + 1,
+  });
+}
+
+/** Shop "Bag Upgrade +25" (SPEC L13). */
+export function buyBagUpgrade(state: PokeRemGameState): PokeRemGameState {
+  const price = bagUpgradePrice(state);
+  if (price == null || (state.currency ?? 0) < price) return state;
+  return withTouch({
+    ...state,
+    currency: state.currency - price,
+    bagBonus: Math.min(BAG_UPGRADE_MAX, (state.bagBonus ?? 0) + BAG_UPGRADE_STEP),
+    totalShopPurchases: (state.totalShopPurchases ?? 0) + 1,
   });
 }

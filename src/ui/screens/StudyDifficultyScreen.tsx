@@ -33,7 +33,7 @@ export function StudyDifficultyScreen({
         <div className="relative flex flex-col items-center gap-2">
           <span className="flex items-center gap-2">
             <GameIcon name="book" size={18} style={{ color: 'var(--pkr-ink-gold)' }} />
-            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: '#ede9fe' }}>
+            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: 'var(--pkr-themed-ink-text, #ede9fe)' }}>
               Study difficulty
             </span>
           </span>
@@ -136,8 +136,8 @@ function CustomDifficultyForm({ onApply }: { onApply: (reviews: number, weight: 
         className="pkr-game-btn mt-1 rounded-lg border-2 px-3 py-2 pkr-fine font-black uppercase"
         style={{
           borderColor: '#6d28d9',
-          background: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%)',
-          color: '#f5f3ff',
+          background: 'linear-gradient(180deg, var(--pkr-accent) 0%, #7c3aed 50%, #5b21b6 100%)',
+          color: 'var(--pkr-ink-bright)',
         }}
       >
         Use custom

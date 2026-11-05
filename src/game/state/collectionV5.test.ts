@@ -120,14 +120,14 @@ describe('v5 catches, rewards, and study XP', () => {
 
   it('honors mutually-exclusive cash bonus boundaries and inclusive ranges', () => {
     const rng = (...values: number[]) => { let i = 0; return () => values[i++] ?? 0; };
-    expect(rollStudyCashBonus(rng(0.000499, 0))).toEqual({ amount: 10000, tier: 'Jackpot' });
-    expect(rollStudyCashBonus(rng(0.0005, 0))).toEqual({ amount: 2000, tier: 'Rare find' });
-    expect(rollStudyCashBonus(rng(0.0055, 0))).toEqual({ amount: 350, tier: 'Lucky find' });
-    expect(rollStudyCashBonus(rng(0.0455, 0))).toEqual({ amount: 0 });
+    expect(rollStudyCashBonus(rng(0.0000599, 0))).toEqual({ amount: 10000, tier: 'Jackpot' });
+    expect(rollStudyCashBonus(rng(0.00006, 0))).toEqual({ amount: 2000, tier: 'Rare find' });
+    expect(rollStudyCashBonus(rng(0.00066, 0))).toEqual({ amount: 300, tier: 'Lucky find' });
+    expect(rollStudyCashBonus(rng(0.00666, 0))).toEqual({ amount: 0 });
     expect(rollStudyCashBonus(rng(0, 0.999999))).toEqual({ amount: 25000, tier: 'Jackpot' });
   });
 
-  it('awards lower bench XP and records a compact lead/bench recap once per review', () => {
+  it('XP Share: every member earns study XP (lead x1.2) and the recap is recorded once per review', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
     const party = [owned('lead'), owned('bench-1'), owned('bench-2')];
     const beforeXp = party.map(p => p.totalXp);
@@ -136,9 +136,10 @@ describe('v5 catches, rewards, and study XP', () => {
       currentEncounter: { dexNum: 7, name: 'Squirtle', level: 5, currentHp: 20, maxHp: 20, types: ['Water'] },
     };
     const next = onQueueCardComplete(state);
-    expect(next.party[0]!.totalXp - beforeXp[0]!).toBe(3);
-    expect(next.party[1]!.totalXp - beforeXp[1]!).toBe(1);
-    expect(next.party[2]!.totalXp - beforeXp[2]!).toBe(1);
-    expect(next.lastStudyReward).toMatchObject({ seq: 1, leadXp: 3, benchXp: 2, bonus: 0 });
+    // 3 x 1.2 = 3.6 for the lead (rounded up by the 0.1 roll) and 3 for the bench.
+    expect(next.party[0]!.totalXp - beforeXp[0]!).toBe(4);
+    expect(next.party[1]!.totalXp - beforeXp[1]!).toBe(3);
+    expect(next.party[2]!.totalXp - beforeXp[2]!).toBe(3);
+    expect(next.lastStudyReward).toMatchObject({ seq: 1, leadXp: 4, benchXp: 6, bonus: 0 });
   });
 });

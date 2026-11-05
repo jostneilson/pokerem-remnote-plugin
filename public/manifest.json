@@ -6,12 +6,12 @@
   "repoUrl": "https://github.com/jostneilson/pokerem-remnote-plugin",
   "version": {
     "major": 1,
-    "minor": 5,
+    "minor": 6,
     "patch": 0
   },
   "theme": [],
   "enableOnMobile": false,
-  "description": "Turn your flashcard reviews into a Pokémon adventure: catch wild Pokémon, battle trainers, hunt shinies and fill your Pokédex as you study. Open the Poké Ball tab in the right sidebar.",
+  "description": "Turn flashcard reviews into a Pokémon adventure: catch, battle Team Rocket, grow your team, and earn rewards. Open the Poké Ball tab in the right sidebar.",
   "requestNative": false,
   "requiredScopes": [
     {

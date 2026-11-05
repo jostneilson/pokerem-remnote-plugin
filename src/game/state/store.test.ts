@@ -1,3 +1,4 @@
+import { withSeededRandom } from '../sim/simulate';
 import { describe, expect, it, vi } from 'vitest';
 import { ACHIEVEMENT_TIER_TRAINER_XP } from '../engine/achievements';
 import { CURRENCY_REWARDS } from '../engine/shop';
@@ -331,7 +332,8 @@ describe('defeatEncounter', () => {
       bag: { ...s.bag, 'great-ball': 0 },
     };
     const gb0 = s.bag['great-ball'] ?? 0;
-    const next = defeatEncounter(s);
+    // Seeded: a defeat can roll a random drop, which made this test flaky.
+    const next = withSeededRandom(3, () => defeatEncounter(s));
     expect(next.achievements.defeat500).toBe(true);
     expect((next.bag['great-ball'] ?? 0) - gb0).toBe(0);
     const claimed = claimAchievement(next, 'defeat500');

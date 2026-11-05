@@ -94,7 +94,7 @@ export function DexDetailPanel({
           <div className="min-w-0 flex-1 space-y-2">
             <div className={`pkr-dex-detail-registry ${owned ? 'pkr-dex-detail-registry--owned' : 'pkr-dex-detail-registry--unknown'}`}>
               <div className="pkr-dex-detail-registry__line flex items-center gap-1.5 font-black">
-                <GameIcon name="book" size={12} style={{ color: 'var(--pkr-accent, #fbbf24)' }} />
+                <GameIcon name="book" size={12} style={{ color: 'var(--pkr-accent, var(--pkr-ink-gold-strong))' }} />
                 {owned ? (
                   <>
                     Registered — caught <span className="tabular-nums text-amber-200">{caughtCount}</span>×

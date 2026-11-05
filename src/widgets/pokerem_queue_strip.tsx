@@ -1,4 +1,5 @@
 import '../style.css';
+import { useAppliedTheme } from '../ui/theme/ThemeProvider';
 import { useCallback, useEffect, useState } from 'react';
 import { AppEvents, renderWidget, useAPIEventListener, useOnMessageBroadcast, usePlugin } from '@remnote/plugin-sdk';
 import { STORAGE_KEY, SYNC_BROADCAST_KEY, REVIEWS_PER_ENCOUNTER, WILD_FLEE_AFTER_CARDS, getSyncedGameRaw } from '../game/constants';
@@ -29,6 +30,7 @@ function PokeRemQueueStrip() {
   const [encounterPacingModulo, setEncounterPacingModulo] = useState(1);
   const [pluginReviewWeight, setPluginReviewWeight] = useState(1);
   const [busy, setBusy] = useState<QueueAction | null>(null);
+  useAppliedTheme(state?.themeActive);
 
   useEffect(() => {
     void (async () => {

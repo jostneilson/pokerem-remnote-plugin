@@ -6,7 +6,10 @@ const LEGACY_BATTLE_SCENE_COUNT = 20;
 /** Removed from rotation: was index 9 (Desert Dunes / bg_desert.png). */
 const LEGACY_REMOVED_SCENE_INDEX = 9;
 
-/** Map persisted index after removing Desert Dunes from the list. */
+/**
+ * One-time migration for saves from before Desert Dunes was removed. Not idempotent (it shifts 10+ down by one),
+ * so only call it on saves without `sceneIndexVersion: 2`; use {@link clampBattleSceneIndex} everywhere else.
+ */
 export function normalizeBattleSceneIndex(saved: unknown): number {
   const raw = typeof saved === 'number' && Number.isFinite(saved) ? Math.floor(saved) : 0;
   let idx = raw;
@@ -15,6 +18,27 @@ export function normalizeBattleSceneIndex(saved: unknown): number {
   if (idx === LEGACY_REMOVED_SCENE_INDEX) return 2;
   if (idx > LEGACY_REMOVED_SCENE_INDEX) idx -= 1;
   return ((idx % BATTLE_SCENE_COUNT) + BATTLE_SCENE_COUNT) % BATTLE_SCENE_COUNT;
+}
+
+/** A valid scene index (0..BATTLE_SCENE_COUNT-1). Safe to call any number of times. */
+export function clampBattleSceneIndex(saved: unknown): number {
+  const raw = typeof saved === 'number' && Number.isFinite(saved) ? Math.floor(saved) : 0;
+  return ((raw % BATTLE_SCENE_COUNT) + BATTLE_SCENE_COUNT) % BATTLE_SCENE_COUNT;
+}
+
+/** The current save format for `battleSceneIndex` (see `normalizeBattleSceneIndex`). */
+export const SCENE_INDEX_VERSION = 2;
+
+/** An area lasts this many wild encounters before the arena moves on (inclusive range). */
+export const AREA_MIN_ENCOUNTERS = 5;
+export const AREA_MAX_ENCOUNTERS = 8;
+
+export function rollAreaLength(rng: () => number): number {
+  return AREA_MIN_ENCOUNTERS + Math.floor(rng() * (AREA_MAX_ENCOUNTERS - AREA_MIN_ENCOUNTERS + 1));
+}
+
+export function battleSceneName(index: number): string {
+  return SCENES[clampBattleSceneIndex(index)]!.name;
 }
 
 export interface BattleAmbience {

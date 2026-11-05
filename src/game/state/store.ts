@@ -44,6 +44,7 @@ export {
 export type { DefeatFinisher } from './reducers/battle';
 export {
   startTrainerBattle,
+  startRocketBattle,
   lockTrainerTeam,
   applyTrainerCombatTurn,
   trainerLossFee,
@@ -61,7 +62,9 @@ export {
   teachTutorMove,
   buyRouteTicket,
   buyCardStyle,
+  buyTheme,
   equipCardStyle,
+  equipTheme,
   useEvolutionStone,
   powerUpPokemon,
   useBottleCap,
@@ -75,17 +78,22 @@ export {
   pokemonCenterHeal,
   QUICK_BALL_COUNT,
   quickBuyBalls,
+  buyStorageUpgrade,
+  buyBagUpgrade,
 } from './reducers/economy';
 export type { TrainableIv } from './reducers/economy';
 export {
   claimQuest,
   claimAllQuests,
   chooseStarter,
+  chooseTeam,
   setAutoMoves,
   forgetMoveAction,
   learnMoveAction,
   renamePokemon,
   releasePokemon,
+  transferPokemon,
+  claimResearch,
   moveToStorage,
   moveToParty,
   swapPartyWithStorage,

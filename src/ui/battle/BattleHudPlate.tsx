@@ -28,6 +28,8 @@ export function BattleHudPlate({
   types,
   resists,
   weaknesses,
+  tight = false,
+  buddy = false,
 }: {
   /** Keeps React keys distinct between the two plates. */
   idPrefix: 'w' | 'p';
@@ -53,6 +55,10 @@ export function BattleHudPlate({
   types: PokemonType[];
   resists: PokemonType[];
   weaknesses: PokemonType[];
+  /** ≤ 320px (A17): one line, no header, and no HP numbers on the foe box. */
+  tight?: boolean;
+  /** Your starter: ♥ after the name (A16). */
+  buddy?: boolean;
 }) {
   const [hover, setHover] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -71,7 +77,7 @@ export function BattleHudPlate({
   );
   return (
     <div
-      className={`pkr-battle-hud pkr-battle-hud--compact absolute z-[25] max-w-full px-1.5 py-1 text-left ${className}`}
+      className={`pkr-battle-hud pkr-battle-hud--compact absolute z-[25] max-w-full px-1.5 py-1 text-left${tight ? ' pkr-battle-hud--tight' : ''} ${className}`}
       onMouseEnter={() => interactive && setHover(true)}
       onMouseLeave={() => interactive && setHover(false)}
       onClick={() => interactive && setPinned((v) => !v)}
@@ -88,29 +94,33 @@ export function BattleHudPlate({
       style={{
         maxWidth,
         borderColor: `${accent}55`,
+        ['--pkr-hud-notch' as string]: `${accent}aa`,
         boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 1px 1px 0 rgba(0,0,0,0.38), 0 0 12px ${accent}22`,
         cursor: interactive ? 'pointer' : 'default',
       }}
     >
-      {header}
+      {tight ? null : header}
       <div className="line-clamp-2 pkr-fine font-black leading-tight" style={{ color: 'white' }}>
         {shiny ? (
           <span className="pkr-hud-shiny" title="Shiny" aria-label="Shiny">
             ✦
           </span>
         ) : null}
-        <span className="break-words">{name}</span>{' '}
+        <span className="break-words">{name}</span>
+        {buddy ? <span className="pkr-hud-buddy" title="Your Buddy" aria-label="Buddy"> ♥</span> : null}{' '}
         <span className="whitespace-nowrap font-bold" style={{ color: levelColor }}>
           Lv{level}
         </span>
       </div>
       <div className="mt-0.5 flex flex-row-reverse items-center gap-1">
-        <span
-          className="shrink-0 pkr-fine font-bold tabular-nums leading-none"
-          style={{ color: hpTextColor }}
-        >
-          {Math.floor(hp)}/{Math.floor(maxHp)}
-        </span>
+        {tight && idPrefix === 'w' ? null : (
+          <span
+            className="shrink-0 pkr-fine font-bold tabular-nums leading-none"
+            style={{ color: hpTextColor }}
+          >
+            {Math.floor(hp)}/{Math.floor(maxHp)}
+          </span>
+        )}
         <div className="pkr-battle-hp-track h-[4px] min-w-0 flex-1 overflow-hidden">
           <div
             className={`pkr-battle-hp-fill h-full transition-[width] duration-300 ${hit ? 'pkr-hp-fill-hit' : ''}`}

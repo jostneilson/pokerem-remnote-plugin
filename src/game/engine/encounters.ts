@@ -1,38 +1,31 @@
+import {
+  BIRD_CHANCE,
+  BIRD_MIN_REVIEWS,
+  EVENT_CHANCE,
+  EVENT_MIN_PARTY_LEVEL,
+  EVENT_MIN_REVIEWS,
+  pickGalarianBird,
+  type TeamId,
+  GALARIAN_BIRDS,
+  GALARIAN_BIRD_SHINY_ODDS,
+  SHINY_ODDS_POST_DEX_COMPLETE,
+  SHINY_ODDS_PRE_DEX_COMPLETE,
+  shinyOddsWithPity
+} from './rarity';
+export * from './rarity';
 import { rollIVs, battleStats } from './pokemonStats';
-import { REVIEWS_PER_ENCOUNTER } from '../constants';
 import { SPECIES_BY_DEX, SPECIES_LIST, type PokemonType } from '../data/species';
 import { getEffectiveness } from '../data/typeChart';
 import { canBeShiny } from '../data/shinyArt';
-import { biomeTypesForScene, encounterBaseLevel, isEventSpecies, MAX_WILD_LEVEL, pickEverydaySpecies } from './speciesPool';
+import { biomeTypesForScene, encounterBaseLevel, isEventSpecies, MAX_WILD_LEVEL, minWildLevel, pickEverydaySpecies } from './speciesPool';
 import type { BattleCondition, EncounterPokemon, OwnedPokemon } from '../state/model';
 
-/** Shiny odds before the player has caught every wild-eligible species in enabled generations. */
-export const SHINY_ODDS_PRE_DEX_COMPLETE = 1 / 250;
-
-/** Shiny odds after full species completion for enabled generations (duplicate hunting). */
-export const SHINY_ODDS_POST_DEX_COMPLETE = 1 / 250;
 
 /** Party level wild encounters scale from (top three party members; see speciesPool). */
 export function averagePartyLevel(party: OwnedPokemon[]): number {
   return encounterBaseLevel(party);
 }
 
-/** Galarian Articuno, Zapdos and Moltres: a quarter of their encounters are shiny. */
-export const GALARIAN_BIRDS: ReadonlySet<number> = new Set([10169, 10170, 10171]);
-export const GALARIAN_BIRD_SHINY_ODDS = 0.25;
-
-/** After this many encounters without a shiny, the odds start climbing... */
-export const SHINY_PITY_START = 500;
-/** ...until one is guaranteed this many encounters later. */
-export const SHINY_PITY_SPAN = 250;
-
-/** Shiny odds with a gentle pity: unchanged until a long dry spell, then rising to certain. */
-export function shinyOddsWithPity(base: number, encountersSinceShiny: number): number {
-  const over = encountersSinceShiny - SHINY_PITY_START;
-  if (over <= 0) return base;
-  const t = Math.min(1, over / SHINY_PITY_SPAN);
-  return Math.min(1, base + (1 - base) * t * t);
-}
 
 /** Shiny chance for one encounter of this species: Galarian birds 25%, otherwise base odds with pity. */
 export function encounterShinyOdds(dexNum: number, baseOdds: number, encountersSinceShiny: number): number {
@@ -41,14 +34,10 @@ export function encounterShinyOdds(dexNum: number, baseOdds: number, encountersS
   return shinyOddsWithPity(baseOdds, encountersSinceShiny);
 }
 
-/** Legendaries, Mythicals and Ultra Beasts appear as rare events once you're established. */
-export const EVENT_MIN_PARTY_LEVEL = 25;
-export const EVENT_MIN_REVIEWS = 500;
-export const EVENT_CHANCE = 0.012;
 /** Share of everyday encounters drawn from species you haven't caught yet (until the Dex is complete). */
 export const UNCAUGHT_BIAS = 0.7;
 /** Wild battle HP relative to the same Pokémon once caught. */
-export const WILD_HP_SCALE = 0.65;
+export const WILD_HP_SCALE = 0.7;
 
 /**
  * All species obtainable in the enabled generations. Starters count: they turn up in the wild as
@@ -80,16 +69,23 @@ export function isWildDexGenerationComplete(
   return true;
 }
 
+/** Share of everyday wilds near your party's average level; the rest are weaker, natural-level ones. */
+export const WILD_NEAR_SHARE = 0.7;
+
 export type SpawnEncounterOpts = {
   collectionDex?: Record<number, number>;
-  /** Actual cadence; slower encounters receive proportionally higher shiny odds. */
+  /** Actual cadence. Rare odds are per encounter (SPEC L1), so this no longer changes them; kept for callers. */
   pacing?: { reviewsPerEncounter: number; modulo?: number; unitsPerReview?: number };
+  /** Your team, which secretly favours its Galarian bird. */
+  team?: TeamId;
   /** Injected RNG (defaults to `Math.random`) — use for tests. */
   rng?: () => number;
   /** Battle scene the encounter appears in; favours the scene's types. */
   sceneIndex?: number;
   /** Encounters since the last shiny, for the pity ramp. */
   encountersSinceShiny?: number;
+  /** Spawn this Galarian bird (a research reward's guaranteed sighting). */
+  forceBird?: number;
 };
 
 export function spawnEncounter(
@@ -108,34 +104,51 @@ export function spawnEncounter(
   const shinyRoll = rng();
 
   const base = encounterBaseLevel(party);
-  const eventChance = EVENT_CHANCE + Math.min(0.012, Math.max(0, rarityBonus) * 0.002);
+  // `rarityBonus` (faster pacing) no longer raises event odds: rarity is per encounter (SPEC L1).
+  void rarityBonus;
+  const forced = opts?.forceBird !== undefined && GALARIAN_BIRDS.has(opts.forceBird);
+  const bird = forced || (cardsReviewed >= BIRD_MIN_REVIEWS && rng() < BIRD_CHANCE);
   const eventPool =
-    base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < eventChance
-      ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum))
+    !bird && base >= EVENT_MIN_PARTY_LEVEL && cardsReviewed >= EVENT_MIN_REVIEWS && rng() < EVENT_CHANCE
+      ? SPECIES_LIST.filter((s) => gens.includes(s.generation) && isEventSpecies(s.dexNum) && !GALARIAN_BIRDS.has(s.dexNum))
       : [];
 
   let dexNum: number;
   let level: number;
-  if (eventPool.length > 0) {
+  if (bird) {
+    // The birds are every team's mascots, so they appear whichever generations are enabled.
+    dexNum = forced ? opts!.forceBird! : pickGalarianBird(opts?.team, rng);
+    level = base + 3 + Math.floor(rng() * 3);
+  } else if (eventPool.length > 0) {
     const uncaught = eventPool.filter((s) => (collectionDex[s.dexNum] ?? 0) <= 0);
     const pool = uncaught.length > 0 && rng() < UNCAUGHT_BIAS ? uncaught : eventPool;
     dexNum = pool[Math.floor(rng() * pool.length)]!.dexNum;
     level = base + 3 + Math.floor(rng() * 3);
   } else {
-    level = base + Math.floor(rng() * 3) - 1;
-    level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
-    dexNum = pickEverydaySpecies({
-      level,
-      enabledGens: gens,
-      rng,
-      favourTypes: biomeTypesForScene(opts?.sceneIndex),
-      collectionDex,
-      uncaughtBias: dexComplete ? 0 : UNCAUGHT_BIAS,
-    });
+    // Most wilds are near your party's average (never above it); some are weaker, at a level natural for them.
+    const near = base <= 5 || rng() < WILD_NEAR_SHARE;
+    const pickAt = near ? base : base - 4;
+    const pick = (lv: number) =>
+      pickEverydaySpecies({
+        level: lv,
+        enabledGens: gens,
+        rng,
+        favourTypes: biomeTypesForScene(opts?.sceneIndex),
+        collectionDex,
+        uncaughtBias: dexComplete ? 0 : UNCAUGHT_BIAS,
+      });
+    if (near) {
+      level = Math.max(1, base - Math.floor(rng() * 4));
+      dexNum = pick(level);
+    } else {
+      dexNum = pick(pickAt);
+      const lo = Math.min(pickAt, minWildLevel(dexNum));
+      level = lo + Math.floor(rng() * (pickAt - lo + 1));
+    }
   }
   level = Math.max(1, Math.min(MAX_WILD_LEVEL, level));
   const species = SPECIES_BY_DEX.get(dexNum) ?? SPECIES_BY_DEX.get(16)!;
-  const shiny = shinyRoll < encounterShinyOdds(species.dexNum, shinyOddsForPacing(dexComplete, opts?.pacing), opts?.encountersSinceShiny ?? 0);
+  const shiny = shinyRoll < encounterShinyOdds(species.dexNum, dexComplete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE, opts?.encountersSinceShiny ?? 0);
 
   const ivs = rollIVs(rng);
   // Wild Pokémon have a lighter HP pool than owned ones so everyday fights take 2–4 turns.
@@ -160,6 +173,30 @@ export function computeCatchChance(ballBonus: number, baseCatchRate: number | un
   const clampedHp = Math.max(0, Math.min(1, hpRatio));
   const hpFactor = 1 + (1 - clampedHp) * 0.55;
   return Math.min(0.92, (rate / 255) * (1 + ballBonus) * hpFactor * statusMult);
+}
+
+/** Ball multiplier on the legendary-class curve. */
+export const LEGENDARY_BALL_MULT: Record<CatchBall, number> = { 'poke-ball': 1, 'great-ball': 1.25, 'ultra-ball': 1.5 };
+export const LEGENDARY_CATCH_CAP = 0.4;
+const LEGENDARY_CURVE_K = 4;
+
+/**
+ * Legendary, Mythical, Ultra Beast and Galarian bird catch chance: 2% at full HP rising steeply to ~25% at
+ * 1 HP (Poké Ball), times ball and status multipliers, capped at 40%. `hp` of 1 or less counts as empty.
+ */
+export function legendaryCatchChance(currentHp: number, maxHp: number, ball: CatchBall, condition?: BattleCondition): number {
+  const h = currentHp <= 1 || maxHp <= 0 ? 0 : Math.max(0, Math.min(1, currentHp / maxHp));
+  const k = LEGENDARY_CURVE_K;
+  const base = 0.02 + (0.23 * (Math.exp(k * (1 - h)) - 1)) / (Math.exp(k) - 1);
+  return Math.min(LEGENDARY_CATCH_CAP, base * LEGENDARY_BALL_MULT[ball] * legendaryStatusMultiplier(condition));
+}
+
+/** Status multiplier on the legendary-class curve: asleep or frozen ×1.5, paralysed, poisoned or burned ×1.25. */
+export function legendaryStatusMultiplier(condition: BattleCondition | undefined): number {
+  const a = condition?.ailment;
+  if (a === 'sleep' || a === 'freeze') return 1.5;
+  if (a === 'paralysis' || a === 'poison' || a === 'burn') return 1.25;
+  return 1;
 }
 
 /** Main-series status catch bonus: asleep or frozen ×2, paralysed, poisoned or burned ×1.5. */
@@ -215,6 +252,7 @@ export function wildCatchChancePreview(
   ball: CatchBall,
 ): number {
   if (isGuaranteedCatch(enc)) return 1;
+  if (isEventSpecies(enc.dexNum)) return legendaryCatchChance(enc.currentHp, enc.maxHp, ball, enc.condition);
   const baseCatchRate = SPECIES_BY_DEX.get(enc.dexNum)?.baseCatchRate;
   const hpRatio = enc.maxHp > 0 ? enc.currentHp / enc.maxHp : 1;
   return computeCatchChance(BALL_CATCH_BONUS[ball] + catchTypeBonus(active, enc.types), baseCatchRate, hpRatio, catchStatusMultiplier(enc.condition));
@@ -228,15 +266,3 @@ export function catchTypeBonus(active: { types: PokemonType[] } | undefined, tar
   return active.types.some((t) => getEffectiveness(t, targetTypes) >= 2) ? CATCH_TYPE_ADVANTAGE_BONUS : 0;
 }
 
-/** Equalizes expected shiny discoveries per completed card against Medium/every-review pacing. */
-export function shinyOddsForPacing(complete: boolean, pacing?: SpawnEncounterOpts['pacing']): number {
-  const base = complete ? SHINY_ODDS_POST_DEX_COMPLETE : SHINY_ODDS_PRE_DEX_COMPLETE;
-  if (!pacing) return base;
-  const positive = (n: number | undefined, fallback: number) => typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : fallback;
-  const threshold = positive(pacing.reviewsPerEncounter, REVIEWS_PER_ENCOUNTER);
-  const modulo = Math.max(1, Math.floor(positive(pacing.modulo, 1)));
-  const units = Math.max(1, Math.floor(positive(pacing.unitsPerReview, 1)));
-  // Progress resets on spawn, so account for threshold rounding rather than fractional encounters.
-  const cardsPerEncounter = Math.ceil(threshold / units) * modulo;
-  return Math.min(1, base * cardsPerEncounter / REVIEWS_PER_ENCOUNTER);
-}

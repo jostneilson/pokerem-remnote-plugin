@@ -20,6 +20,9 @@ export function PartyPokemonCard({
   detail,
   onToggleFavorite,
   actions,
+  catchUp = false,
+  buddy = false,
+  quickHeal,
 }: {
   rootURL: string | undefined;
   pokemon: OwnedPokemon;
@@ -31,6 +34,12 @@ export function PartyPokemonCard({
   onToggleFavorite?: () => void;
   /** One-tap actions pinned under the card (Lead, Heal), visible without expanding it. */
   actions?: ReactNode;
+  /** Trails the rest of the party, so it earns boosted XP. */
+  catchUp?: boolean;
+  /** Your original starter. */
+  buddy?: boolean;
+  /** "+" on the HP bar when hurt and a usable potion is in the bag (SPEC U1). */
+  quickHeal?: { onHeal: () => void; title: string };
 }) {
   const displayName = p.nickname || p.name;
   const isParty = variant === 'party';
@@ -38,6 +47,7 @@ export function PartyPokemonCard({
 
   return (
     <div
+      data-pokemon-id={p.id}
       className={`pkr-party-card pkr-party-card--${classification} ${p.shiny ? 'pkr-party-card--shiny' : ''} ${!isParty ? 'pkr-party-card--storage' : ''} ${isParty && isActive ? 'pkr-party-card--lead' : ''}`}
     >
       {onToggleFavorite ? (
@@ -55,12 +65,22 @@ export function PartyPokemonCard({
             <span className="flex shrink-0 flex-wrap items-center justify-end gap-0.5">
               {classification !== 'ordinary' ? <span className="pkr-classification-badge">{classification === 'ultra-beast' ? 'Ultra Beast' : classification}</span> : null}
               {p.shiny ? <span className="pkr-classification-badge pkr-classification-badge--shiny">Shiny</span> : null}
+              {buddy ? (
+                <span className="pkr-tag pkr-tag--buddy" title="Your starter: fewer misses and +15% XP">
+                  ♥ Buddy
+                </span>
+              ) : null}
+              {catchUp ? (
+                <span className="pkr-tag pkr-tag--catchup" title="Behind the rest of the party: earns boosted XP">
+                  ▲ catch-up
+                </span>
+              ) : null}
               {checkLevelEvolution(p) ? (
                 <span
                   className="flex items-center gap-0.5 rounded px-1 py-px pkr-fine font-black uppercase"
                   style={{
                     background: 'rgba(168,85,247,0.28)',
-                    color: '#f3e8ff',
+                    color: 'var(--pkr-themed-ink-bright, #f3e8ff)',
                     border: '1px solid rgba(192,132,252,0.45)',
                   }}
                   title="Will evolve on next level-up after battle"
@@ -94,7 +114,35 @@ export function PartyPokemonCard({
                 Fainted
               </div>
             ) : null}
-            <PartyHpMeter current={p.currentHp} max={p.maxHp} />
+            {quickHeal ? (
+              <div className="flex items-center gap-1">
+                <div className="min-w-0 flex-1">
+                  <PartyHpMeter current={p.currentHp} max={p.maxHp} />
+                </div>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="pkr-hp-heal"
+                  title={quickHeal.title}
+                  aria-label={quickHeal.title}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    quickHeal.onHeal();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      quickHeal.onHeal();
+                    }
+                  }}
+                >
+                  +
+                </span>
+              </div>
+            ) : (
+              <PartyHpMeter current={p.currentHp} max={p.maxHp} />
+            )}
             <PartyXpMeter percent={xpProgressPercent(p)} />
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-0.5">

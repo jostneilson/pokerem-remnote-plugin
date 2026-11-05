@@ -28,9 +28,9 @@ describe('species pool', () => {
     }
   });
 
-  it('scales from the three strongest party members', () => {
+  it('scales from the whole party average (1.6.0)', () => {
     expect(encounterBaseLevel([])).toBe(5);
-    expect(encounterBaseLevel([mon(30), mon(30), mon(30), mon(2), mon(2), mon(2)])).toBe(30);
+    expect(encounterBaseLevel([mon(30), mon(30), mon(30), mon(2), mon(2), mon(2)])).toBe(16);
     expect(encounterBaseLevel([mon(10), mon(20)])).toBe(15);
   });
 });

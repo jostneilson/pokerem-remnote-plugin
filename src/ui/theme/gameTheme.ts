@@ -63,19 +63,19 @@ export const cls = {
 
 /** Inline style objects for colors that Tailwind can't reliably generate */
 export const themeStyles = {
-  textPrimary: { color: '#e2e8f0' },
+  textPrimary: { color: 'var(--pkr-ink-text)' },
   textSecondary: { color: '#94a3b8' },
-  textMuted: { color: '#64748b' },
-  textAmber: { color: '#fbbf24' },
-  textAmberBright: { color: '#fde68a' },
-  textEmerald: { color: '#6ee7b7' },
-  textRed: { color: '#fca5a5' },
-  bgBadgeGreen: { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7' },
-  bgBadgeGrey: { background: 'rgba(255,255,255,0.05)', color: '#64748b' },
+  textMuted: { color: 'var(--pkr-ink-dim)' },
+  textAmber: { color: 'var(--pkr-ink-gold-strong)' },
+  textAmberBright: { color: 'var(--pkr-ink-gold)' },
+  textEmerald: { color: 'var(--pkr-ink-success)' },
+  textRed: { color: 'var(--pkr-ink-danger)' },
+  bgBadgeGreen: { background: 'rgba(6,78,59,0.4)', color: 'var(--pkr-ink-success)' },
+  bgBadgeGrey: { background: 'rgba(255,255,255,0.05)', color: 'var(--pkr-ink-dim)' },
   bgBadgeRed: { background: '#dc2626', color: 'white' },
   statRowEven: { background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' },
   statRowOdd: { borderBottom: '1px solid rgba(255,255,255,0.04)' },
   divider: { borderColor: 'rgba(255,255,255,0.06)' },
   btnBuy: { background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)', borderColor: '#d97706', color: '#78350f' },
-  btnBuyDisabled: { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.08)', color: '#64748b' },
+  btnBuyDisabled: { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.08)', color: 'var(--pkr-ink-dim)' },
 } as const;

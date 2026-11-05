@@ -1,3 +1,4 @@
+import { formatCoins } from '../format/coins';
 import { ITEM_BY_ID } from '../../game/data/items';
 import { REVIVE_SHOP_PRICE } from '../../game/engine/shop';
 import type { PokeRemGameState } from '../../game/state/model';
@@ -6,13 +7,9 @@ import {
   bestPotionForLead,
   nextHealthyPartyMember,
   pokemonCenterCost,
-  pokemonCenterHeal,
-  quickBuyBalls,
   QUICK_BALL_COUNT,
-  quickHealLead,
-  quickReviveLead,
-  switchActivePokemon,
 } from '../../game/state/store';
+import { gameCommand, type GameCommand } from '../../game/commands';
 
 const HURT_RATIO = 0.5;
 
@@ -24,7 +21,7 @@ export function QuickCarePanel({
 }: {
   state: PokeRemGameState;
   busy?: boolean;
-  onApply: (fn: (s: PokeRemGameState) => PokeRemGameState) => void;
+  onApply: (command: GameCommand) => void;
 }) {
   const lead = activePokemon(state);
   if (!lead || state.pendingCaughtMon || state.currentTrainerBattle?.phase === 'active') return null;
@@ -54,12 +51,12 @@ export function QuickCarePanel({
       {stuck ? <p className="pkr-care__note">Not enough coins yet. Every flashcard you review earns more.</p> : null}
       <div className="pkr-care__actions">
         {fainted ? (
-          <button type="button" className="pkr-btn-primary" disabled={busy || !canRevive} onClick={() => onApply(quickReviveLead)}>
-            {reviveCount > 0 ? `Revive (×${reviveCount})` : `Buy & Revive ₽${REVIVE_SHOP_PRICE}`}
+          <button type="button" className="pkr-btn-primary" disabled={busy || !canRevive} onClick={() => onApply(gameCommand('quickReviveLead'))}>
+            {reviveCount > 0 ? `Revive (×${reviveCount})` : `Buy & Revive ${formatCoins(REVIVE_SHOP_PRICE)}`}
           </button>
         ) : null}
         {next ? (
-          <button type="button" className="pkr-btn-secondary" disabled={busy} onClick={() => onApply((s) => switchActivePokemon(s, next.id))}>
+          <button type="button" className="pkr-btn-secondary" disabled={busy} onClick={() => onApply(gameCommand('switchActivePokemon', next.id))}>
             Send out {next.nickname || next.name}
           </button>
         ) : null}
@@ -68,21 +65,21 @@ export function QuickCarePanel({
             type="button"
             className="pkr-btn-primary"
             disabled={busy || (!potion.owned && coins < potion.price)}
-            onClick={() => onApply(quickHealLead)}
+            onClick={() => onApply(gameCommand('quickHealLead'))}
           >
             {potion.owned
               ? `Use ${ITEM_BY_ID.get(potion.id)!.name} (×${state.bag[potion.id] ?? 0})`
-              : `Buy & use Potion ₽${potion.price}`}
+              : `Buy & use Potion ${formatCoins(potion.price)}`}
           </button>
         ) : null}
         {showCenter ? (
-          <button type="button" className="pkr-btn-secondary" disabled={busy || coins < centerCost} onClick={() => onApply(pokemonCenterHeal)}>
-            Heal team ₽{centerCost}
+          <button type="button" className="pkr-btn-secondary" disabled={busy || coins < centerCost} onClick={() => onApply(gameCommand('pokemonCenterHeal'))}>
+            Heal team {formatCoins(centerCost)}
           </button>
         ) : null}
         {needBalls ? (
-          <button type="button" className="pkr-btn-primary" disabled={busy || coins < ballPrice} onClick={() => onApply(quickBuyBalls)}>
-            Buy {QUICK_BALL_COUNT} Poké Balls · ₽{(ballPrice * QUICK_BALL_COUNT).toLocaleString()}
+          <button type="button" className="pkr-btn-primary" disabled={busy || coins < ballPrice} onClick={() => onApply(gameCommand('quickBuyBalls'))}>
+            Buy {QUICK_BALL_COUNT} Poké Balls · {formatCoins(ballPrice * QUICK_BALL_COUNT)}
           </button>
         ) : null}
       </div>

@@ -1,3 +1,9 @@
+import { formatCoins } from '../../../ui/format/coins';
+import { advanceResearch } from '../../engine/research';
+import { DAILY_FIRST_COINS, DAILY_FIRST_XP_MULT, isDailyFirst, markDaily } from '../../engine/daily';
+import { capacityGain, fitFoundItems } from '../../engine/capacity';
+import { scaledXp } from '../../engine/xpShare';
+import { BALANCE, catchCoins, themeMult } from '../../balance';
 import { damageCeiling, type Fighter } from '../../engine/moveMechanics';
 import { isPerfectIVs, rollIVs, battleStats } from '../../engine/pokemonStats';
 import { ITEM_BY_ID, type ItemId } from '../../data/items';
@@ -52,14 +58,46 @@ export function addBagQuantities(
 ): PokeRemGameState {
   const keys = Object.keys(delta);
   if (keys.length === 0) return state;
-  const bag = { ...state.bag };
-  for (const [id, q] of Object.entries(delta)) {
-    if (typeof q !== 'number' || !Number.isFinite(q) || q <= 0) continue;
-    const itemId = id as ItemId;
-    if (!ITEM_BY_ID.has(itemId)) continue;
-    bag[itemId] = (bag[itemId] ?? 0) + Math.floor(q);
+  // Items that don't fit a full bag become coins (SPEC L14).
+  const fit = fitFoundItems(state, delta);
+  if (fit.coins <= 0) return { ...state, bag: fit.bag };
+  return {
+    ...state,
+    bag: fit.bag,
+    currency: (state.currency ?? 0) + fit.coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + fit.coins,
+  };
+}
+
+/** Trainer levels that also give a theme discount voucher (SPEC B5). */
+export const THEME_VOUCHER_LEVELS = [10, 20, 30, 40, 50];
+
+/** Coins paid on reaching trainer level `lv` (SPEC B5). */
+export function trainerLevelCoins(lv: number): number {
+  return BALANCE.trainerLevelCoinPerLevel * lv;
+}
+
+/** Coins and vouchers for every trainer level gained from `from` to `to`. */
+function levelUpPayout(state: PokeRemGameState, from: number, to: number): PokeRemGameState {
+  if (to <= from) return state;
+  let coins = 0;
+  let vouchers = 0;
+  for (let lv = from + 1; lv <= to; lv++) {
+    coins += trainerLevelCoins(lv);
+    if (THEME_VOUCHER_LEVELS.includes(lv)) vouchers++;
   }
-  return { ...state, bag };
+  return {
+    ...state,
+    currency: (state.currency ?? 0) + coins,
+    totalCurrencyEarned: (state.totalCurrencyEarned ?? 0) + coins,
+    ...(vouchers ? { themeVouchers: (state.themeVouchers ?? 0) + vouchers } : {}),
+  };
+}
+
+/** "Storage +10 · Bag +20" when reaching `lv` grows capacity (SPEC U6). */
+function capacityLine(lv: number): string | null {
+  const g = capacityGain(lv - 1, lv);
+  return g.storage || g.bag ? `Storage +${g.storage} · Bag +${g.bag}` : null;
 }
 
 function appendMainNoticesIfNeeded(
@@ -94,7 +132,9 @@ function appendMainNoticesIfNeeded(
         kind: 'trainer_reward',
         id: nid,
         title: `Trainer Lv ${lv} — ${r.title}`,
-        subtitle: r.description,
+        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv), THEME_VOUCHER_LEVELS.includes(lv) ? 'Theme voucher' : null]
+          .filter(Boolean)
+          .join(' · '),
       });
     }
   }
@@ -121,7 +161,8 @@ export function withTouch(state: PokeRemGameState): PokeRemGameState {
   next.achievements = deriveAchievements(next);
   next.trainerLevel = trainerLevelFromXp(next.trainerXp ?? 0);
   next.trainerRank = computeTrainerRank(next);
-  return appendMainNoticesIfNeeded(next, preAch, preTrainerLevel);
+  const paid = levelUpPayout(next, preTrainerLevel, next.trainerLevel);
+  return appendMainNoticesIfNeeded(advanceResearch(paid), preAch, preTrainerLevel);
 }
 
 /** Close the post-battle result card. */
@@ -255,13 +296,20 @@ export function battleResult(
     evolvedInto,
     shiny: enc.shiny === true || undefined,
     perfectIvs: kind === 'catch' && isPerfectIVs(after.ivs) ? true : undefined,
+    ...(enc.bounty ? { bounty: enc.bounty } : {}),
   };
 }
 
 export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeRemGameState {
   const mon = ownedFromEncounter(enc);
+  // Daily first catch: ×3 trainer XP and ₽500 (SPEC B3).
+  const firstToday = isDailyFirst(base, 'firstCatch');
+  // Theme bonus (SPEC A12): ×1.25 catch coins, trainer XP and type-share XP when the theme matches.
+  const theme = themeMult(base.themeActive, enc.types);
+  const coins = Math.round(catchCoins(enc.level, enc.dexNum) * theme) + (enc.bounty ?? 0) + (firstToday ? DAILY_FIRST_COINS : 0);
+  const catchTrainerXp = Math.round(TRAINER_XP_SOURCES.catch * (firstToday ? DAILY_FIRST_XP_MULT : 1) * theme);
   const caughtInfo = {
-    lastBattleResult: battleResult(base, 'catch', enc, mon, mon, 0, CURRENCY_REWARDS.catch),
+    lastBattleResult: { ...battleResult(base, 'catch', enc, mon, mon, 0, coins), ...(theme > 1 ? { themeBonus: base.themeActive } : {}) },
     shinyLog: enc.shiny
       ? [
           ...(base.shinyLog ?? []),
@@ -284,9 +332,14 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
   const rewards = {
     ...caughtInfo,
     totalCaught: (base.totalCaught ?? 0) + 1,
-    currency: (base.currency ?? 0) + CURRENCY_REWARDS.catch,
-    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + CURRENCY_REWARDS.catch,
+    currency: (base.currency ?? 0) + coins,
+    totalCurrencyEarned: (base.totalCurrencyEarned ?? 0) + coins,
     dailyStats: { ...ds, catches: ds.catches + 1 },
+    daily: markDaily(base, 'firstCatch'),
+    typeCatches: enc.types.reduce(
+      (acc, t) => ({ ...acc, [t]: (acc[t] ?? 0) + 1 }),
+      { ...(base.typeCatches ?? {}) } as Partial<Record<PokemonType, number>>
+    ),
   };
 
   if (base.party.length >= 6) {
@@ -295,7 +348,9 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
       pre.storagePokemon,
       enc.types,
       mon.id,
-      enc.level
+      enc.level,
+      base,
+      theme
     );
     return withTouch(
       addTrainerXp(
@@ -312,7 +367,7 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
             `Caught ${enc.name}! Party is full — choose who goes to storage.`
           ),
         },
-        TRAINER_XP_SOURCES.catch
+        catchTrainerXp
       )
     );
   }
@@ -323,7 +378,9 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
     withRoster.storagePokemon,
     enc.types,
     mon.id,
-    enc.level
+    enc.level,
+    base,
+    theme
   );
   return withTouch(
     addTrainerXp(
@@ -334,7 +391,7 @@ export function grantCatch(base: PokeRemGameState, enc: EncounterPokemon): PokeR
         storagePokemon: typeBoost.storagePokemon,
         ...bumpBattleOutcome(base, 'catch_success', `Caught ${enc.name}!`),
       },
-      TRAINER_XP_SOURCES.catch
+      catchTrainerXp
     )
   );
 }
@@ -391,22 +448,29 @@ export function applyTypeShareXpBoost(
   storagePokemon: OwnedPokemon[],
   targetTypes: PokemonType[],
   excludeId?: string,
-  targetLevel: number = 5
+  targetLevel: number = 5,
+  /** For the doubler, catch-up and buddy multipliers (every XP source gets them). */
+  state?: PokeRemGameState,
+  /** Extra multiplier, e.g. the theme bonus. */
+  mult = 1
 ): TypeShareXpResult {
   if (!targetTypes || targetTypes.length === 0) {
     return { party, storagePokemon, boostedCount: 0 };
   }
   const typeSet = new Set(targetTypes);
-  const partyBoost = Math.max(15, 15 + Math.floor(targetLevel * 2));
-  const storageBoost = Math.max(5, 5 + Math.floor(targetLevel * 0.5));
+  const b = BALANCE.xp;
+  const partyBoost = Math.max(b.typeSharePartyBase, b.typeSharePartyBase + Math.floor(targetLevel * b.typeSharePartyPerLevel));
+  const storageBoost = Math.max(b.typeShareStorageBase, b.typeShareStorageBase + Math.floor(targetLevel * b.typeShareStoragePerLevel));
   let boostedCount = 0;
+  const xpFor = (mon: OwnedPokemon, boost: number) =>
+    state ? scaledXp(state, mon, boost * b.typeShareMult * mult) : Math.round(boost * b.typeShareMult * mult);
 
   const nextParty = party.map((mon) => {
     if (mon.id === excludeId) return mon;
     const shares = mon.types && mon.types.some((t) => typeSet.has(t));
     if (!shares) return mon;
     boostedCount++;
-    return growPokemonWithXp(mon, partyBoost).pokemon;
+    return growPokemonWithXp(mon, xpFor(mon, partyBoost)).pokemon;
   });
 
   const nextStorage = storagePokemon.map((mon) => {
@@ -414,7 +478,7 @@ export function applyTypeShareXpBoost(
     const shares = mon.types && mon.types.some((t) => typeSet.has(t));
     if (!shares) return mon;
     boostedCount++;
-    return growPokemonWithXp(mon, storageBoost).pokemon;
+    return growPokemonWithXp(mon, xpFor(mon, storageBoost)).pokemon;
   });
 
   return { party: nextParty, storagePokemon: nextStorage, boostedCount };
@@ -449,7 +513,7 @@ export function knockoutXp(
     const gap = Math.max(0, foe.level - activeP.level);
     xp = Math.round(xp * (1 + Math.min(0.55, gap * 0.045)));
   }
-  return Math.max(8, xp);
+  return Math.max(BALANCE.xp.knockoutFloor, Math.round(xp * BALANCE.xp.knockoutMult));
 }
 
 /**

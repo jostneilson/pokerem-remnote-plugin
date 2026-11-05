@@ -6,7 +6,7 @@
 import type { ItemId } from '../data/items';
 import { ITEM_BY_ID } from '../data/items';
 import type { PokeRemGameState, RouteFindNoticePayload } from '../state/model';
-import { BATTLE_SCENE_COUNT, normalizeBattleSceneIndex } from './battleAmbience';
+import { clampBattleSceneIndex } from './battleAmbience';
 
 export type RouteBiome =
   | 'forest'
@@ -29,7 +29,7 @@ type LootTier = 'common' | 'uncommon' | 'rare' | 'jackpot';
 type WeightRow = [ItemId, number];
 
 function sceneOrderIndex(sceneIndex: number): number {
-  return normalizeBattleSceneIndex(sceneIndex) % BATTLE_SCENE_COUNT;
+  return clampBattleSceneIndex(sceneIndex);
 }
 
 /** Maps Team Aqua scene order (see battleAmbience SCENES[]) to route biome. */

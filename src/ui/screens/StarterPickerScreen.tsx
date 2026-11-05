@@ -45,7 +45,7 @@ export function StarterPickerScreen({
         <div className="relative flex flex-col items-center gap-2">
           <span className="flex items-center gap-2">
             <GameIcon name="pokeball" size={18} />
-            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: '#ede9fe' }}>
+            <span className="pkr-pixel-title pkr-fine font-black tracking-tight" style={{ color: 'var(--pkr-themed-ink-text, #ede9fe)' }}>
               {BRAND.wordmark}
             </span>
           </span>

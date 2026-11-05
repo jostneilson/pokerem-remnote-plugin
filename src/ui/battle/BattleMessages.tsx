@@ -14,6 +14,7 @@ import { RouteFindBanner } from './RouteFindBanner';
 import { CombatExchangeLogBlock } from './CombatExchangeLogBlock';
 import { outcomePanelWithStrikeAccent } from './outcomeStyles';
 import { battleLogRichText } from './battleSurfaceUtils';
+import { battleSceneName } from '../../game/engine/battleAmbience';
 
 /** Above the commands: the result card, a route find, effectiveness chips and the battle log line. */
 export function BattleMessageStack({
@@ -73,6 +74,11 @@ export function BattleMessageStack({
           reducedMotion={reducedMotion}
           onDismiss={onDismissResult!}
         />
+      ) : null}
+      {hasEncounter && state.area?.isNew ? (
+        <p key={`area-${state.cardsReviewed}`} className="pkr-area-chip" role="status">
+          → {battleSceneName(state.area.sceneIndex)}
+        </p>
       ) : null}
       <RouteFindBanner
         rootURL={rootURL}

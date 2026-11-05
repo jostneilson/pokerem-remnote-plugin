@@ -1,7 +1,14 @@
+import { TEAM_BIRD } from '../../engine/rarity';
+import { addBagQuantities } from './core';
+import { formatCoins } from '../../../ui/format/coins';
+import { STREAK_BONUS_COINS, streakBonusDue } from '../../engine/daily';
+import { rollBounty } from '../../balance';
+import { BALANCE } from '../../balance';
+import { scaledXp, studyXpBase } from '../../engine/xpShare';
 import type { ItemId } from '../../data/items';
 import { recommendedBall, spawnEncounter, wildCatchChancePreview } from '../../engine/encounters';
 import { isEventSpecies } from '../../engine/speciesPool';
-import { ticketScene } from '../../engine/sinks';
+import { ROUTE_BIOME_BY_ID, ticketScene } from '../../engine/sinks';
 import { CURRENCY_REWARDS } from '../../engine/shop';
 import {
   clampStudyReviews,
@@ -16,7 +23,6 @@ import {
 } from '../../constants';
 import { TRAINER_XP_SOURCES } from '../../engine/trainerLevel';
 import {
-  applyXpDoublerMultiplier,
   makeXpDoublerEntry,
   xpDoublerItemForTier,
   XP_DOUBLER_QUEUE_MAX,
@@ -28,9 +34,9 @@ import {
   parseTrainerFrequencyKey,
   type TrainerFrequencyKey,
 } from '../../engine/trainerBattles';
-import { BATTLE_SCENE_COUNT } from '../../engine/battleAmbience';
+import { BATTLE_SCENE_COUNT, rollAreaLength } from '../../engine/battleAmbience';
 import { rollTravelRouteFind } from '../../engine/routeFinds';
-import type { PokeRemGameState, XpDoublerTier } from '../model';
+import type { AreaState, PokeRemGameState, XpDoublerTier } from '../model';
 import {
   type QueueCardCompleteOptions,
   activePokemon,
@@ -45,7 +51,8 @@ import {
   normalizeEnabledGenerations,
   normalizeStudyHealCarriesSlice,
 } from './persistence';
-import { closeTrainerBattle, startTrainerBattle } from './trainer';
+import { closeTrainerBattle, startRocketBattle, startTrainerBattle } from './trainer';
+import { ROCKET_SHARE } from '../../engine/rocket';
 import { cancelPendingCaught } from './battle';
 
 export function clearBattleLog(state: PokeRemGameState): PokeRemGameState {
@@ -76,10 +83,26 @@ function updateStreak(state: PokeRemGameState): PokeRemGameState {
   }
 
   const longestStreak = Math.max(state.longestStreak ?? 0, currentStreak);
-  return addTrainerXp(
-    { ...state, lastStudyDate: today, currentStreak, longestStreak },
-    TRAINER_XP_SOURCES.streakDay
-  );
+  let next = addTrainerXp({ ...state, lastStudyDate: today, currentStreak, longestStreak }, TRAINER_XP_SOURCES.streakDay);
+  // Every 7th day in a row: ₽5k and a Rare XP Doubler (SPEC B3).
+  if (streakBonusDue(currentStreak)) {
+    next = addBagQuantities(next, { 'xp-doubler-rare': 1 });
+    next = {
+      ...next,
+      currency: (next.currency ?? 0) + STREAK_BONUS_COINS,
+      totalCurrencyEarned: (next.totalCurrencyEarned ?? 0) + STREAK_BONUS_COINS,
+      mainNoticeQueue: [
+        ...(next.mainNoticeQueue ?? []),
+        {
+          kind: 'trainer_battle_result' as const,
+          id: `streak-${today}`,
+          title: `${currentStreak}-day study streak!`,
+          subtitle: `+${formatCoins(STREAK_BONUS_COINS)} · Rare XP Doubler`
+        }
+      ].slice(-12)
+    };
+  }
+  return next;
 }
 
 export function onQueueCardComplete(
@@ -142,6 +165,7 @@ export function onQueueCardComplete(
       if (idle < WILD_FLEE_AFTER_CARDS) return withTouch({ ...paused, wildIdleCards: idle });
       const who = [tb.trainer.className, tb.trainer.displayName].filter(Boolean).join(' ');
       const closed = closeTrainerBattle(paused);
+      if (closed.currentEncounter?.pendingPrize) return { ...closed, wildIdleCards: 0 };
       return {
         ...closed,
         wildIdleCards: 0,
@@ -248,29 +272,32 @@ export function onQueueCardComplete(
           ...next,
           encounterProgress: 0,
         };
-        next = startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
+        next =
+          Math.random() < ROCKET_SHARE
+            ? startRocketBattle(next, enabledGens ?? [1], Math.random)
+            : startTrainerBattle(next, trainerTier, enabledGens ?? [1], Math.random);
       } else {
         const rarityBonus = Math.max(0, effectiveRate - REVIEWS_PER_ENCOUNTER);
-        // A different scene each time; the scene sets which types are likely to appear.
-        const prevScene = next.battleSceneIndex ?? 0;
-        // A route ticket picks from its biome's scenes; otherwise any scene but the last one.
         const ticket = next.routeTicket && next.routeTicket.remaining > 0 ? next.routeTicket : null;
-        const bgNext =
-          (ticket ? ticketScene(ticket.biome, prevScene, Math.random) : null) ??
-          (prevScene + 1 + Math.floor(Math.random() * (BATTLE_SCENE_COUNT - 1))) %
-            BATTLE_SCENE_COUNT;
+        const area = nextArea(next.area, next.battleSceneIndex ?? 0, ticket?.biome ?? null, Math.random);
+        const bgNext = area.sceneIndex;
         if (ticket)
           next = {
             ...next,
             routeTicket:
               ticket.remaining > 1 ? { ...ticket, remaining: ticket.remaining - 1 } : null,
           };
-        const enc = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
+        const spawned = spawnEncounter(next.party, next.cardsReviewed, enabledGens, rarityBonus, {
           collectionDex: next.collectionDex ?? {},
           pacing: { reviewsPerEncounter: effectiveRate, modulo, unitsPerReview: wildRouteUnits },
           sceneIndex: bgNext,
           encountersSinceShiny: next.encountersSinceShiny ?? 0,
+          team: next.team,
+          forceBird: next.research?.birdPending && next.team ? TEAM_BIRD[next.team] : undefined,
         });
+        if (next.research?.birdPending) next = { ...next, research: { ...next.research, birdPending: undefined } };
+        const bounty = rollBounty();
+        const enc = bounty ? { ...spawned, bounty } : spawned;
         const tierLabel = enc.tier && enc.tier !== 'Common' ? ` (${enc.tier})` : '';
         const narr = `Wild ${enc.name}${tierLabel} appeared!`;
         const ds = next.dailyStats!;
@@ -280,6 +307,7 @@ export function onQueueCardComplete(
           currentEncounter: enc,
           selectedTab: 'status',
           battleSceneIndex: bgNext,
+          area,
           encountersSinceShiny: enc.shiny ? 0 : (next.encountersSinceShiny ?? 0) + 1,
           wildIdleCards: 0,
           lastBattleResult: null,
@@ -314,22 +342,6 @@ export function onQueueCardComplete(
   return withTouch(next);
 }
 
-/** Lead study XP roll: 40% →3, 40% →4, 20% →5 */
-function rollLeadStudyXp(rng: () => number): number {
-  const r = rng();
-  if (r < 0.4) return 3;
-  if (r < 0.8) return 4;
-  return 5;
-}
-
-/** Bench study XP roll: 40% →1, 40% →2, 20% →3 */
-function rollBenchStudyXp(rng: () => number): number {
-  const r = rng();
-  if (r < 0.4) return 1;
-  if (r < 0.8) return 2;
-  return 3;
-}
-
 function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): PokeRemGameState {
   const aid = state.activePokemonId;
   if (!aid) return state;
@@ -337,9 +349,9 @@ function applyPartyStudyXpOnCard(state: PokeRemGameState, rng: () => number): Po
   if (leadIdx < 0) return state;
   let leadXp = 0,
     benchXp = 0;
+  // XP Share: every member earns the same study XP (the lead a little more), boosted for anyone behind.
   const party = state.party.map((p, i) => {
-    const baseDelta = i === leadIdx ? rollLeadStudyXp(rng) : rollBenchStudyXp(rng);
-    const delta = applyXpDoublerMultiplier(state, baseDelta);
+    const delta = scaledXp(state, p, studyXpBase(i === leadIdx), rng);
     if (i === leadIdx) leadXp += delta;
     else benchXp += delta;
     if (delta <= 0) return p;
@@ -392,6 +404,25 @@ function keepTeamBattleReady(state: PokeRemGameState): PokeRemGameState {
     party: state.party.map((p) => ({ ...p, currentHp: Math.max(1, Math.ceil(p.maxHp / 2)), condition: undefined })),
     ...bumpBattleOutcome(state, 'none', 'Your team rested while you studied and is ready again at half HP.'),
   };
+}
+
+/**
+ * The area for the wild about to spawn. The arena stays put for the area's 5–8 encounters, then moves to a
+ * different scene (so it never changes mid-encounter or on a plain card). A route ticket keeps you in its biome.
+ */
+export function nextArea(
+  current: AreaState | undefined,
+  sceneIndex: number,
+  ticketBiome: string | null,
+  rng: () => number
+): AreaState {
+  const inTicketBiome = ticketBiome ? (ROUTE_BIOME_BY_ID.get(ticketBiome)?.scenes.includes(sceneIndex) ?? false) : true;
+  const left = current?.encountersLeft ?? 0;
+  if (left > 1 && inTicketBiome) return { sceneIndex, encountersLeft: left - 1 };
+  const scene =
+    (ticketBiome ? ticketScene(ticketBiome, sceneIndex, rng) : null) ??
+    (sceneIndex + 1 + Math.floor(rng() * (BATTLE_SCENE_COUNT - 1))) % BATTLE_SCENE_COUNT;
+  return { sceneIndex: scene, encountersLeft: rollAreaLength(rng), isNew: true };
 }
 
 export function activateXpDoubler(state: PokeRemGameState, tier: XpDoublerTier): PokeRemGameState {
@@ -546,8 +577,6 @@ export function rollStudyCashBonus(rng: () => number): { amount: number; tier?: 
   const r = rng();
   const range = (a: number, b: number) =>
     a + Math.floor(Math.max(0, Math.min(0.999999, rng())) * (b - a + 1));
-  if (r < 0.0005) return { amount: range(10000, 25000), tier: 'Jackpot' };
-  if (r < 0.0055) return { amount: range(2000, 5000), tier: 'Rare find' };
-  if (r < 0.0455) return { amount: range(350, 850), tier: 'Lucky find' };
-  return { amount: 0 };
+  const row = BALANCE.studyCash.find((t) => r < t.upTo);
+  return row ? { amount: range(row.min, row.max), tier: row.tier } : { amount: 0 };
 }

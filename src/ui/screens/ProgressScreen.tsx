@@ -13,6 +13,8 @@ import { Panel } from '../components/Panel';
 import { GameIcon } from '../components/GameIcon';
 import { TrainerIdentityCard } from '../components/TrainerIdentityCard';
 import { QuestsPanel } from '../components/QuestsPanel';
+import { ResearchPanel } from '../components/ResearchPanel';
+import { RocketRadarChip } from '../components/RocketRadarChip';
 import { TrainerStatsPanels } from './StatusScreen';
 
 const CATEGORY_LABELS: Record<string, { label: string; iconName: 'book' | 'swords' | 'pokeball' | 'coin' | 'flame' | 'calendar' | 'trophy' | 'star' }> = {
@@ -57,7 +59,7 @@ function AchievementRow({
         style={
           unlocked
             ? {
-                background: 'linear-gradient(145deg, #fbbf24 0%, #d97706 100%)',
+                background: 'linear-gradient(145deg, var(--pkr-ink-gold-strong) 0%, #d97706 100%)',
                 color: '#451a03',
                 boxShadow: '0 0 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }
@@ -119,6 +121,7 @@ export function ProgressScreen({
   onClaimAllAchievements,
   onClaimQuest,
   onClaimAllQuests,
+  onClaimResearch,
   rewards,
 }: {
   state: PokeRemGameState;
@@ -127,6 +130,7 @@ export function ProgressScreen({
   onClaimAllAchievements?: () => void;
   onClaimQuest?: (id: string) => void;
   onClaimAllQuests?: () => void;
+  onClaimResearch?: () => void;
   /** Trainer level rewards, shown under the identity card (Trainer screen). */
   rewards?: ReactNode;
 }) {
@@ -159,18 +163,23 @@ export function ProgressScreen({
         subtitle={subtitle}
         reducedMotion={reducedMotion}
         cardStyle={state.trainerCardStyle}
+        team={state.team}
       />
 
       {rewards}
+
+      <RocketRadarChip rocket={state.rocket} />
 
       {onClaimQuest && onClaimAllQuests && state.starterChosen ? (
         <QuestsPanel state={state} onClaim={onClaimQuest} onClaimAll={onClaimAllQuests} />
       ) : null}
 
+      {onClaimResearch && state.starterChosen ? <ResearchPanel state={state} onClaim={onClaimResearch} /> : null}
+
       {battleId.id !== 'unranked' || prestigeBadges.length > 0 ? (
         <div
           className="flex flex-col gap-2 rounded-lg p-2.5"
-          style={{ background: 'rgba(15,23,42,0.45)', border: '1px solid rgba(148,163,184,0.25)' }}
+          style={{ background: 'rgba(var(--pkr-rgb-deep),0.45)', border: '1px solid rgba(148,163,184,0.25)' }}
         >
           {battleId.id !== 'unranked' ? (
             <div className="flex items-center justify-between gap-2">
@@ -184,7 +193,7 @@ export function ProgressScreen({
           ) : null}
           {prestigeBadges.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1">
-              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: '#a78bfa' }}>
+              <span className="pkr-fine font-bold uppercase tracking-widest" style={{ color: 'var(--pkr-accent)' }}>
                 Prestige
               </span>
               {prestigeBadges.map((b) => (
@@ -194,7 +203,7 @@ export function ProgressScreen({
                   style={{
                     borderColor: 'rgba(167,139,250,0.45)',
                     background: 'linear-gradient(180deg, rgba(167,139,250,0.2) 0%, rgba(76,29,149,0.3) 100%)',
-                    color: '#ede9fe',
+                    color: 'var(--pkr-themed-ink-text, #ede9fe)',
                   }}
                 >
                   {ACHIEVEMENT_DEFS.find((d) => d.prestigeBadgeId === b)?.name ?? b.replace(/_/g, ' ')}

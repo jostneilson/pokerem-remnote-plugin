@@ -1,8 +1,12 @@
+import { Coins } from '../components/Coins';
+import { useCoinTick } from '../components/LuckyChip';
 import type { PokeRemGameState } from '../../game/state/model';
 import { trainerXpProgress } from '../../game/engine/trainerLevel';
 import { StatHoverTip } from './StatHoverTip';
 import { GameIcon } from '../components/GameIcon';
 import { BRAND } from '../theme/gameTheme';
+import { TEAM_BY_ID } from '../../game/engine/teams';
+import { TeamCrest } from '../screens/TeamPickScreen';
 import { TrainerXpStarBurst } from '../components/TrainerXpStarBurst';
 import type { useTrainerXpMoment } from '../hooks/useTrainerXpMoment';
 
@@ -22,6 +26,7 @@ export function BattleHeaderBar({
 }) {
   const trainerProg = trainerXpProgress(state.trainerXp ?? 0);
   const trainerLv = state.trainerLevel ?? 1;
+  const coinTick = useCoinTick(state.currency ?? 0);
   return (
     // min-w-0 + overflow so wide viewports do not force this row wider than the sidebar column
     <div
@@ -37,6 +42,11 @@ export function BattleHeaderBar({
           {BRAND.wordmark}
         </span>
       </StatHoverTip>
+      {state.team ? (
+        <span className="pkr-team-badge" title={TEAM_BY_ID.get(state.team)?.name} style={{ borderColor: TEAM_BY_ID.get(state.team)?.color }}>
+          <TeamCrest team={state.team} size={16} />
+        </span>
+      ) : null}
       <StatHoverTip
         className="min-w-0 flex-1"
         label={`Trainer level ${trainerLv} (${state.trainerRank ?? 'Trainer'}). The gold bar is trainer XP toward the next level — earn XP from flashcards, wild battles, streaks, catches, achievements (tiered), and other actions.`}
@@ -83,7 +93,7 @@ export function BattleHeaderBar({
       </StatHoverTip>
       {state.xpBoosterActive ? (
         <StatHoverTip
-          label={`XP Doubler active — all Pokémon gain x2 XP for the next ${state.xpBoosterActive.cardsRemaining} reviewed card(s).${
+          label={`XP Doubler active — every Pokémon gains ×2 XP from every source for the next ${state.xpBoosterActive.cardsRemaining} reviewed card(s).${
             (state.xpBoosterQueue?.length ?? 0) > 0
               ? ` Queued: ${state.xpBoosterQueue?.length}.`
               : ''
@@ -98,7 +108,8 @@ export function BattleHeaderBar({
               color: '#fef3c7',
             }}
           >
-            x2 XP · {state.xpBoosterActive.cardsRemaining}
+            ×2 · {state.xpBoosterActive.cardsRemaining} {state.xpBoosterActive.cardsRemaining === 1 ? 'card' : 'cards'} left
+            {(state.xpBoosterQueue?.length ?? 0) > 0 ? ` · +${state.xpBoosterQueue!.length} queued` : ''}
           </span>
         </StatHoverTip>
       ) : null}
@@ -117,11 +128,11 @@ export function BattleHeaderBar({
       )}
       <StatHoverTip label="Poké Dollars (₽) — currency for the Shop (balls, potions, and more). Earned from reviews and battle actions.">
         <span
-          className="flex items-center gap-0.5 shrink-0 pkr-fine font-bold tabular-nums"
+          className={`flex items-center gap-0.5 shrink-0 pkr-fine font-bold tabular-nums ${coinTick}`}
           style={{ color: '#fcd34d' }}
         >
           <GameIcon name="coin" size={11} />
-          {state.currency ?? 0}
+          <Coins value={state.currency ?? 0} />
         </span>
       </StatHoverTip>
       <StatHoverTip
