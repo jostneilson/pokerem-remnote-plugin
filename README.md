@@ -2,7 +2,7 @@
 
 **Every flashcard you review moves your Pokémon adventure forward.**
 
-![A shiny Galarian Zapdos appears, Mewtwo picks a super-effective move, and a shiny HUNDO is caught](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-hero.png)
+![A shiny Galarian Zapdos appears, Mewtwo picks a super-effective move, and a shiny HUNDO is caught](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/006f701c59f1e1d933e9b5a5cbb26e4b6dbc8adf/public/assets/screenshots/listing-hero.png)
 
 Study as you normally do in RemNote. Every few cards a wild Pokémon appears: catch it, battle it, or keep reviewing. Your team levels up as you study, evolves, learns new moves, and takes on trainers. Shinies are rare, and every one feels special.
 
@@ -34,19 +34,19 @@ Themed trainers challenge you as you study, from Bug Catchers to Dragon Masters 
 
 **Team Rocket** makes up about a third of your challengers. Each grunt uses one type and ends its line-up with a rare ace you can catch after winning. Beat five and the Rocket Leader appears; beat him to win a legendary that never runs away.
 
-![A 3-on-3 trainer battle against Hiker Russ, with both teams' line-ups and your moves](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-battle.png)
+![A 3-on-3 trainer battle against Hiker Russ, with both teams' line-ups and your moves](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/006f701c59f1e1d933e9b5a5cbb26e4b6dbc8adf/public/assets/screenshots/listing-trainer-battle.png)
 
-![A shiny wild battle in the Water theme: each info box sits with its own Pokémon](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/dacf504a093b346e3e543bb0d65187e2de8289c1/public/assets/screenshots/listing-theme-battle.png)
+![A shiny wild battle in the Water theme: each info box sits with its own Pokémon](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2bffff290f3d2394d1f7909ea65979aab7a2eabc/public/assets/screenshots/listing-theme-battle.png)
 
-![The Rocket Leader’s legendary prize waits while you choose your next move](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-rocket-prize.png)
+![The Rocket Leader’s legendary prize waits while you choose your next move](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2bffff290f3d2394d1f7909ea65979aab7a2eabc/public/assets/screenshots/listing-rocket-prize.png)
 
 ## Build your dream team
 
 Your whole party levels up together with XP Share, and anyone who falls behind gets a catch-up boost. Your starter is your Buddy, with a ♥ badge and its own bonuses. Evolve, with every evolution played out in the panel. Every card has Lead, Upgrade (Power Up, evolve, Bottle Caps, Move Tutor) and Transfer, which turns spares into coins and XP. View all shows everything you own, with sort, filters and multi-select. Storage and bag space grow with your trainer level and Shop upgrades. Fill your Pokédex and keep your shinies in the Shiny Case.
 
-![Party screen with Lead, Upgrade and Transfer buttons, IV appraisal, and quick healing](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-party.png)
+![Party screen with Lead, Upgrade and Transfer buttons, IV appraisal, and quick healing](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2bffff290f3d2394d1f7909ea65979aab7a2eabc/public/assets/screenshots/listing-party.png)
 
-![View all: your owned Pokémon in a grid with filters, sorting, favourites and multi-select](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-view-all.png)
+![View all: your owned Pokémon in a grid with filters, sorting, favourites and multi-select](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2bffff290f3d2394d1f7909ea65979aab7a2eabc/public/assets/screenshots/listing-view-all.png)
 
 Screenshots use a separate demonstration save.
 
@@ -54,7 +54,7 @@ Screenshots use a separate demonstration save.
 
 Three daily quests and two weekly ones, Special Research lines, eight gym badges, long-term achievements, daily firsts and study streaks, and a trainer license that levels up as you study. Look out for bounties and lucky cards. Join Team Ember, Tide or Volt. Spend your coins on Power Ups, 18 type themes that restyle the whole game (and boost rewards for their type), balls, potions, XP Doublers, route tickets, storage and bag upgrades and trainer card styles. Your current coins and collection carry forward when you update.
 
-![Choose your team: Team Ember, Team Tide or Team Volt](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/dacf504a093b346e3e543bb0d65187e2de8289c1/public/assets/screenshots/listing-team-pick.png)
+![Choose your team: Team Ember, Team Tide or Team Volt](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/2bffff290f3d2394d1f7909ea65979aab7a2eabc/public/assets/screenshots/listing-team-pick.png)
 
 ![Trainer screen: trainer license, level rewards, and today's and this week's quests](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-screen.png)
 
