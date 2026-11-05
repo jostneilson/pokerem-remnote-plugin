@@ -5,9 +5,9 @@ import { chooseStarter, chooseTeam, createInitialStateV4, parseGameState } from 
 describe('team pick (SPEC A13, U10)', () => {
   it('has the three original teams with their colours', () => {
     expect(TEAMS.map((t) => [t.name, t.color])).toEqual([
-      ['Team Ember', '#e0533a'],
-      ['Team Tide', '#3a8fe0'],
-      ['Team Volt', '#f2c53a']
+      ['Team Valor', '#e0533a'],
+      ['Team Mystic', '#3a8fe0'],
+      ['Team Instinct', '#f2c53a']
     ]);
   });
 

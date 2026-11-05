@@ -4386,7 +4386,9 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-team-pick__list { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0; padding: 0; list-style: none; }
 @container (min-width: 360px) { .pkr-team-pick__list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .pkr-team-card { display: flex; width: 100%; min-height: 32px; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border: 3px solid; background: var(--pkr-panel); color: var(--pkr-ink-text); font: inherit; text-align: center; cursor: pointer; box-shadow: inset 0 1px 0 var(--pkr-bevel-light), inset 0 -2px 0 var(--pkr-bevel-dark); }
-.pkr-team-card strong { font-size: var(--pkr-text-body); font-weight: 900; }
+.pkr-team-card { container-type: inline-size; }
+/* The longest name ("Team Instinct", 13 characters) stays on one line: shrink it to fit a narrow card. */
+.pkr-team-card strong { font-size: min(var(--pkr-text-body), 11.5cqi); font-weight: 900; white-space: nowrap; }
 .pkr-team-card span { font-size: var(--pkr-text-label); color: var(--pkr-ink-muted); line-height: 1.35; }
 .pkr-team-card--on { background: var(--pkr-panel-2); box-shadow: 0 0 0 3px var(--pkr-glow); }
 .pkr-team-confirm { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 3px solid; background: var(--pkr-panel-deep); text-align: center; font-size: var(--pkr-text-body); }

@@ -285,10 +285,10 @@ One balance module, `src/game/engine/rarity.ts`, holds every rare rate as **per-
 
 ### A13. Teams and Galarian birds onboarding
 **First launch:** Choose your team, then starter, then study difficulty.
-- Original team names and art, with no Pokémon GO names:
-  - **Team Ember**: red, Galarian Moltres
-  - **Team Tide**: blue, Galarian Articuno
-  - **Team Volt**: yellow, Galarian Zapdos
+- Team names (owner, 2026-11-04: the Pokémon GO names) with original crest art:
+  - **Team Valor**: red, Galarian Moltres
+  - **Team Mystic**: blue, Galarian Articuno
+  - **Team Instinct**: yellow, Galarian Zapdos
 - Big tappable crests with a one-line flavour each, and a confirm.
 
 **Existing players:** a one-time "Choose your team" screen on first open of 1.6.0, then straight back into their save. Stored as `team`; nothing else changes.
@@ -492,7 +492,7 @@ Upgrade `src/game/sim/simulate.ts` into `src/game/sim/balance.ts`.
 | L8 | Areas: arena changes only after an encounter is resolved and the area's `encountersLeft` reaches 0; each area lasts 5–8 encounters (uniform int). Route ticket pins the area biome. |
 | L9 | Full storage: Catch is blocked with "Storage full · Transfer"; Fight still works. Shiny, legendary-class, Galarian birds and Rocket prizes always go through (may exceed cap). |
 | L10 | Existing saves without a team see a one-time team prompt on first open of 1.6.0. New saves: Team → Starter → Difficulty. |
-| L11 | Teams: **Team Ember** (red, Galarian Moltres #146 form), **Team Tide** (blue, Galarian Articuno #144 form), **Team Volt** (yellow, Galarian Zapdos #145 form). Original crest art only. |
+| L11 | Teams: **Team Valor** (red, Galarian Moltres #146 form, saved id `ember`), **Team Mystic** (blue, Galarian Articuno #144 form, id `tide`), **Team Instinct** (yellow, Galarian Zapdos #145 form, id `volt`). Names changed by the owner on 2026-11-04 (was Ember/Tide/Volt). Original crest art only. |
 | L12 | Themes: 18, one per type, ₽45,000 each (tunable 35–60k), buy once, switch freely. Default arcade theme free. Equipped theme → ×1.25 ₽ and ×1.25 XP (trainer + every owned Pokémon of that type) when catching/defeating a Pokémon with that type. |
 | L13 | Storage cap 60 base + 10 per 5 trainer levels; shop upgrade +20 at ₽8k then +₽4k per purchase, max +200 bought. Bag cap 200 base + 20 per 5 trainer levels; upgrade +25 at ₽6k then +₽3k, max +250. Key items don't count (XP Doublers, route tickets, Bottle Caps, Gold Bottle Caps, evolution stones). Party stays 6. Over-cap saves grandfathered. |
 | L14 | Bag full: shop buys blocked; found items convert to ₽ at 50% of shop price ("Bag full → ₽120"). |

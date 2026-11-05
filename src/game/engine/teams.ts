@@ -9,9 +9,9 @@ export interface TeamDef {
 }
 
 export const TEAMS: readonly TeamDef[] = [
-  { id: 'ember', name: 'Team Ember', flavour: 'Fierce hearts that never back down.', color: '#e0533a' },
-  { id: 'tide', name: 'Team Tide', flavour: 'Calm minds that see further.', color: '#3a8fe0' },
-  { id: 'volt', name: 'Team Volt', flavour: 'Quick instincts that strike first.', color: '#f2c53a' }
+  { id: 'ember', name: 'Team Valor', flavour: 'Fierce hearts that never back down.', color: '#e0533a' },
+  { id: 'tide', name: 'Team Mystic', flavour: 'Calm minds that see further.', color: '#3a8fe0' },
+  { id: 'volt', name: 'Team Instinct', flavour: 'Quick instincts that strike first.', color: '#f2c53a' }
 ];
 
 export const TEAM_BY_ID = new Map<TeamId, TeamDef>(TEAMS.map((t) => [t.id, t]));

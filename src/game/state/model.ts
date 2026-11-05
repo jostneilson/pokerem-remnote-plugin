@@ -426,7 +426,7 @@ export interface PokeRemGameState {
   area?: AreaState;
   /** Owned id of the player's original starter (the Buddy; evolution keeps the id). */
   starterId?: string;
-  /** Team Ember, Tide or Volt (SPEC A13). Secretly favours that team's Galarian bird. */
+  /** Team Valor, Mystic or Instinct (SPEC A13). Secretly favours that team's Galarian bird. */
   team?: TeamId;
   /** True once the one-time "Choose your team" screen has been answered. */
   teamPrompted?: boolean;

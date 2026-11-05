@@ -3,9 +3,9 @@ import type { TeamId } from '../../game/engine/rarity';
 import { TEAMS, TEAM_BY_ID } from '../../game/engine/teams';
 
 /**
- * Original team crests (SPEC U10), drawn as 16×16 pixel sprites to match the game's 90s handheld look: a pixel
- * ring in the team colour around a small bird in flight. Ember has a flame crest and flame tail, Tide a curling
- * wave crest and tail, Volt a jagged lightning wing. Use sizes that are multiples of 16 so every pixel stays square.
+ * Team crests (SPEC U10), drawn as 16×16 pixel sprites to match the game's 90s handheld look: a pixel
+ * ring in the team colour around a small bird in flight. Valor (red) has a flame crest and flame tail, Mystic (blue) a curling
+ * wave crest and tail, Instinct (yellow) a jagged lightning wing. Use sizes that are multiples of 16 so every pixel stays square.
  */
 const CREST_RING = [
   '.....kkkkkk.....',
