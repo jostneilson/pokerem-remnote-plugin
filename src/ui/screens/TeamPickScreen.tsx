@@ -38,7 +38,7 @@ export function TeamPickScreen({ existingPlayer, onChoose }: { existingPlayer: b
   return (
     <div className="pkr-team-pick">
       <h2 className="pkr-team-pick__title">Choose your team</h2>
-      {existingPlayer ? <p className="pkr-team-pick__sub">New in 1.6.1: pick a team. Your progress is safe.</p> : null}
+      {existingPlayer ? <p className="pkr-team-pick__sub">New in 1.6.0: pick a team. Your progress is safe.</p> : null}
       <ul className="pkr-team-pick__list">
         {TEAMS.map((t) => (
           <li key={t.id}>

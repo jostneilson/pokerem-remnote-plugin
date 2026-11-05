@@ -1,3 +1,5 @@
+> **Superseded 2026-11-04 (OWNER_WORDS, "release it all as 1.6.0").** Phase 6 ships in 1.6.0. The held-back items below are restored on the combined branch: `theme1`/`theme18` achievements, the "Theme voucher" level-up line, the team-bird research line (already gated on `team`), and the `theme-days` band in the harness. Version mentions of 1.6.1 in code, CSS comments, CHANGELOG, README and What's New now read 1.6.0.
+
 # 1.6.1: what is still owed (nothing from the plan is dropped)
 
 The owner split the release on 2026-11-04 (verbatim words in `OWNER_WORDS.md`):

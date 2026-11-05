@@ -8,7 +8,7 @@ import type { OwnedPokemon, PokeRemGameState } from '../state/model';
 import * as store from '../state/store';
 import { trainerLevelCoins } from '../state/reducers/core';
 import { recommendedBall, wildCatchChancePreview } from '../engine/encounters';
-import { BALANCE } from '../balance';
+import { BALANCE, THEME_SHOP } from '../balance';
 import { EVENT_MIN_PARTY_LEVEL, EVENT_MIN_REVIEWS, GALARIAN_BIRDS } from '../engine/rarity';
 import { encounterBaseLevel, isEventSpecies } from '../engine/speciesPool';
 import { seededRng } from './simulate';
@@ -561,6 +561,10 @@ export function evaluateBands(runs: BalanceRun[], pacing: PacingId = 'medium'): 
       14000,
       (v) => `₽${Math.round(v)}`
     );
+    // C2 "a theme in ≤ 6 days": the theme price over a day of recurring income in the first two weeks
+    // (one-time milestone payouts left out, so this is the slow case).
+    const twoWeeks = mean(ref.map((r) => mean(r.days.slice(0, 14).map(recurring))));
+    band('theme-days', 'a theme affordable in ≤ 6 days', THEME_SHOP.price / Math.max(1, twoWeeks), 0, 6);
     const totals = ref.map((r) => Object.values(r.coinsBySource).reduce((a, b) => a + b, 0));
     const share = (src: CoinSource[]) =>
       mean(

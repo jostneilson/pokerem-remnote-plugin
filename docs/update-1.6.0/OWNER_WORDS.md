@@ -55,3 +55,7 @@ also add to the plan to have the battle arena design to be redone so that the po
 ## 2026-11-04, answer to the Codex question about the inherited XP damp / KO floor / lucky odds (3:50 PM, relayed to Claude verbatim)
 
 > Approve the inherited XP/lucky-odds changes
+
+## 2026-11-04, releasing everything together
+
+> if 1.6.0 and 1.6.1 are both done then why dont we just release it all as 1.6.0?

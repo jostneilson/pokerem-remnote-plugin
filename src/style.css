@@ -4306,7 +4306,7 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-daily-streak{display:inline-flex;align-items:center;gap:3px;color:#ffb27a}
 .pkr-research-reward{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-top:6px}.pkr-research-step--later{opacity:.6}
 
-/* 1.6.1 type themes (SPEC A12, Appendix H). Tokens come from src/ui/theme/themes.ts via useAppliedTheme;
+/* type themes (SPEC A12, Appendix H). Tokens come from src/ui/theme/themes.ts via useAppliedTheme;
    here: each theme's original pattern (opacity <= 0.12) and its CSS-only ambient layer. Reduced motion = no ambient movement. */
 .pkr-themed .pokerem-sidebar::before { display:block; content:''; position:absolute; inset:0; z-index:0; pointer-events:none; background:var(--pkr-pattern, none); }
 .pkr-themed .pokerem-sidebar::after { content:''; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0; background:radial-gradient(var(--pkr-glow) 1px, transparent 2px) 0 0/46px 46px; }
@@ -4355,7 +4355,7 @@ body,:host { font-family:var(--pkr-font-body); }
 @media (prefers-reduced-motion: reduce) { .pkr-themed .pokerem-sidebar::after { animation:none !important; } }
 .pkr-themed .pokerem-sidebar[data-reduced-motion="true"]::after { animation:none !important; }
 
-/* 1.6.1 Shop → Themes (SPEC U11). 2 columns under 360px, 3 from 360px. */
+/* Shop → Themes (SPEC U11). 2 columns under 360px, 3 from 360px. */
 .pkr-shop-tabs { margin: 0 0 10px; }
 .pkr-theme-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
 @container (min-width: 360px) { .pkr-theme-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -4376,7 +4376,7 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-theme-preview-chip span { flex: 1; }
 .pkr-theme-bonus-tag{display:inline-block;padding:1px 6px;border:1px solid var(--pkr-accent);background:var(--pkr-panel-2);color:var(--pkr-accent-2);font-size:var(--pkr-text-micro);font-weight:900;letter-spacing:.5px}
 
-/* 1.6.1 Team pick (SPEC U10) and team accents. Cards stack under 360px and sit side by side from 360px. */
+/* Team pick (SPEC U10) and team accents. Cards stack under 360px and sit side by side from 360px. */
 .pkr-team-pick { display: flex; flex-direction: column; gap: 10px; padding: 6px 2px 12px; color: var(--pkr-ink); }
 .pkr-team-pick__title { margin: 0; font-size: var(--pkr-text-title); font-weight: 900; text-align: center; color: var(--pkr-ink-bright); }
 .pkr-team-pick__sub { margin: 0; text-align: center; font-size: var(--pkr-text-label); color: var(--pkr-ink-muted); }
@@ -4396,7 +4396,7 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-team-pick__list .pkr-team-card { flex: 1; }
 .pkr-trainer-identity--team .pkr-trainer-identity__inner { box-shadow: inset 4px 0 0 var(--pkr-team-color); padding-left: 8px; }
 
-/* 1.6.1 A17 battle layout (SPEC U16): each info box sits with its own Pokémon, a 6px notch pointing at it.
+/* A17 battle layout (SPEC U16): each info box sits with its own Pokémon, a 6px notch pointing at it.
    The field is a size container, so cqw keeps boxes and notches in their own column at every width. */
 .pkr-battle-field { container-type: size; }
 .pkr-hud-at-foe { left: auto !important; bottom: auto !important; right: 4px; top: var(--pkr-hud-foe-top); max-width: min(55cqw, 210px) !important; }

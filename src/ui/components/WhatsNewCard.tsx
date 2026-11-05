@@ -14,6 +14,9 @@ const RELEASE_ENTRIES = [
   { title: 'Storage and bag space', body: 'Storage and the bag have room that grows with your trainer level, plus upgrades in the Shop. Shinies and legendaries always fit.' },
   { title: 'Rarities that mean something', body: 'Shinies are 1 in 250 encounters, Galarian birds about 1 in 250 cards, and other wild legendaries much rarer. Legendaries are hard to catch: lower their HP, use better balls and status.' },
   { title: 'Money that matters', body: 'Rewards were rebalanced around a day of study. Look for bounties, lucky cards, daily firsts, streaks, Special Research and achievement coins. Power Up is the main way to spend.' },
+  { title: 'Pick a team', body: 'Join Team Ember, Team Tide or Team Volt. Your crest shows in the header and on your trainer card.' },
+  { title: 'Type themes', body: 'Eighteen themes in the Shop restyle the whole game in a type’s colours. Try one for 15 seconds first. With a theme on, Pokémon of that type pay ×1.25 coins and XP.' },
+  { title: 'Clearer battles', body: 'Each info box now sits with its own Pokémon, so you never read the wrong HP bar.' },
   { title: 'Fixes', body: 'The arena no longer changes on every card (you stay in an area for a few encounters). XP Doublers can’t be lost. 27 legendaries are tagged correctly. A shiny waits if your lead faints.' },
 ];
 

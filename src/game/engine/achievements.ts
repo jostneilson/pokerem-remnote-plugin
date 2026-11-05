@@ -276,7 +276,10 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     check: (s) => (s.totalTransferred ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 1), target: 1 }) },
   { id: 'transfer100', name: 'Bulk Shipper', description: 'Transfer 100 Pokémon', category: 'pokemon', tier: 'rare',
     check: (s) => (s.totalTransferred ?? 0) >= 100, progress: (s) => ({ current: Math.min(s.totalTransferred ?? 0, 100), target: 100 }) },
-  // 'theme1' (Fresh Look, buy a theme) and 'theme18' (Every Colour, own all 18) arrive with themes in 1.6.1.
+  { id: 'theme1', name: 'Fresh Look', description: 'Buy a type theme', category: 'economy', tier: 'uncommon',
+    check: (s) => (s.themesOwned?.length ?? 0) >= 1, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 1), target: 1 }) },
+  { id: 'theme18', name: 'Every Colour', description: 'Own all 18 type themes', category: 'economy', tier: 'epic',
+    check: (s) => (s.themesOwned?.length ?? 0) >= 18, progress: (s) => ({ current: Math.min(s.themesOwned?.length ?? 0, 18), target: 18 }) },
   { id: 'bird1', name: 'Galarian Sighting', description: 'Catch a Galarian legendary bird', category: 'collection', tier: 'rare',
     check: (s) => birdCount(s) >= 1, progress: (s) => ({ current: Math.min(birdCount(s), 1), target: 1 }) },
   { id: 'bird3', name: 'Trio of Legends', description: 'Register all three Galarian birds', category: 'collection', tier: 'epic',

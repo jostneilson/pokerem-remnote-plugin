@@ -132,7 +132,7 @@ function appendMainNoticesIfNeeded(
         kind: 'trainer_reward',
         id: nid,
         title: `Trainer Lv ${lv} — ${r.title}`,
-        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv)]
+        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv), THEME_VOUCHER_LEVELS.includes(lv) ? 'Theme voucher' : null]
           .filter(Boolean)
           .join(' · '),
       });

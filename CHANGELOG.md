@@ -23,8 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bounties.** Now and then a wild Pokémon carries a Bounty (shown on its name plate) worth ₽1.5–4k, paid when you defeat or catch it.
 - **Lucky cards.** The hidden coin bonus on a review now shows a small gold "Lucky card!" chip above the dialogue box, and the coin counter ticks up.
 - **Daily firsts and streaks.** Your first catch and first defeat each day earn ×3 XP and ₽500, shown as two small ticks on Play. Every 7th day in a row you study pays ₽5k and a Rare XP Doubler.
-- **Special Research.** Multi-step research lines on the Trainer screen with big rewards: Field Studies and Rocket Investigation. The team-bird line becomes available with teams in 1.6.1.
-- **Achievements and trainer levels pay coins.** Achievements pay by tier when you claim them, and every trainer level pays coins too. Milestone levels (10, 20, 30, 40, 50) give a theme voucher. There are new achievements for Team Rocket, transfers, Galarian birds and your Buddy. Theme achievements become available in 1.6.1.
+- **Special Research.** Multi-step research lines on the Trainer screen with big rewards: Field Studies and Rocket Investigation. Join a team and a third line, A Legend Takes Wing, ends with a sighting of your team's Galarian bird.
+- **Achievements and trainer levels pay coins.** Achievements pay by tier when you claim them, and every trainer level pays coins too. Milestone levels (10, 20, 30, 40, 50) give a theme voucher. There are new achievements for Team Rocket, transfers, themes, Galarian birds and your Buddy.
+
+- **Teams.** Pick Team Ember, Team Tide or Team Volt when you start (existing players are asked once). Your team's crest shows in the header and on your trainer card.
+- **Type themes.** Eighteen themes in the Shop, one per type, each with its own colours, pattern and gentle background motion (off with reduced motion). Try one for 15 seconds before buying, then switch freely; the default arcade look stays free. With a theme on, catching or defeating Pokémon of that type pays ×1.25 coins and XP, and theme vouchers from trainer levels take 20% off.
+- **Clearer battle layout.** Each info box now sits with its own Pokémon: the foe's above it, yours below your lead, each with a small pointer. Trainer boxes show their team's remaining Pokémon. Narrow sidebars get compact one-line boxes.
 
 ### Fixed
 
