@@ -5,11 +5,11 @@ Update this file before starting and after finishing every task. Commit it with 
 
 ## Current state
 
-- Last finished: T5.6 (79ed7fe)
-- T5.7: implementation checkpoint; acceptance blocked by the current full-matrix gap and Needs owner decisions. No task is represented as complete merely because tests pass.
-- **Superseded 2026-11-04 (OWNER_WORDS "release it all as 1.6.0"): Phase 6 (T6.2–T6.7) ships in 1.6.0.** Merged into `update/next` at 36a58e7 with the held-back theme items restored (844b739). Earlier note: Release split (owner, 2026-11-04): ship 1.6.0 at the end of Phase 5 (Phase 7 runs next). Refined by the owner: finish every area already started, leave only unstarted features for 1.6.1. So T6.1 (colour tokens, already started) ships in 1.6.0; T6.2–T6.7 are 1.6.1.
-- Next exact step (Claude, 2026-11-04 evening): the full 20-seed matrix is running on 36a58e7 with the owner's option B constants (504e729); then write BALANCE_REPORT, tick T5.7, rerun `npm run release` and update the hand-off. Earlier: validate and run the new bounded automatic search, review its recommendation against owner holds, then run the current full 360-sample matrix using checkpoints. Do not mark the stale inherited report current. Owner decisions and browser access remain pending; after 1.6.0 acceptance, resume the preserved T6.7 edits in update-1.6.1.
-- Latest checks: 2026-11-04 continuation: tsc clean, 53 files / 337 tests pass, production build/ZIP pass after shortening the manifest blurb. Runner cancellation exits 130 without orphan workers; cache smoke reuses 1/1; six unchanged full-day samples previously reused 6/6. No current full-matrix or fresh browser acceptance.
+- Everything (Phases 0–7, including teams, themes and the A17 battle layout) ships as **1.6.0** on `update/next` (owner, 2026-11-04). `update/1.6.1` is merged and identical; do not work there.
+- Last finished: T6.7 follow-ups (ada5337): your box pinned top-left and the foe's bottom-right with the same 6px inset, never covering either Pokémon (pixel overlap check 32/32 clean at 280/320/400/520); pixel-art team crests (003f499).
+- T5.7: owner option B constants committed (504e729 and follow-ups). The 20-seed full matrix is in BALANCE_REPORT.md. Bands still outside target are listed under DECISIONS "Needs owner": income-L40 ₽15.2k (accepted B trade-off), abuse 0.80 (at the 0.8 limit), Leader win 0.89 and cadence 9.9 days, bird 1/280 cards, collector storage day 3.9, keep-team storage, harness wild-turns 1.47 (the canonical battleBalance test passes). These need owner calls, not more tuning.
+- Next exact step: none for the agent. Owner: review the "Needs owner" items, check natively on the old testing deck, then push `update/next` (README images point at its commits) and publish.
+- Latest checks: tsc clean; 57 files / 382 tests pass; `npm run release` (see HANDOFF for the ZIP digest).
 
 ## Known issues
 
@@ -132,7 +132,7 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | [x] T5.4 (acb24ce) | Research lines. |
 | [x] T5.5 (854d662) | Achievement and trainer-level payouts; new achievements. |
 | [x] T5.6 (79ed7fe) | Price retune. |
-| [~] T5.7 (implementation checkpoints; not accepted) | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
+| [!] T5.7 (constants committed; full report in BALANCE_REPORT; remaining bands need owner calls, see DECISIONS) | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
 
 **Phase 7 — Release prep (1.6.0 = Phases 0–5)**
 
