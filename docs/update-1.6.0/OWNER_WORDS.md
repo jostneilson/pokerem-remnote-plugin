@@ -59,6 +59,7 @@ also add to the plan to have the battle arena design to be redone so that the po
 ## 2026-11-04, money trade-off (Claude asked: A current ₽6/card, or B ₽16/card with less from late-game sources)
 
 > Option B (₽16/card)
+
 ## 2026-11-04, releasing everything together
 
 > if 1.6.0 and 1.6.1 are both done then why dont we just release it all as 1.6.0?

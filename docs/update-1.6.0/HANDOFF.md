@@ -2,6 +2,13 @@
 
 ## LIVE STATE (2026-11-04 continuation; read this first)
 
+- **19:00 local, Claude: CURRENT STATE, supersedes everything below.**
+  - **Owner decision: everything ships as 1.6.0** (OWNER_WORDS). `update/next` now contains Phases 0–7 *and* Phase 6 (teams, 18 themes, theme shop, ×1.25 bonus, A17 battle layout). The `update/1.6.1` branch is merged in and is now identical history; do all further work in `update-next` only. RELEASE_1.6.1.md is superseded; its held-back items are restored (844b739).
+  - **Money: owner chose option B** (OWNER_WORDS). Final constants in 504e729: review ₽16, defeat +3.5/level, catch base 0 and +0.25/level, quests ×0.6. Seven-seed results and the remaining L40 trade-off are in DECISIONS (T5.7). The owner also approved the inherited XP damp / KO floor / lucky odds.
+  - **Codex's 1.6.0 work was reviewed by Claude**: sound; two CHANGELOG lines were rewritten in player language (e71de7f).
+  - **In flight:** the full 20-seed matrix (`.cache/balance/full.log`) writes BALANCE_REPORT.md. Then: add a short before/after header to the report, tick T5.7 in PROGRESS with the real results, run `npm run release`, record the new ZIP digest here, commit. Never push, tag or publish.
+  - Still the owner's: the fixed-rule items under DECISIONS → Needs owner (Leader always beaten / ~11-day cadence, bird ~1/310 cards, keep-team storage), native old-deck RemNote check, and pushing the screenshot commit so README images load.
+
 - **17:50 local (Claude resumed):** 1.6.1 T6.7 (A17 layout) is committed in `update-1.6.1` as `2af3240` (358 tests pass; boxes measured inside the field at 280/320/400/520 for wild-shiny, bounty, Rocket grunt and Leader). The 1.6.1 Phase 6 board is complete apart from the post-1.6.0 merge and the held-back items in RELEASE_1.6.1.md. Claude is now running the T5.7 money search in `.cache/balance/grid3*`.
 
 - Latest continuation: bounded automatic grid search implemented in `sim/tuning.ts` / `balance-tune.ts --grid=FILE`; fixed keys/ranges rejected, candidate/source-keyed checkpoints, captured coin aliases patched only inside worker memory and restored in finally. Missing metrics forbid recommendations. Added first-shiny/Leader/combat/keep-team capacity measurements. Latest gates: tsc, 54 files / 344 tests, production build pass. No candidate has been applied; the real search and full matrix remain pending.

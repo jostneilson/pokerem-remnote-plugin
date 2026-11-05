@@ -7,8 +7,8 @@ Update this file before starting and after finishing every task. Commit it with 
 
 - Last finished: T5.6 (79ed7fe)
 - T5.7: implementation checkpoint; acceptance blocked by the current full-matrix gap and Needs owner decisions. No task is represented as complete merely because tests pass.
-- Release split (owner, 2026-11-04): ship 1.6.0 at the end of Phase 5 (Phase 7 runs next). Refined by the owner: finish every area already started, leave only unstarted features for 1.6.1. So T6.1 (colour tokens, already started) ships in 1.6.0; T6.2–T6.7 are 1.6.1.
-- Next exact step: validate and run the new bounded automatic search, review its recommendation against owner holds, then run the current full 360-sample matrix using checkpoints. Do not mark the stale inherited report current. Owner decisions and browser access remain pending; after 1.6.0 acceptance, resume the preserved T6.7 edits in update-1.6.1.
+- **Superseded 2026-11-04 (OWNER_WORDS "release it all as 1.6.0"): Phase 6 (T6.2–T6.7) ships in 1.6.0.** Merged into `update/next` at 36a58e7 with the held-back theme items restored (844b739). Earlier note: Release split (owner, 2026-11-04): ship 1.6.0 at the end of Phase 5 (Phase 7 runs next). Refined by the owner: finish every area already started, leave only unstarted features for 1.6.1. So T6.1 (colour tokens, already started) ships in 1.6.0; T6.2–T6.7 are 1.6.1.
+- Next exact step (Claude, 2026-11-04 evening): the full 20-seed matrix is running on 36a58e7 with the owner's option B constants (504e729); then write BALANCE_REPORT, tick T5.7, rerun `npm run release` and update the hand-off. Earlier: validate and run the new bounded automatic search, review its recommendation against owner holds, then run the current full 360-sample matrix using checkpoints. Do not mark the stale inherited report current. Owner decisions and browser access remain pending; after 1.6.0 acceptance, resume the preserved T6.7 edits in update-1.6.1.
 - Latest checks: 2026-11-04 continuation: tsc clean, 53 files / 337 tests pass, production build/ZIP pass after shortening the manifest blurb. Runner cancellation exits 130 without orphan workers; cache smoke reuses 1/1; six unchanged full-day samples previously reused 6/6. No current full-matrix or fresh browser acceptance.
 
 ## Known issues
@@ -150,12 +150,12 @@ Full 1.6.1 checklist: `RELEASE_1.6.1.md`. WIP for T6.1 is saved as `parked/T6.1-
 | Task | What |
 |---|---|
 | [x] T6.1 (3ac8d2e) | Colour tokenisation pass, done screen by screen with sub-checklists. **Ships in 1.6.0** (started before the split; scope in DECISIONS T6.1). Committed with T5.7 work separately as `1.6.0 T6.1`. |
-| [ ] T6.2 | ThemeProvider (root, portals, strip, popup). |
-| [ ] T6.3 | 18 themes per the SPEC table, contrast-checked. |
-| [ ] T6.4 | Theme shop tab and live preview. |
-| [ ] T6.5 | Theme ×1.25 bonus hook. |
-| [ ] T6.6 | Team pick onboarding and the one-time prompt for existing saves. |
-| [ ] T6.7 | Battle arena layout redo (A17): wild and trainer surfaces, all breakpoints, checked against every theme. Check: the A17 preview captures. |
+| [x] T6.2 (34df0f4) | ThemeProvider (root, portals, strip, popup). Details in `PROGRESS_1.6.1.md`. |
+| [x] T6.3 (34df0f4) | 18 themes per the SPEC table, contrast-checked (themes.test.ts AA). |
+| [x] T6.4 (8de6444) | Theme shop tab and live preview. |
+| [x] T6.5 (185bc20) | Theme ×1.25 bonus hook. |
+| [x] T6.6 (3aa980d) | Team pick onboarding and the one-time prompt for existing saves. |
+| [x] T6.7 (2af3240) | Battle arena layout redo (A17): wild and trainer surfaces, all breakpoints, checked against every theme. Check: the A17 preview captures. Measured at 280/320/400/520 for wild-shiny, bounty, Rocket grunt and Leader: boxes inside the field, own column, no h-scroll. |
 
 
 ## Continuation checkpoint (2026-11-04)
