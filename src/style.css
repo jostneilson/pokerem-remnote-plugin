@@ -4399,24 +4399,25 @@ body,:host { font-family:var(--pkr-font-body); }
 .pkr-team-pick__list .pkr-team-card { flex: 1; }
 .pkr-trainer-identity--team .pkr-trainer-identity__inner { box-shadow: inset 4px 0 0 var(--pkr-team-color); padding-left: 8px; }
 
-/* A17 battle layout (SPEC U16): each info box sits with its own Pokémon, a 6px notch pointing at it.
+/* A17 battle layout (SPEC U16, revised by the owner): your box sits above your lead, the foe's box under the foe,
+   each in its own half of the field with a 6px notch pointing at its Pokémon. No box overlaps any sprite square.
    The field is a size container, so cqw keeps boxes and notches in their own column at every width. */
 .pkr-battle-field { container-type: size; }
-.pkr-hud-at-foe { left: auto !important; bottom: auto !important; right: 4px; top: var(--pkr-hud-foe-top); max-width: min(55cqw, 210px) !important; }
-.pkr-hud-at-ally { right: auto !important; bottom: auto !important; left: 4px; top: var(--pkr-hud-ally-top); max-width: min(55cqw, 210px) !important; }
+.pkr-hud-at-foe { left: auto !important; bottom: auto !important; right: 4px; top: var(--pkr-hud-foe-top); max-width: min(calc(50cqw - 6px), 210px) !important; }
+.pkr-hud-at-ally { right: auto !important; bottom: auto !important; left: 4px; top: var(--pkr-hud-ally-top); max-width: min(calc(50cqw - 6px), 210px) !important; }
 .pkr-hud-at-foe::after, .pkr-hud-at-ally::after { content: ''; position: absolute; width: 0; height: 0; border: 6px solid transparent; pointer-events: none; }
-.pkr-hud-at-foe::after { bottom: -12px; right: max(6px, calc(26cqw - 16px)); border-top-color: var(--pkr-hud-notch, rgba(255, 255, 255, 0.4)); }
-.pkr-hud-at-ally::after { top: -12px; left: max(6px, calc(24cqw - 16px)); border-bottom-color: var(--pkr-hud-notch, rgba(255, 255, 255, 0.4)); }
+.pkr-hud-at-foe::after { top: -12px; right: max(6px, calc(26cqw - 16px)); border-bottom-color: var(--pkr-hud-notch, rgba(255, 255, 255, 0.4)); }
+.pkr-hud-at-ally::after { bottom: -12px; left: max(6px, calc(24cqw - 16px)); border-top-color: var(--pkr-hud-notch, rgba(255, 255, 255, 0.4)); }
 .pkr-battle-hud--tight .pkr-battle-hud-role, .pkr-battle-hud--tight .pkr-hud-header { display: none; }
-/* Trainer field (fixed 220px): same A17 anchors; values follow hudLayout.ts for foe feet 64%, sprites 84/108. */
+/* Trainer field (fixed 220px): foe feet at 64% (141px), sprites 84/108 (80% at ≤320px).
+   Foe box 6px under the foe's feet; your box ends 6px above your sprite's square (feet 205px). */
 .pkr-battle-field { --pkr-ally-feet: 93%; }
-.pkr-battle-field:has(.pkr-hud-trainer) { --pkr-hud-foe-top: 33px; --pkr-hud-ally-top: 152px; --pkr-ally-feet: 148px; }
+.pkr-battle-field:has(.pkr-hud-trainer) { --pkr-hud-foe-top: 147px; --pkr-hud-ally-top: 29px; --pkr-ally-feet: 205px; }
 @container (max-width: 320px) {
   .pkr-hud-trainer .pkr-battle-hud-role { display: none; }
   .pkr-trainer-foe-sprite, .pkr-trainer-ally-sprite { scale: 0.8; transform-origin: 50% 100%; }
-  .pkr-hud-trainer.pkr-hud-at-foe { top: 63px; }
-  .pkr-hud-trainer.pkr-hud-at-ally { top: 168px; }
-  .pkr-trainer-ally-sprite { top: 164px !important; }
+  .pkr-hud-trainer.pkr-hud-at-foe { top: 147px; }
+  .pkr-hud-trainer.pkr-hud-at-ally { top: 66px; }
 }
 .pkr-team-pips { display: inline-flex; gap: 2px; margin-left: 2px; }
 .pkr-team-pip { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f87171; box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4); }

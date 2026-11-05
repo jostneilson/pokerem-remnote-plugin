@@ -87,7 +87,7 @@ export function TrainerIdentityCard({
           </div>
         </div>
         <div className="pkr-trainer-identity__crest" aria-hidden>
-          {team ? <TeamCrest team={team} size={30} /> : <GameIcon name="trophy" size={22} style={{ color: 'rgba(251,191,36,0.35)' }} />}
+          {team ? <TeamCrest team={team} size={32} /> : <GameIcon name="trophy" size={22} style={{ color: 'rgba(251,191,36,0.35)' }} />}
         </div>
       </div>
     </div>

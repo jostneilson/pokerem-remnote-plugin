@@ -63,3 +63,11 @@ also add to the plan to have the battle arena design to be redone so that the po
 ## 2026-11-04, releasing everything together
 
 > if 1.6.0 and 1.6.1 are both done then why dont we just release it all as 1.6.0?
+
+## 2026-11-04, battle info boxes and team crests
+
+> bruh do it so that froakies box is above him, and zapdos is below him, and same for all pokemon battles
+
+> And make sure it never covers part of the pokemon
+
+> I also want to redo the galarian bird icon art, right now it looks too modern and out of place, it should be 90s pixel video game vibe just like the rest of the game

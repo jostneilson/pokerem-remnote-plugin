@@ -2,28 +2,84 @@ import { useState } from 'react';
 import type { TeamId } from '../../game/engine/rarity';
 import { TEAMS, TEAM_BY_ID } from '../../game/engine/teams';
 
-/** Original team crests (SPEC U10): Ember a flame-wing, Tide a wave-crest wing, Volt a zig-zag wing. */
+/**
+ * Original team crests (SPEC U10), drawn as 16×16 pixel sprites to match the game's 90s handheld look: a pixel
+ * ring in the team colour around a small bird in flight. Ember has a flame crest and flame tail, Tide a curling
+ * wave crest and tail, Volt a jagged lightning wing. Use sizes that are multiples of 16 so every pixel stays square.
+ */
+const CREST_RING = [
+  '.....kkkkkk.....',
+  '...kkddddddkk...',
+  '..kddddddddddk..',
+  '.kddddddddddddk.',
+  '.kddddddddddddk.',
+  'kddddddddddddddk',
+  'kddddddddddddddk',
+  'kddddddddddddddk',
+  'kddddddddddddddk',
+  'kddddddddddddddk',
+  'kddddddddddddddk',
+  '.kddddddddddddk.',
+  '.kddddddddddddk.',
+  '..kddddddddddk..',
+  '...kkddddddkk...',
+  '.....kkkkkk.....'
+];
+
+/** 12×10 birds in flight, facing right, drawn at (2, 3): c = team colour, s = shade, h = highlight, e = eye. */
+const CREST_BIRD: Record<TeamId, string[]> = {
+  ember: [
+    '........h...',
+    '.cc....hch..',
+    '..ccc..ccc..',
+    '...cccccech.',
+    'h...cccccc..',
+    'hh.ccssss...',
+    '.hhhcsss....',
+    '..h.hcc.....',
+    '.h...h......',
+    '............'
+  ],
+  tide: [
+    '......hh....',
+    '.cc..hcch...',
+    '..cc..ccc...',
+    '...ccccccech',
+    '....cccccc..',
+    'hh.ccssss...',
+    'h.hcsss.....',
+    '.hh.........',
+    '............',
+    '............'
+  ],
+  volt: [
+    '.c..........',
+    '..cc........',
+    '.ccc....cc..',
+    '...ccc.ccech',
+    '..ccccccccc.',
+    'h..ccsssc...',
+    'hc.csss.....',
+    '.hcc.c......',
+    '..h..c......',
+    '.....h......'
+  ]
+};
+
+const CREST_HIGHLIGHT: Record<TeamId, string> = { ember: '#ffc145', tide: '#8fe3ff', volt: '#fff27a' };
+const CREST_SHADE: Record<TeamId, string> = { ember: '#8a1f12', tide: '#163f73', volt: '#8a6512' };
+
 export function TeamCrest({ team, size = 64 }: { team: TeamId; size?: number }) {
-  const c = TEAM_BY_ID.get(team)!.color;
+  const color = TEAM_BY_ID.get(team)!.color;
+  const fill: Record<string, string> = { k: color, d: '#101326', c: color, s: CREST_SHADE[team], h: CREST_HIGHLIGHT[team], e: '#f8edcf' };
+  const pixels: { x: number; y: number; c: string }[] = [];
+  CREST_RING.forEach((row, y) => [...row].forEach((ch, x) => ch !== '.' && pixels.push({ x, y, c: fill[ch]! })));
+  CREST_BIRD[team].forEach((row, y) => [...row].forEach((ch, x) => ch !== '.' && pixels.push({ x: x + 2, y: y + 3, c: fill[ch]! })));
   return (
-    <svg className="pkr-team-crest" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="29" fill="#101326" stroke={c} strokeWidth="3" />
-      {team === 'ember' ? (
-        <>
-          <path d="M16 44 C18 30 26 22 34 14 C32 24 38 26 44 20 C46 32 40 44 30 48 C24 50 18 48 16 44Z" fill={c} />
-          <path d="M26 44 C27 36 31 32 34 28 C34 34 38 36 40 34 C40 40 36 45 31 46Z" fill="#ffc145" />
-        </>
-      ) : team === 'tide' ? (
-        <>
-          <path d="M12 40 C20 40 22 30 30 26 C38 22 46 26 52 20 C50 32 42 40 32 42 C40 44 46 42 52 38 C46 48 34 52 22 48 C18 46 14 44 12 40Z" fill={c} />
-          <path d="M22 40 C28 38 30 32 36 30 C40 29 44 30 46 28" fill="none" stroke="#8fe3ff" strokeWidth="2.5" strokeLinecap="round" />
-        </>
-      ) : (
-        <>
-          <path d="M14 42 L24 22 L28 32 L38 14 L40 28 L50 22 L42 44 L36 34 L30 46 L26 36Z" fill={c} />
-          <path d="M24 22 L28 32 L38 14" fill="none" stroke="#fff27a" strokeWidth="2" strokeLinejoin="round" />
-        </>
-      )}
+    <svg className="pkr-team-crest" width={size} height={size} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden="true">
+      {pixels.map((p) => (
+        <rect key={`${p.x}-${p.y}`} x={p.x} y={p.y} width="1" height="1" fill={p.c} />
+      ))}
     </svg>
   );
 }

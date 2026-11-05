@@ -25,6 +25,7 @@ interface PokemonSpriteProps {
 
 export function PokemonSprite({ src, alt, size, className = '', style, glow, lazy, shiny, reducedMotion, grounded = false }: PokemonSpriteProps) {
   const [imageState, setImageState] = useState({ src, loaded: false, errored: false, frontFallback: false });
+  // Grounding shift as a fraction of the sprite size, so it stays right when the sprite is resized after loading.
   const [ground,setGround]=useState({src:'',x:0,y:0});
   const [corsBlocked,setCorsBlocked]=useState(false);
   const loaded = imageState.src === src && imageState.loaded;
@@ -60,13 +61,13 @@ export function PokemonSprite({ src, alt, size, className = '', style, glow, laz
         style={{
           imageRendering: 'pixelated',
           // A front sprite standing in for a missing back is mirrored so it faces the foe.
-          transform:[grounded && ground.src===effectiveSrc?`translate(${ground.x}px,${ground.y}px)`:'',frontFallback&&!errored?'scaleX(-1)':''].filter(Boolean).join(' ')||undefined,
+          transform:[grounded && ground.src===effectiveSrc?`translate(${Math.round(ground.x*size)}px,${Math.round(ground.y*size)}px)`:'',frontFallback&&!errored?'scaleX(-1)':''].filter(Boolean).join(' ')||undefined,
           ...style,
         }}
         className={`pkr-sprite-image drop-shadow-[2px_3px_0_rgba(0,0,0,0.35)] ${loaded ? '' : 'opacity-0'} `}
         onLoad={(event) => {
           setImageState({src,loaded:true,errored,frontFallback});
-          if(grounded){try{const img=event.currentTarget,canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;const ctx=canvas.getContext('2d');if(ctx){ctx.drawImage(img,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let left=canvas.width,right=0,bottom=0;for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>20){left=Math.min(left,x);right=Math.max(right,x);bottom=Math.max(bottom,y);}setGround({src:effectiveSrc,x:Math.round((canvas.width/2-(left+right)/2)*size/canvas.width),y:Math.round((canvas.height-1-bottom)*size/canvas.height)});}}catch{/* Sprite remains visible if a host blocks canvas reads. */}}
+          if(grounded){try{const img=event.currentTarget,canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;const ctx=canvas.getContext('2d');if(ctx){ctx.drawImage(img,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let left=canvas.width,right=0,bottom=0;for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>20){left=Math.min(left,x);right=Math.max(right,x);bottom=Math.max(bottom,y);}setGround({src:effectiveSrc,x:(canvas.width/2-(left+right)/2)/canvas.width,y:(canvas.height-1-bottom)/canvas.height});}}catch{/* Sprite remains visible if a host blocks canvas reads. */}}
         }}
         onError={() => grounded && !corsBlocked ? setCorsBlocked(true) : setImageState(src.includes('/pokemon/back/') && !frontFallback ? { src, loaded: false, errored: false, frontFallback: true } : { src, loaded: true, errored: true, frontFallback })}
         loading={lazy ? 'lazy' : undefined}

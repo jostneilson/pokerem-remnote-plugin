@@ -106,7 +106,16 @@ export function BattleField({
   return (
     <div
       className={`pkr-battle-field pkr-wild-field relative w-full overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]${fieldWild?.shiny ? ' pkr-battle-field--shiny' : ''}`}
-      style={{ height: `${height}px`, ...(hud ? ({ '--pkr-hud-foe-top': `${hud.foeTop}px`, '--pkr-hud-ally-top': `${hud.allyTop}px` } as CSSProperties) : {}) }}
+      style={{
+        height: `${height}px`,
+        // Arena sprite offsets move the boxes with their Pokémon, so a box never lands on its sprite.
+        ...(hud
+          ? ({
+              '--pkr-hud-foe-top': `${hud.foeTop + Math.round((spriteOff.wildY * layoutW) / 400)}px`,
+              '--pkr-hud-ally-top': `${hud.allyTop + Math.round((spriteOff.playerY * layoutW) / 400)}px`
+            } as CSSProperties)
+          : {})
+      }}
     >
       <div className="pointer-events-none absolute inset-0 z-0">
         {blend && !reducedMotion ? (
