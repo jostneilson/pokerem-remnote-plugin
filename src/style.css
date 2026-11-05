@@ -17,6 +17,9 @@ code, kbd, pre, samp {
 html {
   width: 100%;
   height: 100%;
+  /* The pixel font's "fi" ligature draws a wrong glyph ("first" reads "Arst"); letters stay separate. */
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'clig' 0;
 }
 
 html,

@@ -36,6 +36,8 @@ Themed trainers challenge you as you study, from Bug Catchers to Dragon Masters 
 
 ![A 3-on-3 trainer battle against Hiker Russ, with both teams' line-ups and your moves](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-battle.png)
 
+![A shiny wild battle in the Water theme: each info box sits with its own Pokémon](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/dacf504a093b346e3e543bb0d65187e2de8289c1/public/assets/screenshots/listing-theme-battle.png)
+
 ![The Rocket Leader’s legendary prize waits while you choose your next move](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/129a6dd3f0daff5174281288375e2e20b38fca74/public/assets/screenshots/listing-rocket-prize.png)
 
 ## Build your dream team
@@ -51,6 +53,8 @@ Screenshots use a separate demonstration save.
 ## Goals for every study session
 
 Three daily quests and two weekly ones, Special Research lines, eight gym badges, long-term achievements, daily firsts and study streaks, and a trainer license that levels up as you study. Look out for bounties and lucky cards. Join Team Ember, Tide or Volt. Spend your coins on Power Ups, 18 type themes that restyle the whole game (and boost rewards for their type), balls, potions, XP Doublers, route tickets, storage and bag upgrades and trainer card styles. Your current coins and collection carry forward when you update.
+
+![Choose your team: Team Ember, Team Tide or Team Volt](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/dacf504a093b346e3e543bb0d65187e2de8289c1/public/assets/screenshots/listing-team-pick.png)
 
 ![Trainer screen: trainer license, level rewards, and today's and this week's quests](https://raw.githubusercontent.com/jostneilson/pokerem-remnote-plugin/24bd9a1e3c850a1e7e5b300a4551fafd8c38ebae/public/assets/screenshots/listing-trainer-screen.png)
 
