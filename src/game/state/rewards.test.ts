@@ -1,3 +1,4 @@
+import { BALANCE, questCoins, questLevelFactor } from '../balance';
 import { describe, expect, it, vi } from 'vitest';
 import { catchCoins, defeatCoins, rollBounty } from '../balance';
 import { seededRng } from '../sim/simulate';
@@ -14,15 +15,15 @@ const withWild = (bounty?: number): PokeRemGameState => ({
 });
 
 describe('bounties (SPEC B2)', () => {
-  it('about 1 in 40 wilds carries ₽1.5–4k, in ₽100 steps', () => {
+  it('about 1 in 60 wilds (BALANCE.bounty.chance) carries ₽1.5–4k, in ₽100 steps', () => {
     const rng = seededRng(7);
     const rolls: number[] = [];
     for (let i = 0; i < 40000; i++) {
       const b = rollBounty(rng);
       if (b) rolls.push(b);
     }
-    expect(rolls.length / 40000).toBeGreaterThan(0.021);
-    expect(rolls.length / 40000).toBeLessThan(0.029);
+    expect(rolls.length / 40000).toBeGreaterThan(BALANCE.bounty.chance * 0.85);
+    expect(rolls.length / 40000).toBeLessThan(BALANCE.bounty.chance * 1.15);
     for (const b of rolls) {
       expect(b).toBeGreaterThanOrEqual(1500);
       expect(b).toBeLessThanOrEqual(4000);
@@ -60,7 +61,7 @@ describe('daily firsts and the streak (SPEC B3)', () => {
     spy.mockRestore();
     const before = withWild();
     let levelCoins = 0;
-    for (let lv = (before.trainerLevel ?? 1) + 1; lv <= (caught.trainerLevel ?? 1); lv++) levelCoins += 250 * lv;
+    for (let lv = (before.trainerLevel ?? 1) + 1; lv <= (caught.trainerLevel ?? 1); lv++) levelCoins += BALANCE.trainerLevelCoinPerLevel * lv;
     expect(caught.currency).toBe(catchCoins(10, 25) + DAILY_FIRST_COINS + levelCoins);
     expect(caught.daily?.firstCatch).toBe(true);
   });
@@ -84,11 +85,11 @@ describe('achievement and trainer-level payouts (SPEC B5)', () => {
     const s0 = { ...withWild(), currentEncounter: null, totalTransferred: 1 };
     const s = { ...s0, achievements: { ...s0.achievements, transfer1: true } };
     const def = ACHIEVEMENT_DEFS.find((d) => d.id === 'transfer1')!;
-    expect(achievementCoinReward(def)).toBe(500);
-    expect(claimAchievement(s, 'transfer1').currency - s.currency).toBeGreaterThanOrEqual(500);
+    expect(achievementCoinReward(def)).toBe(BALANCE.achievementCoins.common);
+    expect(claimAchievement(s, 'transfer1').currency - s.currency).toBeGreaterThanOrEqual(BALANCE.achievementCoins.common);
   });
 
-  it('each trainer level pays ₽250 × level, and Lv10 gives a theme voucher', async () => {
+  it('each trainer level pays BALANCE.trainerLevelCoinPerLevel × level, and Lv10 gives a theme voucher', async () => {
     const { withTouch } = await import('./reducers/core');
     const { trainerLevelFromXp } = await import('../engine/trainerLevel');
     const s0 = withTouch(withWild());
@@ -98,7 +99,7 @@ describe('achievement and trainer-level payouts (SPEC B5)', () => {
     const next = withTouch({ ...s0, trainerXp: xp });
     expect(next.trainerLevel).toBe(10);
     let expected = 0;
-    for (let lv = from + 1; lv <= 10; lv++) expected += 250 * lv;
+    for (let lv = from + 1; lv <= 10; lv++) expected += BALANCE.trainerLevelCoinPerLevel * lv;
     expect(next.currency - s0.currency).toBe(expected);
     expect(next.themeVouchers).toBe(1);
     expect(withTouch(next).currency).toBe(next.currency);
@@ -131,5 +132,17 @@ describe('theme bonus (SPEC A12)', () => {
     spy.mockRestore();
     expect(caught.lastBattleResult?.themeBonus).toBe('Electric');
     expect(caught.lastBattleResult?.coins).toBe(Math.round(catchCoins(10, 25) * 1.25));
+  });
+});
+
+describe('quest pay grows with trainer level (owner decision 2026-11-04)', () => {
+  it('starts at growStart of full pay and reaches full pay at growFullLevel', () => {
+    const q = BALANCE.quests;
+    expect(questLevelFactor(1)).toBeCloseTo(q.growStart, 10);
+    expect(questLevelFactor(q.growFullLevel)).toBe(1);
+    expect(questLevelFactor(50)).toBe(1);
+    expect(questLevelFactor(9)).toBeGreaterThan(questLevelFactor(5));
+    expect(questCoins('daily', 1000, 1)).toBeLessThan(questCoins('daily', 1000, q.growFullLevel));
+    expect(questCoins('weekly', 6000)).toBe(Math.round((6000 * q.scale) / 10) * 10);
   });
 });

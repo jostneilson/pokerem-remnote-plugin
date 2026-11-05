@@ -132,7 +132,7 @@ function appendMainNoticesIfNeeded(
         kind: 'trainer_reward',
         id: nid,
         title: `Trainer Lv ${lv} — ${r.title}`,
-        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv), THEME_VOUCHER_LEVELS.includes(lv) ? 'Theme voucher' : null]
+        subtitle: [r.description, `+${formatCoins(trainerLevelCoins(lv))}`, capacityLine(lv)]
           .filter(Boolean)
           .join(' · '),
       });
@@ -513,7 +513,7 @@ export function knockoutXp(
     const gap = Math.max(0, foe.level - activeP.level);
     xp = Math.round(xp * (1 + Math.min(0.55, gap * 0.045)));
   }
-  return Math.max(8, Math.round(xp * BALANCE.xp.knockoutMult));
+  return Math.max(BALANCE.xp.knockoutFloor, Math.round(xp * BALANCE.xp.knockoutMult));
 }
 
 /**

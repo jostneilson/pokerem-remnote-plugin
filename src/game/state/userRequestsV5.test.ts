@@ -1,3 +1,4 @@
+import { BALANCE } from '../balance';
 import { catchCoins, defeatCoins } from '../balance';
 import { describe, it, expect, vi } from 'vitest';
 import {
@@ -77,23 +78,24 @@ describe('User specific requirements in 1.4.0', () => {
         return () => values[i++] ?? 0;
       };
 
-      const jackpot = rollStudyCashBonus(rng(0.0001, 0));
+      const jackpot = rollStudyCashBonus(rng(0.00003, 0));
       expect(jackpot.tier).toBe('Jackpot');
       expect(jackpot.amount).toBeGreaterThanOrEqual(10000);
 
-      const rareFind = rollStudyCashBonus(rng(0.002, 0));
+      const rareFind = rollStudyCashBonus(rng(0.0003, 0));
       expect(rareFind.tier).toBe('Rare find');
       expect(rareFind.amount).toBeGreaterThanOrEqual(2000);
 
-      const luckyFind = rollStudyCashBonus(rng(0.02, 0));
+      const luckyFind = rollStudyCashBonus(rng(0.003, 0));
       expect(luckyFind.tier).toBe('Lucky find');
       expect(luckyFind.amount).toBeGreaterThanOrEqual(300);
 
       const eliteReward = generateTrainerRewards('elite', 20);
-      expect(eliteReward.coins).toBeGreaterThanOrEqual(1500);
+      expect(eliteReward.coins).toBeGreaterThanOrEqual(Math.round(1500 * BALANCE.trainerCoinScale));
 
       const standardReward = generateTrainerRewards('standard', 20);
-      expect(standardReward.coins).toBeGreaterThanOrEqual(600);
+      expect(standardReward.coins).toBeGreaterThanOrEqual(Math.round(600 * BALANCE.trainerCoinScale));
+      expect(eliteReward.coins).toBeGreaterThan(standardReward.coins);
     });
   });
 

@@ -6,9 +6,10 @@ Update this file before starting and after finishing every task. Commit it with 
 ## Current state
 
 - Last finished: T5.6 (79ed7fe)
-- In progress: T5.7
-- Next exact step: T5.7: run balance:tune (quick run in progress), adjust tunables in balance.ts within Appendix T ranges, write BALANCE_REPORT, add balance.test.ts asserting bands with tolerance
-- Latest checks: 2026-11-04 after Phase 3: tsc clean, vitest 296 tests, build OK.
+- T5.7: implementation checkpoint; acceptance blocked by the current full-matrix gap and Needs owner decisions. No task is represented as complete merely because tests pass.
+- Release split (owner, 2026-11-04): ship 1.6.0 at the end of Phase 5 (Phase 7 runs next). Refined by the owner: finish every area already started, leave only unstarted features for 1.6.1. So T6.1 (colour tokens, already started) ships in 1.6.0; T6.2–T6.7 are 1.6.1.
+- Next exact step: validate and run the new bounded automatic search, review its recommendation against owner holds, then run the current full 360-sample matrix using checkpoints. Do not mark the stale inherited report current. Owner decisions and browser access remain pending; after 1.6.0 acceptance, resume the preserved T6.7 edits in update-1.6.1.
+- Latest checks: 2026-11-04 continuation: tsc clean, 53 files / 337 tests pass, production build/ZIP pass after shortening the manifest blurb. Runner cancellation exits 130 without orphan workers; cache smoke reuses 1/1; six unchanged full-day samples previously reused 6/6. No current full-matrix or fresh browser acceptance.
 
 ## Known issues
 
@@ -131,13 +132,24 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | [x] T5.4 (acb24ce) | Research lines. |
 | [x] T5.5 (854d662) | Achievement and trainer-level payouts; new achievements. |
 | [x] T5.6 (79ed7fe) | Price retune. |
-| [~] T5.7 | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
+| [~] T5.7 (implementation checkpoints; not accepted) | Run `balance:tune`, commit the constants, `balance.test.ts` green, BALANCE_REPORT all pass. |
 
-**Phase 6 — Teams and themes**
+**Phase 7 — Release prep (1.6.0 = Phases 0–5)**
 
 | Task | What |
 |---|---|
-| [ ] T6.1 | Colour tokenisation pass, done screen by screen with sub-checklists. |
+| [!] T7.1 | Full Verification pass (below), with results logged. |
+| [x] T7.2 (129a6dd screenshots; docs follow-up) | CHANGELOG, README and manifest, new screenshots. |
+| [x] T7.3 (4e5a153) | Version 1.6.0 in all 4 places; `npm run release`. |
+| [x] T7.4 (handoff complete; release holds remain) | Final hand-off update: "Ready for owner review; nothing pushed". |
+
+**Phase 6 — Teams and themes (moved to 1.6.1, after the 1.6.0 release)**
+
+Full 1.6.1 checklist: `RELEASE_1.6.1.md`. WIP for T6.1 is saved as `parked/T6.1-token-pass.patch` (also in `git stash` as "1.6.1 T6.1 token pass (WIP)" ; style.css, collection.css and ten TSX files: surface hex → `--pkr-*` tokens, inline text inks → `--pkr-ink-*`). Also for 1.6.1: restore the `theme1`/`theme18` achievements (removed from `ACHIEVEMENT_DEFS` for 1.6.0, see the comment there) and the "Theme voucher" line on level-up notices (`core.ts`); vouchers already accrue in 1.6.0. Version 1.6.1 in all 4 places at its release.
+
+| Task | What |
+|---|---|
+| [x] T6.1 (3ac8d2e) | Colour tokenisation pass, done screen by screen with sub-checklists. **Ships in 1.6.0** (started before the split; scope in DECISIONS T6.1). Committed with T5.7 work separately as `1.6.0 T6.1`. |
 | [ ] T6.2 | ThemeProvider (root, portals, strip, popup). |
 | [ ] T6.3 | 18 themes per the SPEC table, contrast-checked. |
 | [ ] T6.4 | Theme shop tab and live preview. |
@@ -145,12 +157,25 @@ Each task's check: `transfer.test.ts`, `capacity.test.ts`, preview captures.
 | [ ] T6.6 | Team pick onboarding and the one-time prompt for existing saves. |
 | [ ] T6.7 | Battle arena layout redo (A17): wild and trainer surfaces, all breakpoints, checked against every theme. Check: the A17 preview captures. |
 
-**Phase 7 — Release prep**
 
-| Task | What |
-|---|---|
-| [ ] T7.1 | Full Verification pass (below), with results logged. |
-| [ ] T7.2 | CHANGELOG, README and manifest, new screenshots. |
-| [ ] T7.3 | Version 1.6.0 in all 4 places; `npm run release`. |
-| [ ] T7.4 | Final hand-off update: "Ready for owner review; nothing pushed". |
+## Continuation checkpoint (2026-11-04)
 
+- Preserved every inherited change and both worktrees. Original balance PID 55610 exited normally; its full after-report took 1099 s. A subsequent owned run was stopped under the owner's explicit permission; completed samples remain in ignored `.cache/balance/`. Cancellation now forwards to owned workers and has been tested. No run is active at this checkpoint.
+- Runner changes and verified harness repairs are in `scripts/balance-tune.ts`, `src/game/sim/balance.ts` and `balance.test.ts`. Full default = all six policies × all three pacings × 20 seeds × 60 days; focused flags are documented in the script. Cache fingerprints deliberately change after runner/game/lockfile changes.
+- Green gates are not all-band acceptance. T5.7 remains [!] until the current full report and out-of-Appendix-T choices are resolved. Full automatic grid-search tuning is still absent and explicitly disclosed by the runner.
+- T7.1 responsive/hostsim and T6.7 visual checks cannot be completed through the current browser: managed policy denied localhost access. Existing three listing images were visually read; they do not prove today's responsive or interactive behavior.
+- Next: proceed to unblocked Phase 7 preparation, keeping release holds; do not claim native/visual acceptance. No push, tag, publish, reset, stash, or root AGENTS edit.
+
+- T7.3: all four version sources align on 1.6.0; `npm run release` exit 0 (337 tests, types, version check, listing check, validation, production build, ZIP). ZIP manifest/README/three new screenshots read back against source. This is a candidate under the T5.7/T7.1 holds, not publication acceptance.
+
+- T7.4: handoff updated with exact ZIP digest, local commits, stale/full report boundary, owner holds and the stopped Claude session’s newer A17 edits. Phrase “ready for owner review” does not waive T5.7/T7.1.
+
+- T5.7 follow-up: fixed overlapping battle/variable income categories, added base-card and spending diagnostics, tightened the battle-share regression to 30–50%. Types, 53 files / 338 tests, build pass. Full balance acceptance is still open; the prior focused report predates this measurement correction.
+
+- Current local HEAD: bcda76a. No test or balance process remains active (process readback at 14:58 local). `update-next` was clean at that HEAD before this handoff-only edit. Root main remains unchanged except its pre-existing untracked AGENTS.md. The 1.6.1 changes are preserved and unmodified by this continuation.
+
+- Automatic search implemented; five focused tests and four worker smoke candidates pass, including “no recommendation” for missing coverage. Full suite/build and the real sixty-day search remain next; no candidate was applied.
+
+- Search follow-up: added C2 cadence/combat/first-shiny/keep-team metrics before the expensive matrix; type-check passes. `TUNING.md` and economy-grid.json define the reproducible initial search. Full gates and the real search are still to run; no constants were applied.
+
+- Search implementation gates: tsc pass, 54 files / 344 tests pass, production build pass. No real candidate search has run yet; the one-day idle smoke is structural testing only.

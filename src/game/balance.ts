@@ -12,51 +12,62 @@ export type TransferTier = 'Common' | 'Uncommon' | 'Rare' | 'Baby' | 'Ultra' | '
 export const BALANCE = {
   coins: {
     /** Per reviewed card, × the study card weight. Tunable 5–25. */
-    review: 10,
+    review: 6,
     /** Defeat: base + per level, × species tier. Tunable 30–150 / 3–15. */
-    defeatBase: 60,
-    defeatPerLevel: 8,
+    defeatBase: 30,
+    defeatPerLevel: 4,
     /** Catch: always below defeat at every level. */
-    catchBase: 40,
-    catchPerLevel: 5,
+    catchBase: 2,
+    catchPerLevel: 0.5,
     run: 25,
     /** Ultra Beast ×3, Legendary ×5, Mythical ×6 on both defeat and catch coins. */
     tierMult: { Ultra: 3, Legendary: 5, Mythical: 6 } as Partial<Record<string, number>>
   },
   /** ~1 in 40 wilds carries a bounty of ₽1.5–4k, paid on defeat or catch (SPEC B2; chance tunable 1/60–1/25). */
   bounty: {
-    chance: 1 / 40,
+    chance: 1 / 60,
     min: 1500,
     max: 4000
   },
   /** Achievement coins by tier (SPEC B5; tunable ±50%). */
-  achievementCoins: { common: 500, uncommon: 1500, rare: 5000, epic: 15000 } as Record<'common' | 'uncommon' | 'rare' | 'epic', number>,
+  achievementCoins: { common: 250, uncommon: 750, rare: 2500, epic: 7500 } as Record<'common' | 'uncommon' | 'rare' | 'epic', number>,
   /**
    * Power Up cost = base + perLevel·L + perLevelSq·L², the main steady sink (SPEC C2): about half a day's
    * income at L20 (₽3.4k), a full day's at L40 (₽11.4k).
    */
   powerUp: { base: 200, perLevel: 40, perLevelSq: 6 },
   /** Every trainer level pays this × the level reached (tunable 100–500). */
-  trainerLevelCoinPerLevel: 250,
+  trainerLevelCoinPerLevel: 100,
   /** Daily quests pay ₽800–1,800, weekly ₽5–8k (SPEC C2); `scale` is the tunable (±40%). */
   quests: {
-    scale: 1,
+    scale: 0.8,
     dailyMin: 800,
     dailyMax: 1800,
     weeklyMin: 5000,
-    weeklyMax: 8000
+    weeklyMax: 8000,
+    /**
+     * Quest pay grows with trainer level (owner decision 2026-11-04): `growStart` of full pay at Lv1, full pay
+     * from `growFullLevel`. Keeps week-one income in band without lowering later income.
+     */
+    growStart: 0.4,
+    growFullLevel: 20
   },
   xp: {
     /** Study XP per card for every party member (XP Share). Tunable 0.6–3. */
-    studyPerCard: 1.6,
+    studyPerCard: 3,
     /** The lead's extra study XP (fixed). */
     studyLeadMult: 1.2,
     /** Multiplier on `knockoutXp`. Tunable 0.3–1.2. */
-    knockoutMult: 0.7,
+    knockoutMult: 0.3,
+    /** Level damp on every XP gain above this level (see `levelXpDamp`). */
+    levelDampFrom: 16,
+    levelDampSpan: 15,
+    /** Least base KO XP (before the split), so early knockouts still matter on the flat-ish XP curve. */
+    knockoutFloor: 22,
     /** Multiplier on combat (per-hit) XP. Tunable 0.3–1.2. */
-    fightMult: 0.7,
+    fightMult: 0.3,
     /** Multiplier on type-share XP. Tunable 0.3–1.2. */
-    typeShareMult: 0.8,
+    typeShareMult: 1.2,
     /** Type-share boost on a catch or defeat: party base + per foe level, storage base + per level. */
     typeSharePartyBase: 15,
     typeSharePartyPerLevel: 2,
@@ -65,7 +76,7 @@ export const BALANCE = {
   },
   /** Transfer payouts (SPEC A5; tunable ±50% per Appendix T, a Common always < ₽100). */
   transfer: {
-    base: { Common: 30, Uncommon: 60, Rare: 150, Baby: 80, Ultra: 600, Legendary: 1500, Mythical: 2500 } as Record<TransferTier, number>,
+    base: { Common: 15, Uncommon: 30, Rare: 75, Baby: 40, Ultra: 300, Legendary: 750, Mythical: 1250 } as Record<TransferTier, number>,
     /** Payout × (1 + level / perLevelDiv). */
     perLevelDiv: 25,
     shinyMult: 3,
@@ -77,24 +88,28 @@ export const BALANCE = {
     xpPerLevel: 2,
     storageXpShare: 0.5
   },
+  /** Scale on research line coins (listed ₽15–30k; tunable 0.6–1.4). */
+  researchCoinScale: 0.6,
+  /** Scale on standard/elite trainer coins (SPEC C2: "formulas kept, then scaled by the harness"). */
+  trainerCoinScale: 0.15,
   /** Team Rocket rewards (SPEC Appendix R; tunable per Appendix T). */
   rocket: {
-    gruntCoinBase: 1200,
-    gruntCoinPerAvg: 20,
+    gruntCoinBase: 600,
+    gruntCoinPerAvg: 10,
     /** 30%: 1–3 Great/Ultra Balls or a potion. */
     gruntItemChance: 0.3,
     /** 10%: a ₽3–6k cache. */
     gruntCacheChance: 0.1,
     gruntCacheMin: 3000,
     gruntCacheMax: 6000,
-    leaderCoinMin: 8000,
-    leaderCoinMax: 15000
+    leaderCoinMin: 5000,
+    leaderCoinMax: 10000
   },
-  /** Hidden study cash rolls per card: cumulative chance, then the ₽ range. */
+  /** Hidden study cash rolls per card: cumulative chance, then the ₽ range (1.6.0: 0.6% / 0.06% / 0.006%). */
   studyCash: [
-    { upTo: 0.0005, min: 10_000, max: 25_000, tier: 'Jackpot' },
-    { upTo: 0.0055, min: 2000, max: 5000, tier: 'Rare find' },
-    { upTo: 0.0455, min: 300, max: 800, tier: 'Lucky find' }
+    { upTo: 0.00006, min: 10_000, max: 25_000, tier: 'Jackpot' },
+    { upTo: 0.00066, min: 2000, max: 5000, tier: 'Rare find' },
+    { upTo: 0.00666, min: 300, max: 800, tier: 'Lucky find' }
   ] as readonly { upTo: number; min: number; max: number; tier: string }[]
 };
 
@@ -113,11 +128,18 @@ export function catchCoins(level: number, dexNum?: number): number {
   return Math.round((BALANCE.coins.catchBase + Math.floor(level * BALANCE.coins.catchPerLevel)) * tierMult(dexNum));
 }
 
-/** A quest's coins, scaled and kept inside its period's band. */
-export function questCoins(period: 'daily' | 'weekly', listed: number): number {
+/** Share of full quest pay at a trainer level: `growStart` at Lv1, rising evenly to 1 at `growFullLevel`. */
+export function questLevelFactor(trainerLevel: number): number {
+  const q = BALANCE.quests;
+  const t = Math.max(0, Math.min(1, (trainerLevel - 1) / Math.max(1, q.growFullLevel - 1)));
+  return q.growStart + (1 - q.growStart) * t;
+}
+
+/** A quest's coins: kept inside its period's band, scaled, and grown with trainer level (rounded to ₽10). */
+export function questCoins(period: 'daily' | 'weekly', listed: number, trainerLevel = Infinity): number {
   const q = BALANCE.quests;
   const [min, max] = period === 'daily' ? [q.dailyMin, q.dailyMax] : [q.weeklyMin, q.weeklyMax];
-  return Math.round(Math.max(min, Math.min(max, listed)) * q.scale);
+  return Math.round((Math.max(min, Math.min(max, listed)) * q.scale * questLevelFactor(trainerLevel)) / 10) * 10;
 }
 
 /** Roll a bounty for a new wild (rounded to ₽100), or undefined. */

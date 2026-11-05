@@ -42,3 +42,16 @@ adjust the plan to ensure that if you run out of usage while developing, it can 
 
 [ANSWER] The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). To tell you how to proceed, the user said:
 also add to the plan to have the battle arena design to be redone so that the pokemon name level and stats box appears above or below the pokemon that its reffering to, currently having the enemy pokemons box be above my current lead pokemon is confusing. Add this to the plan without removing or changing anything else.
+## Release split (2026-11-04, verbatim)
+
+"Can we actually publish this update at the next oppertunity that makes sense and would still be a good oppertunity, and then we can release 1.6.1 with the rest of the remaining updates added. MAybe we do it at the end of phase 5? Whatever you think is best"
+
+"Make sure this is done in a way that ensures nothing is lost, like any of the features or mods we planned to make, and that everything in the plan still gets done in the end. Also make sure that the hand off agent understands all of this too"
+
+"How hard would it be to just fix this aspect fully before releasing" → offered: quest pay grows with trainer level. Owner: "yea do it, but leave the one currently running alone until its finished so the the results can be compared"
+
+"Like i want to release it earlier instead of the initial batch, but i dont want to leave any areas unfinished, i just want to finish up all the unfinished areas and then leave the rest of the update features that haven't been started alone until 1.6.1"
+
+## 2026-11-04, answer to the Codex question about the inherited XP damp / KO floor / lucky odds (3:50 PM, relayed to Claude verbatim)
+
+> Approve the inherited XP/lucky-odds changes
