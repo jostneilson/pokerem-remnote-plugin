@@ -46,3 +46,5 @@ Income shares no longer count bounties/Rocket caches in both battle and variable
 ## Automatic search implementation
 
 `sim/tuning.ts` and `--grid=FILE` now implement bounded grid search. Five focused tests pass (locked keys/ranges, Cartesian expansion/deduplication, true review reward path, restoration on error, ranking/missing coverage). All gates pass: types, 54 files / 344 tests, production build. A four-candidate one-day idle worker smoke produced no recommendation because the required metrics were missing, as intended. This is implementation evidence, not a real economy search or full-matrix acceptance.
+
+- 2026-11-04 final (Claude): `npm run release` exit 0 at 33743c4 — 57 files / 382 tests, types, version check, listing check, build, ZIP. `PluginZip.zip` 13,021,516 bytes, SHA256 `2692762ef07854cff564d1a10aacd8da6b6f4fe732f76f870a07fae1269bd907`. A17 pixel overlap check (headless Chrome over CDP, opaque sprite pixels vs box rects) 32/32 clean across wild, shiny, bounty, prize, Ultra Beast, grunt, Leader and standard trainer at 280/320/400/520px.

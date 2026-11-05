@@ -2,7 +2,15 @@
 
 ## LIVE STATE (2026-11-04 continuation; read this first)
 
-- **19:00 local, Claude: CURRENT STATE, supersedes everything below.**
+- **FINAL (2026-11-04, Claude): 1.6.0 ready for owner review; nothing pushed, tagged or published. Supersedes everything below.**
+  - Branch `update/next` (worktree `update-next`) holds everything: Phases 0–7 plus teams, 18 themes, theme shop, ×1.25 bonus and the A17 battle layout. `update/1.6.1` is merged and identical; do not work there.
+  - Battle layout (owner's words in OWNER_WORDS): your box top-left above your Pokémon, the foe's box bottom-right below the foe, both 6px from their corners (`HUD_INSET`), never covering any sprite. Pixel overlap check 32/32 clean at 280/320/400/520 (ada5337). Team crests are 16×16 pixel art (003f499).
+  - Listing images retaken (23adc22); README pins point at that commit; `listing:check` passes. The images load publicly only after the owner pushes.
+  - `npm run release` exit 0 at 33743c4: 57 files / 382 tests, types, listing check, build. `PluginZip.zip` 13,021,516 bytes, SHA256 `2692762ef07854cff564d1a10aacd8da6b6f4fe732f76f870a07fae1269bd907`.
+  - Balance: owner option B committed; full 20-seed report in BALANCE_REPORT.md. Bands still outside target, all logged under DECISIONS → Needs owner: income-L40 ₽15.2k (accepted B trade-off), abuse 0.80 (at the limit; `catchPerLevel` 0 would bring it under), Leader win 0.89 and cadence 9.9 days, bird 1/280 cards, collector storage day 3.9, keep-team storage, harness wild-turns 1.47 (canonical battle test passes).
+  - Owner to do: decide the Needs owner items, check natively on the old testing deck, then push and publish.
+
+- **19:00 local, Claude: earlier state.**
   - **Owner decision: everything ships as 1.6.0** (OWNER_WORDS). `update/next` now contains Phases 0–7 *and* Phase 6 (teams, 18 themes, theme shop, ×1.25 bonus, A17 battle layout). The `update/1.6.1` branch is merged in and is now identical history; do all further work in `update-next` only. RELEASE_1.6.1.md is superseded; its held-back items are restored (844b739).
   - **Money: owner chose option B** (OWNER_WORDS). Final constants in 504e729: review ₽16, defeat +3.5/level, catch base 0 and +0.25/level, quests ×0.6. Seven-seed results and the remaining L40 trade-off are in DECISIONS (T5.7). The owner also approved the inherited XP damp / KO floor / lucky odds.
   - **Codex's 1.6.0 work was reviewed by Claude**: sound; two CHANGELOG lines were rewritten in player language (e71de7f).
