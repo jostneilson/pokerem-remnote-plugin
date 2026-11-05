@@ -71,3 +71,5 @@ also add to the plan to have the battle arena design to be redone so that the po
 > And make sure it never covers part of the pokemon
 
 > I also want to redo the galarian bird icon art, right now it looks too modern and out of place, it should be 90s pixel video game vibe just like the rest of the game
+
+> can we have it so that the boxes match spacing so it looks even? Like i would prefer the box in the bottom right have the same spacing from the borders that the box in the top left has, then it will be even and not look like shit like it does right now

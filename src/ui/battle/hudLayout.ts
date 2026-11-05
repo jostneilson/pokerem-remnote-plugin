@@ -8,15 +8,17 @@ export interface HudLayout {
   /** ≤ 320px: sprites at 80% and one-line boxes. */
   tight: boolean;
   spriteSize: number;
-  /** Top of the foe box (just under the foe's feet), px from the field top. */
+  /** Top of the foe box (pinned bottom-right, under the foe's feet), px from the field top. */
   foeTop: number;
   /** Your lead's feet, px from the field top. */
   allyFeet: number;
-  /** Top of your box (just above your lead's head), px from the field top. */
+  /** Top of your box (pinned top-left, above your lead), px from the field top. */
   allyTop: number;
 }
 
 const GAP = 6;
+/** Both boxes sit this far from their corner of the field (yours top-left, the foe's bottom-right), so they mirror. */
+export const HUD_INSET = 6;
 /** Your lead stands near the bottom edge, as before A17. */
 const ALLY_FEET_SHARE = 0.93;
 
@@ -26,9 +28,10 @@ export function battleHudLayout(o: { layoutW: number; height: number; foeFeetSha
   const foeSprite = Math.round(o.foeSprite * scale);
   const allyBoxH = tight ? 44 : 60;
   const allyFeet = Math.round(o.height * ALLY_FEET_SHARE);
-  const allySprite = Math.min(Math.round(o.allySprite * scale), allyFeet - allyBoxH - GAP - 4);
-  const foeTop = Math.round(o.height * o.foeFeetShare + GAP);
-  // Your box (HP numbers and XP bar, so taller than the foe's) ends GAP px above the top of your sprite's square.
-  const allyTop = allyFeet - allySprite - GAP - allyBoxH;
+  const allySprite = Math.min(Math.round(o.allySprite * scale), allyFeet - allyBoxH - GAP - HUD_INSET);
+  // The foe's box is pinned to the bottom-right corner; this is its top for the usual box height.
+  const foeTop = o.height - HUD_INSET - (tight ? 34 : 66);
+  // Your box is pinned to the top-left corner and ends at least GAP px above your sprite's whole square.
+  const allyTop = HUD_INSET;
   return { tight, spriteSize: foeSprite, allySprite, foeTop, allyFeet, allyTop };
 }
