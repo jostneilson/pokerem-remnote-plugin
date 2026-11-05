@@ -88,3 +88,5 @@ Log every choice SPEC.md did not fix exactly. Format: `YYYY-MM-DD · Tn.m · dec
 - 2026-11-04 · T6.7 · Owner asked for even box spacing. Both boxes are now pinned to opposite corners with the same inset (`HUD_INSET` = 6px): yours top-left, the foe's bottom-right, in wild and trainer battles at every width. Your sprite still shrinks if needed so your box never covers it; the foe's box stays below the foe's feet. Checked with the pixel overlap script (32/32 clean at 280/320/400/520).
 
 - 2026-11-04 · A13 · **Owner overrode the "no Pokémon GO team names" rule** (OWNER_WORDS): the teams are now shown as Team Valor (red, Galarian Moltres), Team Mystic (blue, Galarian Articuno) and Team Instinct (yellow, Galarian Zapdos). The saved ids stay `ember`/`tide`/`volt`, so existing saves keep their team. The one-line flavour texts and the pixel crests are unchanged.
+
+- 2026-11-04 · T5.7 · **Owner: "Leave as is"** for catch pay per level (`catchPerLevel` 0.25). The farmer/fighter abuse ratio stays at 0.80, exactly at the 0.8 limit; accepted.

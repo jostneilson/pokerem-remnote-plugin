@@ -7,7 +7,7 @@
   - Battle layout (owner's words in OWNER_WORDS): your box top-left above your Pokémon, the foe's box bottom-right below the foe, both 6px from their corners (`HUD_INSET`), never covering any sprite. Pixel overlap check 32/32 clean at 280/320/400/520 (ada5337). Team crests are 16×16 pixel art (003f499).
   - Listing images retaken (23adc22); README pins point at that commit; `listing:check` passes. The images load publicly only after the owner pushes.
   - `npm run release` exit 0 at fef5de8 (after the team rename to Valor/Mystic/Instinct, 7914681): 57 files / 382 tests, types, listing check, build. `PluginZip.zip` 13,022,366 bytes, SHA256 `6e38dd7e2920029e4042e1ac8b2b488d2770da11fe2c113bd907f116c46afd28`.
-  - Balance: owner option B committed; full 20-seed report in BALANCE_REPORT.md. Bands still outside target, all logged under DECISIONS → Needs owner: income-L40 ₽15.2k (accepted B trade-off), abuse 0.80 (at the limit; `catchPerLevel` 0 would bring it under), Leader win 0.89 and cadence 9.9 days, bird 1/280 cards, collector storage day 3.9, keep-team storage, harness wild-turns 1.47 (canonical battle test passes).
+  - Balance: owner option B committed; full 20-seed report in BALANCE_REPORT.md. Bands still outside target, all logged under DECISIONS → Needs owner: income-L40 ₽15.2k (accepted B trade-off), abuse 0.80 (at the limit; owner chose to leave catch pay as is), Leader win 0.89 and cadence 9.9 days, bird 1/280 cards, collector storage day 3.9, keep-team storage, harness wild-turns 1.47 (canonical battle test passes).
   - Owner to do: decide the Needs owner items, check natively on the old testing deck, then push and publish.
 
 - **19:00 local, Claude: earlier state.**

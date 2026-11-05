@@ -75,3 +75,5 @@ also add to the plan to have the battle arena design to be redone so that the po
 > can we have it so that the boxes match spacing so it looks even? Like i would prefer the box in the bottom right have the same spacing from the borders that the box in the top left has, then it will be even and not look like shit like it does right now
 
 > And can we also change the team names to Team Mystic, Team Valor, and Team Instinct just like pokemon go? Mystic is blue, valor is red, and instinct is yellow
+
+> (Asked whether catches should stop paying coins per level to bring the abuse ratio under 0.8) Leave as is
